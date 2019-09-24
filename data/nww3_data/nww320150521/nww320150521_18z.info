@@ -1,0 +1,1216 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>GrADS Data Server - info for /wave/nww3/nww320150521/nww320150521_18z</title>
+</head>
+ <body bgcolor="#ffffff">
+<a href="http://nomads.ncep.noaa.gov:9090/dods">GrADS Data Server</a>
+- <a href="http://nomads.ncep.noaa.gov:9090/dods/">top level</a>
+- <a href="http://nomads.ncep.noaa.gov:9090/dods/wave">wave</a>
+- <a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3">nww3</a>
+- <a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521">nww320150521</a>
+- <a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521/nww320150521_18z">nww320150521_18z</a>
+<br>
+<h2>GrADS Data Server - info for /wave/nww3/nww320150521/nww320150521_18z : <a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521/nww320150521_18z.dds">dds</a>&nbsp;&nbsp;<a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521/nww320150521_18z.das">das</a></h2>
+<hr><br>
+<table><tbody><tr>
+<td valign="bottom"><b>OPeNDAP/DODS Data URL:</b>
+</td><td valign="bottom">http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521/nww320150521_18z</td></tr></tbody></table></p>
+<table>
+   <tbody>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Description:</b><br>
+       </td>
+       <td valign="Bottom" colspan="2">
+WAVE_nww3 Global wave model fcst from 18Z21may2015, downloaded May 21 23:19 UTC<br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Documentation:</b>
+       </td>
+       <td valign="Bottom" colspan="2">(none provided)</a>
+       <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Longitude:</b></td>
+       <td>       
+      <div align="Center">0.00000000000&deg;E to 358.75000000000&deg;E</div>
+       </td>
+       <td>&nbsp;(288 points, avg. res. 1.25&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Latitude:</b></td>
+       <td>       
+      <div align="Center">-78.00000000000&deg;N to 78.00000000000&deg;N</div>
+       </td>
+       <td>&nbsp;(157 points, avg. res. 1.0&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Time:</b></td>
+       <td>       
+      <div align="Center">18Z21MAY2015 to 06Z29MAY2015</div>
+       </td>
+       <td>&nbsp;(61 points, avg. res. 0.125 days)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Variables:</b><br>
+       </td>
+       <td colspan="4"><b>(total of 11)</b><br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>dirpwsfc</b><br>
+       </td>
+       <td colspan="4">** surface none primary wave direction [deg] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>dirswsfc</b><br>
+       </td>
+       <td colspan="4">** surface none secondary wave direction [deg] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>htsgwsfc</b><br>
+       </td>
+       <td colspan="4">** surface none significant height of combined wind waves and swell [m] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>perpwsfc</b><br>
+       </td>
+       <td colspan="4">** surface none primary wave mean period [s] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>perswsfc</b><br>
+       </td>
+       <td colspan="4">** surface none secondary wave mean period [s] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>ugrdsfc</b><br>
+       </td>
+       <td colspan="4">** surface none u-component of wind [m/s] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>vgrdsfc</b><br>
+       </td>
+       <td colspan="4">** surface none v-component of wind [m/s] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>wdirsfc</b><br>
+       </td>
+       <td colspan="4">** surface none wind direction (from which blowing) [deg] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>windsfc</b><br>
+       </td>
+       <td colspan="4">** surface none wind speed [m/s] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>wvdirsfc</b><br>
+       </td>
+       <td colspan="4">** surface none direction of wind waves [deg] <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>wvpersfc</b><br>
+       </td>
+       <td colspan="4">** surface none mean period of wind waves [s] <br>
+       </td>
+     </tr>
+   
+  </tbody> 
+</table>
+<br><a href="http://nomads.ncep.noaa.gov:9090/dods/wave/nww3/nww320150521">back to parent directory</a><br><br><hr><h2>complete metadata listing:</h2>
+<b>Global attributes:</b><p><table>
+
+<tr><td align=right valign=top><b>title</b>:</td>
+<td align=left>"WAVE_nww3 Global wave model fcst from 18Z21may2015, downloaded May 21 23:19 UTC"<br></td></tr>
+
+<tr><td align=right valign=top><b>Conventions</b>:</td>
+<td align=left>"COARDS"<br>"GrADS"<br></td></tr>
+
+<tr><td align=right valign=top><b>dataType</b>:</td>
+<td align=left>"Grid"<br></td></tr>
+
+<tr><td align=right valign=top><b>history</b>:</td>
+<td align=left>"Thu May 28 01:32:05 UTC 2015 : imported by GrADS Data Server 2.0"<br></td></tr>
+</table>
+<p>
+<hr>
+<b>Variables</b><p>
+<table>
+<tr><td align=right valign=top><b>dirpwsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none primary wave direction [deg] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>dirpwsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none primary wave direction [deg] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>dirswsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none secondary wave direction [deg] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>dirswsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none secondary wave direction [deg] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>htsgwsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none significant height of combined wind waves and swell [m] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>htsgwsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none significant height of combined wind waves and swell [m] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>perpwsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none primary wave mean period [s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>perpwsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none primary wave mean period [s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>perswsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none secondary wave mean period [s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>perswsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none secondary wave mean period [s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>ugrdsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none u-component of wind [m/s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>ugrdsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none u-component of wind [m/s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>vgrdsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none v-component of wind [m/s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>vgrdsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none v-component of wind [m/s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>wdirsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none wind direction (from which blowing) [deg] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>wdirsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none wind direction (from which blowing) [deg] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>windsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none wind speed [m/s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>windsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none wind speed [m/s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>wvdirsfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none direction of wind waves [deg] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>wvdirsfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none direction of wind waves [deg] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>wvpersfc</b>:</td>
+<td align=left valign=top>Grid<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none mean period of wind waves [s] "
+<br>
+<table>
+<tr>
+<td align=right valign=top><b>wvpersfc</b>:</td>
+<td align=left valign=top>Array of 32 bit Reals [time = 0..60][lat = 0..156][lon = 0..287]
+<br>
+_FillValue: 9.999E20
+<br>
+missing_value: 9.999E20
+<br>
+long_name: "** surface none mean period of wind waves [s] "
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr>
+<tr>
+<td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr>
+</table>
+</tr><tr><td align=right valign=top><b>time</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [time = 0..60]
+<br>
+grads_dim: "t"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "61"
+<br>
+grads_min: "18z21may2015"
+<br>
+grads_step: "3hr"
+<br>
+units: "days since 1-1-1 00:00:0.0"
+<br>
+long_name: "time"
+<br>
+minimum: "18z21may2015"
+<br>
+maximum: "06z29may2015"
+<br>
+resolution: 0.125
+<br>
+</tr><tr><td align=right valign=top><b>lat</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lat = 0..156]
+<br>
+grads_dim: "y"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "157"
+<br>
+units: "degrees_north"
+<br>
+long_name: "latitude"
+<br>
+minimum: -78.00000000000
+<br>
+maximum: 78.00000000000
+<br>
+resolution: 1.0
+<br>
+</tr><tr><td align=right valign=top><b>lon</b>:</td>
+<td align=left valign=top>Array of 64 bit Reals [lon = 0..287]
+<br>
+grads_dim: "x"
+<br>
+grads_mapping: "linear"
+<br>
+grads_size: "288"
+<br>
+units: "degrees_east"
+<br>
+long_name: "longitude"
+<br>
+minimum: 0.00000000000
+<br>
+maximum: 358.75000000000
+<br>
+resolution: 1.25
+<br>
+</tr></table>
+<p>
+
+<a href="#">back to top</a><br>
+<br>
+<hr><font size="-1"><a href="http://www.iges.org/grads/gds">
+GrADS Data Server</a> 2.0 (<a href="http://nomads.ncep.noaa.gov:9090/dods/help">help&nbsp;using&nbsp;this&nbsp;server</a>)
+. This page last updated 01Z 28 May 2015. &nbsp;</font>
+<br>
+</body>
+</html>

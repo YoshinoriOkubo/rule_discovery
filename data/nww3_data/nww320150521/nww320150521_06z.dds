@@ -1,0 +1,93 @@
+Dataset {
+  Grid {
+    ARRAY:
+      Float32 dirpwsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } dirpwsfc;
+  Grid {
+    ARRAY:
+      Float32 dirswsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } dirswsfc;
+  Grid {
+    ARRAY:
+      Float32 htsgwsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } htsgwsfc;
+  Grid {
+    ARRAY:
+      Float32 perpwsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } perpwsfc;
+  Grid {
+    ARRAY:
+      Float32 perswsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } perswsfc;
+  Grid {
+    ARRAY:
+      Float32 ugrdsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } ugrdsfc;
+  Grid {
+    ARRAY:
+      Float32 vgrdsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } vgrdsfc;
+  Grid {
+    ARRAY:
+      Float32 wdirsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } wdirsfc;
+  Grid {
+    ARRAY:
+      Float32 windsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } windsfc;
+  Grid {
+    ARRAY:
+      Float32 wvdirsfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } wvdirsfc;
+  Grid {
+    ARRAY:
+      Float32 wvpersfc[time = 61][lat = 157][lon = 288];
+    MAPS:
+      Float64 time[time = 61];
+      Float64 lat[lat = 157];
+      Float64 lon[lon = 288];
+  } wvpersfc;
+  Float64 time[time = 61];
+  Float64 lat[lat = 157];
+  Float64 lon[lon = 288];
+} wave/nww3/nww320150521/nww320150521_06z;
