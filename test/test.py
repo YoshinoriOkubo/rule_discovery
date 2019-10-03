@@ -11,5 +11,5 @@ from constants  import *
 
 x = Sinario()
 x.generate_sinario(DERIVE_SINARIO_MODE['binomial'])
-ga = GA(x.predicted_data)
+ga = GA(x.predicted_data,TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
 ga.execute_GA()
