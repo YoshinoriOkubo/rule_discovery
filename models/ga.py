@@ -2,7 +2,9 @@ import random
 import copy
 import time
 import sys
+import matplotlib.pyplot as plt
 import numpy
+import os
 from oil_price import Sinario
 from ship import Ship
 # import own modules #
@@ -11,12 +13,19 @@ from constants  import *
 
 class GA:
 
-    def __init__(self,history_data,generation=None,num=None,alpha=None):
-        self.history_data = history_data#oil_price_history_data
-        self.generation = generation if generation else 50 # the number of generation
-        self.num = num if num else 100  # the number of individual
-        self.alpha = alpha if alpha else 0.05 # the rate of mutation
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,generation=None,num=None,alpha=None):
+        self.oil_price_data = oil_price_data #oil_price_history_data
+        self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
+        self.freight_rate_return_data = freight_rate_return # freight rate return history data
+        self.TEU_size = TEU_size #size of ship(TEU)
+        self.init_speed = init_speed # initial speed of ship (km/h)
+        self.route_distance = route_distance # distance of fixed route (km)
+        self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
+        self.num = num if num else DEFAULT_NUM_OF_INDIVIDUAL  # the number of individual
+        self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
         self.group = [] # group that has individual
+        self.bestgroup = [] # group that has the best individuals in each generation
+        self.averagegroup = [] # the average value of fitness in each generation
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -76,6 +85,7 @@ class GA:
             temp2.append(b[x])
         return [temp1,temp2]
 
+    '''
     def mutation(self,individual):
         x = random.randint(0,5)
         if x == 4:
@@ -88,22 +98,47 @@ class GA:
                 point = random.randint(0,length)
                 individual[x][point] = (individual[x][point] + 1) % 2
         return individual
+    '''
 
-    def fitness_function(self,history_data,rule):
-        ship = Ship(12000,25,9000)
-        fitness = 0
-        for month in range(VESSEL_LIFE_TIME * 12):
-            result = self.adapt_rule(history_data[month][1],ship.speed,rule)
-            if result[0]:
-                ship.change_speed(ship.speed + result[1])
-            fitness += ship.calculate_income_per_month(history_data[month][1])
-        return round(fitness / 10000000)
+    def mutation(self,individual):
+        for x in range(len(individual)-1):
+            if x == 4:
+                individual[x] = random.randint(0,2) - 1
+            else:
+                if x == 5:
+                    individual[x] = (individual[x] + random.randint(0,3)) % 4
+                else:
+                    length = len(individual[x]) - 1
+                    point = random.randint(0,length)
+                    individual[x][point] = (individual[x][point] + 1) % 2
+        return individual
+
+    def fitness_function(self,rule):
+        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+        average_fitness = 0
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
+            for year in range(VESSEL_LIFE_TIME):
+                cash_flow = 0
+                for month in range(12):
+                    current_oil_price = self.oil_price_data[pattern][month]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
+                    result = self.adapt_rule(current_oil_price,ship.speed,rule)
+                    if result[0]:
+                        ship.change_speed(ship.speed + result[1])
+                    cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
+                DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                average_fitness += cash_flow / DISCOUNT
+        average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
+        average_fitness /= 1000000
+        return max(0,average_fitness)
 
     def generateIndividual(self):
         temp = []
         for i in range(2):
             temp.append([])
-            for j in range(7):
+            for j in range(8):
                 temp[i].append(random.randint(0,1))
         for a in range(2):
             temp.append([])
@@ -114,6 +149,25 @@ class GA:
         temp.append(random.randint(0,3))
         temp.append(0)
         return temp
+
+    def depict_best_individual(self):
+        x = range(0,self.generation)
+        y = []
+        z = []
+        for i in range(self.generation):
+            y.append(self.bestgroup[i][-1])
+            z.append(self.averagegroup[i])
+        plt.plot(x, y, marker='o',label='best')
+        plt.plot(x, z, marker='x',label='average')
+        plt.title('Transition of fitness', fontsize = 20)
+        plt.xlabel('generation', fontsize = 16)
+        plt.ylabel('fitness value', fontsize = 16)
+        plt.tick_params(labelsize=14)
+        plt.grid(True)
+        plt.legend(loc = 'lower right')
+        save_dir = '../image'
+        plt.savefig(os.path.join(save_dir, 'fitness.png'))
+        #plt.show()
 
     def execute_GA(self):
         first = time.time()
@@ -154,23 +208,32 @@ class GA:
             #computation of fitness
             for one in range(len(temp)):
                 rule = temp[one]
-                rule[-1] = self.fitness_function(self.history_data,rule)
+                rule[-1] = self.fitness_function(rule)
 
             #reduce the number of individual
             #num -= 10
 
             #selection
+            #store the best individual
+            temp.sort(key=lambda x:x[-1],reverse = True)
+            self.group[0] = temp[0]
             ark = 0 # the number used to roulette in crossing
             probability = 0
             for i in range(len(temp)):
                 probability += temp[i][-1]
             roulette = 0
-            for i in range(self.num):
+            for i in range(1,self.num):
                 roulette = random.randint(0,int(probability))
                 while roulette > 0:
                     roulette -= temp[ark][-1]
                     ark = (ark + 1) % self.num
                 self.group[i] = temp[ark]
+            self.group.sort(key=lambda x:x[-1],reverse = True)
+            self.bestgroup.append(self.group[0])
+            total = 0
+            for e in range(self.num):
+                total += self.group[e][-1]
+            self.averagegroup.append(total/self.num)
 
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)

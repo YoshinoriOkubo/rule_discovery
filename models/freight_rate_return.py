@@ -10,10 +10,10 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-class Sinario:
+class FreightReturn:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_history_data()
+            self.history_data = load_monthly_freight_rate_data(RETURN)
         else:
             self.history_data = history_data
         # initialize parameters
@@ -27,16 +27,16 @@ class Sinario:
         index   = 0
         delta_t = 1.0 / 12
         values  = np.array([])
-        for date, oil_price in self.history_data:
+        for date, freight_rate in self.history_data:
             if index == 0:
                 # initialize the price
-                s_0 = oil_price
+                s_0 = freight_rate
             else:
-                s_t      = oil_price
+                s_t      = freight_rate
                 base_val = math.log(s_t / s_0)
                 values   = np.append(values, base_val)
                 # update the price
-                s_0      = oil_price
+                s_0      = freight_rate
             index += 1
 
         # substitute inf to nan in values
@@ -48,8 +48,8 @@ class Sinario:
         self.p      = 0.5 + 0.5 * (self.neu / self.sigma) * np.sqrt(delta_t)
         return
 
-    def calc_oilprice(self, current_oilprice):
-        return self.u * current_oilprice if prob(self.p) else self.d * current_oilprice
+    def calc_freight_rate(self, current_freight_rate):
+        return self.u * current_freight_rate if prob(self.p) else self.d * current_freight_rate
 
     # generate predicted sinario
     def generate_sinario(self, sinario_mode, predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -64,46 +64,46 @@ class Sinario:
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        latest_history_date_str, latest_oilprice = self.history_data[-1]
+        latest_history_date_str, latest_freight_rate = self.history_data[-1]
         #日付型に変換
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
 
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
-            current_oilprice = latest_oilprice
+            current_freight_rate = latest_freight_rate
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
 
-                # change oil_price by mode
+                # change freight_rate by mode
                 if sinario_mode == DERIVE_SINARIO_MODE['high']:
-                    current_oilprice = HIGH_OIL_PRICE
+                    current_freight_rate = HIGH_OIL_PRICE
                 elif sinario_mode == DERIVE_SINARIO_MODE['low']:
-                    current_oilprice = LOW_OIL_PRICE
+                    current_freight_rate = LOW_OIL_PRICE
                 elif sinario_mode == DERIVE_SINARIO_MODE['maintain']:
-                    current_oilprice = current_oilprice
+                    current_freight_rate = current_freight_rate
                 else:#mean binomial
-                    current_oilprice    = self.calc_oilprice(current_oilprice)
-                # change oil_price by mode
+                    current_freight_rate    = self.calc_freight_rate(current_freight_rate)
+                # change freight_rate by mode
 
-                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
+                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return
 
     def depict(self):
         x = range(self.predict_years*12)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(self.predict_years*12):
-                y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
-        plt.title('Transition of oil price', fontsize = 20)
+        y = []
+        for i in range(self.predict_years*12):
+            y.append(self.predicted_data[0][i]['price'])
+        plt.plot(x, y,label='return_price')
+        plt.title('Transition of freight rate return', fontsize = 20)
         plt.xlabel('month', fontsize = 16)
-        plt.ylabel('oil price', fontsize = 16)
+        plt.ylabel('freight rate return', fontsize = 16)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
         save_dir = '../image'
-        plt.savefig(os.path.join(save_dir, 'oil_price.png'))
-        plt.show()
+        plt.savefig(os.path.join(save_dir, 'freight_rate.png'))
         plt.close()
+        #plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
+        #plt.show()

@@ -1,6 +1,7 @@
 import calendar as cal
 import numpy as np
 import datetime
+from constants import *
 
 #load history data of crude oil
 def load_monthly_history_data(from_date=None, to_date=None):
@@ -33,6 +34,45 @@ def load_monthly_history_data(from_date=None, to_date=None):
         data = data[:index]
 
     return data
+
+#load history data of freight rate
+def load_monthly_freight_rate_data(direction,from_date=None, to_date=None):
+    if direction == OUTWARD:
+        history_data_path = '../data/freight_rate_history_outward.csv'
+    else:
+        if direction == RETURN:
+            history_data_path = '../data/freight_rate_history_return.csv'
+        else:
+            raise Exception('Error!')
+    # read data
+    dt   = np.dtype({'names': ('date', 'price'),
+                   'formats': ('S10' , np.float)})
+    data = np.genfromtxt(history_data_path,
+                         delimiter=',',
+                         dtype=dt,
+                         usecols=[0,1],
+                         skip_header=1)
+
+    # from_date
+    if not from_date is None:
+        from_datetime = datetime.datetime.strptime(from_date, "%Y/%m/%d")
+        for index in range(len(data)):
+            datetime_key = datetime.datetime.strptime(data['date'][index], "%Y/%m/%d")
+            if from_datetime <= datetime_key:
+                break
+        data = data[index:]
+
+    # to_date
+    if not to_date is None:
+        to_datetime = datetime.datetime.strptime(to_date, "%Y/%m/%d")
+        for index in range(len(data)):
+            datetime_key = datetime.datetime.strptime(data['date'][index], "%Y/%m/%d")
+            if to_datetime <= datetime_key:
+                break
+        data = data[:index]
+
+    return data
+
 
 # load history data of world scale
 ## monthly
