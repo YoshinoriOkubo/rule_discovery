@@ -52,7 +52,7 @@ class FreightOutward:
         return self.u * current_freight_rate if prob(self.p) else self.d * current_freight_rate
 
     # generate predicted sinario
-    def generate_sinario(self, sinario_mode, predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
+    def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
 
@@ -74,18 +74,7 @@ class FreightOutward:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-
-                # change freight_rate by mode
-                if sinario_mode == DERIVE_SINARIO_MODE['high']:
-                    current_freight_rate = HIGH_OIL_PRICE
-                elif sinario_mode == DERIVE_SINARIO_MODE['low']:
-                    current_freight_rate = LOW_OIL_PRICE
-                elif sinario_mode == DERIVE_SINARIO_MODE['maintain']:
-                    current_freight_rate = current_freight_rate
-                else:#mean binomial
-                    current_freight_rate    = self.calc_freight_rate(current_freight_rate)
-                # change freight_rate by mode
-
+                current_freight_rate    = self.calc_freight_rate(current_freight_rate)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return
