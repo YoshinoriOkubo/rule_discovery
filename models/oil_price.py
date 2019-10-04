@@ -74,18 +74,7 @@ class Sinario:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-
-                # change oil_price by mode
-                if sinario_mode == DERIVE_SINARIO_MODE['high']:
-                    current_oilprice = HIGH_OIL_PRICE
-                elif sinario_mode == DERIVE_SINARIO_MODE['low']:
-                    current_oilprice = LOW_OIL_PRICE
-                elif sinario_mode == DERIVE_SINARIO_MODE['maintain']:
-                    current_oilprice = current_oilprice
-                else:#mean binomial
-                    current_oilprice    = self.calc_oilprice(current_oilprice)
-                # change oil_price by mode
-
+                current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return

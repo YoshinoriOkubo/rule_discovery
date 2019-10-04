@@ -12,9 +12,8 @@ from constants  import *
 
 
 sinario = Sinario()
-sinario.generate_sinario(DERIVE_SINARIO_MODE['binomial'])
+sinario.generate_sinario()
 sinario.depict()
-'''
 freight_outward = FreightOutward()
 freight_outward.generate_sinario(DERIVE_SINARIO_MODE['binomial'])
 freight_outward.depict()
@@ -24,4 +23,3 @@ freight_return.depict()
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
 ga.execute_GA()
 ga.depict_best_individual()
-'''
