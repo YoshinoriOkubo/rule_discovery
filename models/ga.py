@@ -150,7 +150,7 @@ class GA:
         temp.append(0)
         return temp
 
-    def depict_best_individual(self):
+    def depict(self):
         x = range(0,self.generation)
         y = []
         z = []
