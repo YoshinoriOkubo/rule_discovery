@@ -19,8 +19,10 @@ class FreightReturn:
         # initialize parameters
         if (neu is None or sigma is None or u is None or d is None or p is None):
             self.calc_params_from_history()
+            print(self.neu, self.sigma, self.u, self.d, self.p)
         else:
             self.neu, self.sigma, self.u, self.d, self.p = neu, sigma, u, d, p
+
 
     # calc neu and sigma from history data
     def calc_params_from_history(self):

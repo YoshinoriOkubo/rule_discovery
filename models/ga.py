@@ -5,6 +5,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy
 import os
+from multiprocessing import Pool
+import multiprocessing as multi
 from oil_price import Sinario
 from ship import Ship
 # import own modules #
@@ -26,6 +28,7 @@ class GA:
         self.group = [] # group that has individual
         self.bestgroup = [] # group that has the best individuals in each generation
         self.averagegroup = [] # the average value of fitness in each generation
+        #self.average_fitness = 0 # the average value of fitness
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -42,14 +45,12 @@ class GA:
     def convert2to10(self,x1,x2,x3,x4,x5,x6,x7):
         return x1*64 + x2*32 + x3*16 + x4*8 + x5*4 + x6*2 + x7
 
-    def adapt_rule(self,oil_price,speed,rule):
+    def adapt_rule(self,oil_price,speed,freight,rule):
         if self.convert2to10_in_list(rule[0]) < oil_price and oil_price < self.convert2to10_in_list(rule[1]):
             if self.convert2to10_in_list(rule[2]) < speed and speed < self.convert2to10_in_list(rule[3]):
-                return [True,rule[4]*rule[5]]
-            else:
-                return [False]
-        else:
-            return [False]
+                if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])] < freight and freight < FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]:
+                    return [True,rule[-2]*rule[-3]]
+        return [False]
 
     def exchange(self,rule,p1,p2):
         newRule = []
@@ -61,13 +62,13 @@ class GA:
                     newRule.append(copy.deepcopy(rule[p1]))
                 else:
                     newRule.append(copy.deepcopy(rule[i]))
-        newRule.append(rule[4])
-        newRule.append(rule[5])
-        newRule.append(rule[6])
+        newRule.append(rule[-3])
+        newRule.append(rule[-2])
+        newRule.append(rule[-1])
         return newRule
 
     def crossing(self,a,b,num_block):
-        #for exapmle, a = [ [0,0,1,1,0,0,1], [0,1,0,1,0,1,0,1],[0,0,0,0,0],[0,0,0,0,1],-1,3,0]
+        #for exapmle, a = [ [0,0,1,1,0,0,1], [0,1,0,1,0,1,0,1],[0,0,0,0,0],[0,0,0,0,1],[],[]-1,3,0]
         temp1 = []
         temp2 = []
         for x in range(num_block):
@@ -102,10 +103,10 @@ class GA:
 
     def mutation(self,individual):
         for x in range(len(individual)-1):
-            if x == 4:
+            if x == len(individual)-3:
                 individual[x] = random.randint(0,2) - 1
             else:
-                if x == 5:
+                if x == len(individual)-2:
                     individual[x] = (individual[x] + random.randint(0,3)) % 4
                 else:
                     length = len(individual[x]) - 1
@@ -113,6 +114,40 @@ class GA:
                     individual[x][point] = (individual[x][point] + 1) % 2
         return individual
 
+    '''
+
+    def process(self,pattern,rule):
+        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+        fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
+        for year in range(VESSEL_LIFE_TIME):
+            cash_flow = 0
+            for month in range(12):
+                current_oil_price = self.oil_price_data[pattern][month]['price']
+                current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
+                current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
+                result = self.adapt_rule(current_oil_price,ship.speed,rule)
+                if result[0]:
+                    ship.change_speed(ship.speed + result[1])
+                cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
+            DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+            self.average_fitness += cash_flow / DISCOUNT
+
+    def wrap_process(self,num):
+        return self.process(*num)
+
+    def fitness_function(self,rule):
+        self.average_fitness = 0
+        with Pool(processes=multi.cpu_count()) as pool:
+            args = [ (i, rule) for i in range(DEFAULT_PREDICT_PATTERN_NUMBER)]
+            pool.map(self.wrap_process,args)
+        #with Pool(processes=multi.cpu_count()) as pool:
+        #    pool.map(self.process, range(DEFAULT_PREDICT_PATTERN_NUMBER))
+        self.average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
+        self.average_fitness /= 1000000
+        return max(0,self.average_fitness)
+
+
+    '''
     def fitness_function(self,rule):
         ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
         average_fitness = 0
@@ -124,14 +159,16 @@ class GA:
                     current_oil_price = self.oil_price_data[pattern][month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
-                    result = self.adapt_rule(current_oil_price,ship.speed,rule)
+                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    result = self.adapt_rule(current_oil_price,ship.speed,total_freight,rule)
                     if result[0]:
                         ship.change_speed(ship.speed + result[1])
                     cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 average_fitness += cash_flow / DISCOUNT
+            ship.chagne_speed_to_initial()
         average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
-        average_fitness /= 1000000
+        average_fitness /= 100000000
         return max(0,average_fitness)
 
     def generateIndividual(self):
@@ -144,6 +181,10 @@ class GA:
             temp.append([])
             for b in range(5):
                 temp[a+2].append(random.randint(0,1))
+        for c in range(2):
+            temp.append([])
+            for d in range(4):
+                temp[c+4].append(random.randint(0,1))
         sign = random.randint(0,2)-1
         temp.append(sign)
         temp.append(random.randint(0,3))
@@ -151,10 +192,10 @@ class GA:
         return temp
 
     def depict(self):
-        x = range(0,self.generation)
+        x = range(0,len(self.bestgroup))
         y = []
         z = []
-        for i in range(self.generation):
+        for i in range(len(self.bestgroup)):
             y.append(self.bestgroup[i][-1])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
@@ -178,11 +219,11 @@ class GA:
 
         #genetic algorithm
         for gene in range(self.generation):
-            print('{}%完了'.format(gene*100.0/self.generation))
+            print('{}%完了'.format(gene*100.0/self.generation),time.time()-first)
             #crossing
             temp = copy.deepcopy(self.group)
             for i in range(0,self.num,2):
-                a,b = self.crossing(temp[i],temp[i+1],4)
+                a,b = self.crossing(temp[i],temp[i+1],6)
                 temp.append(a)
                 temp.append(b)
 
@@ -227,24 +268,29 @@ class GA:
                 while roulette > 0:
                     roulette -= temp[ark][-1]
                     ark = (ark + 1) % self.num
-                self.group[i] = temp[ark]
+                self.group[i] = temp.pop(ark)
             self.group.sort(key=lambda x:x[-1],reverse = True)
             self.bestgroup.append(self.group[0])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-
+            if gene > 10 and self.bestgroup[-1] == self.bestgroup[-4]:
+                break
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
+            if i == 0:
+                print(self.group[i])
             thisone = self.group[i]
             a = self.convert2to10_in_list(thisone[0])
             b = self.convert2to10_in_list(thisone[1])
             c = self.convert2to10_in_list(thisone[2])
             d = self.convert2to10_in_list(thisone[3])
+            e = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[4])]
+            f = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[5])]
             #if thisone[9] > 400:
-            print('{0} < oil price < {1} and {2} < speed < {3} -> {4}  fitness value = {5}'.format(a,b,c,d,thisone[4]*thisone[5],thisone[-1]))
+            print('{0} < oil price < {1} and {2} < speed < {3} and {4} < freight < {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,thisone[-3]*thisone[-2],thisone[-1]))
         print('finish')
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))

@@ -27,6 +27,9 @@ class Ship:
     def change_speed(self,speed):
         self.speed = speed if speed > MINIMUM_SHIP_SPEED else MINIMUM_SHIP_SPEED
 
+    def chagne_speed_to_initial(self):
+        self.speed = INITIAL_SPEED
+
     def calculate_fuel_consumption_from_speed(self):
         speed_km_h = self.change_knot_to_km_h(self.speed)
         DWT = 10.8 * self.size + 12400

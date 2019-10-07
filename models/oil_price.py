@@ -19,6 +19,7 @@ class Sinario:
         # initialize parameters
         if (neu is None or sigma is None or u is None or d is None or p is None):
             self.calc_params_from_history()
+            print(self.neu, self.sigma, self.u, self.d, self.p)
         else:
             self.neu, self.sigma, self.u, self.d, self.p = neu, sigma, u, d, p
 
@@ -94,5 +95,4 @@ class Sinario:
         plt.legend(loc = 'lower right')
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'oil_price.png'))
-        plt.show()
         plt.close()
