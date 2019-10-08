@@ -5,12 +5,14 @@ import sys
 import matplotlib.pyplot as plt
 import numpy
 import os
+import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
 from oil_price import Sinario
 from ship import Ship
 # import own modules #
 sys.path.append('../public')
+sys.path.append('../output')
 from constants  import *
 
 class GA:
@@ -46,15 +48,21 @@ class GA:
         return x1*64 + x2*32 + x3*16 + x4*8 + x5*4 + x6*2 + x7
 
     def adapt_rule(self,oil_price,speed,freight,rule):
-        if self.convert2to10_in_list(rule[0]) < oil_price and oil_price < self.convert2to10_in_list(rule[1]):
-            if self.convert2to10_in_list(rule[2]) < speed and speed < self.convert2to10_in_list(rule[3]):
-                if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])] < freight and freight < FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]:
-                    return [True,rule[-2]*rule[-3]]
+        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
+        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
+        if a == b or ( a < oil_price and oil_price < b):
+            c = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[2])]
+            d = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[3])]
+            if c == d or (c < speed and speed < d):
+                e = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])]
+                f = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]
+                if e == f or ( e < freight and freight < f):
+                    return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
         return [False]
 
     def exchange(self,rule,p1,p2):
         newRule = []
-        for i in range(len(rule)-3):
+        for i in range(len(rule)-2):
             if i == p1:
                 newRule.append(copy.deepcopy(rule[p2]))
             else:
@@ -62,13 +70,12 @@ class GA:
                     newRule.append(copy.deepcopy(rule[p1]))
                 else:
                     newRule.append(copy.deepcopy(rule[i]))
-        newRule.append(rule[-3])
         newRule.append(rule[-2])
         newRule.append(rule[-1])
         return newRule
 
     def crossing(self,a,b,num_block):
-        #for exapmle, a = [ [0,0,1,1,0,0,1], [0,1,0,1,0,1,0,1],[0,0,0,0,0],[0,0,0,0,1],[],[]-1,3,0]
+        #for exapmle, a = [ [1,0,0,0], [0,1,0,1],[1,1,1,0],[0,0,0,0],[1,1,0,0],[1,0,0,1],[1,0,0,1],0]
         temp1 = []
         temp2 = []
         for x in range(num_block):
@@ -103,15 +110,9 @@ class GA:
 
     def mutation(self,individual):
         for x in range(len(individual)-1):
-            if x == len(individual)-3:
-                individual[x] = random.randint(0,2) - 1
-            else:
-                if x == len(individual)-2:
-                    individual[x] = (individual[x] + random.randint(0,3)) % 4
-                else:
-                    length = len(individual[x]) - 1
-                    point = random.randint(0,length)
-                    individual[x][point] = (individual[x][point] + 1) % 2
+            length = len(individual[x]) - 1
+            point = random.randint(0,length)
+            individual[x][point] = (individual[x][point] + 1) % 2
         return individual
 
     '''
@@ -149,6 +150,7 @@ class GA:
 
     '''
     def fitness_function(self,rule):
+        #converge = 0
         ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
         average_fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -162,32 +164,33 @@ class GA:
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     result = self.adapt_rule(current_oil_price,ship.speed,total_freight,rule)
                     if result[0]:
-                        ship.change_speed(ship.speed + result[1])
+                        #converge += 1
+                        ship.change_speed(result[1])
                     cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
         average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         average_fitness /= 100000000
-        return max(0,average_fitness)
+        return max(0,average_fitness)# + converge/(DEFAULT_PREDICT_PATTERN_NUMBER*VESSEL_LIFE_TIME*12))
 
     def generateIndividual(self):
         temp = []
         for i in range(2):
             temp.append([])
-            for j in range(8):
+            for j in range(4):
                 temp[i].append(random.randint(0,1))
         for a in range(2):
             temp.append([])
-            for b in range(5):
+            for b in range(4):
                 temp[a+2].append(random.randint(0,1))
         for c in range(2):
             temp.append([])
             for d in range(4):
                 temp[c+4].append(random.randint(0,1))
-        sign = random.randint(0,2)-1
-        temp.append(sign)
-        temp.append(random.randint(0,3))
+        temp.append([])
+        for e in range(4):
+            temp[6].append(random.randint(0,1))
         temp.append(0)
         return temp
 
@@ -209,6 +212,25 @@ class GA:
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'fitness.png'))
         #plt.show()
+
+    def export_excel(self):
+        wb = openpyxl.load_workbook('../output/ship_rule.xlsx')
+        sheet = wb['Sheet1']
+        for i in range(0,self.num):
+            individual = self.group[i]
+            sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
+            for j in range(len(individual)):
+                if j < len(individual) - 1:
+                    if j == 2 or j == 3 or j == 6:
+                        sheet.cell(row = i + 1, column = j + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[j])]
+                    elif j == 0 or j == 1:
+                        sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
+                    else:
+                        sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
+                else:
+                    sheet.cell(row = i + 1, column = j + 2).value = individual[j]
+        wb.save('../output/ship_rule.xlsx')
+        print('saving changes')
 
     def execute_GA(self):
         first = time.time()
@@ -245,6 +267,10 @@ class GA:
                 upper = self.convert2to10_in_list(rule[3])
                 if lower > upper:
                     temp[k] = self.exchange(rule,2,3)
+                lower = self.convert2to10_in_list(rule[4])
+                upper = self.convert2to10_in_list(rule[5])
+                if lower > upper:
+                    temp[k] = self.exchange(rule,4,5)
 
             #computation of fitness
             for one in range(len(temp)):
@@ -255,6 +281,43 @@ class GA:
             #num -= 10
 
             #selection
+
+            #steady state ga
+            '''
+            for i in range(0,self.num,2):
+                store = []
+                store.append(temp[i])
+                store.append(temp[i+1])
+                store.append(temp[self.num + i])
+                store.append(temp[self.num + i+1])
+                store.sort(key=lambda x:x[-1],reverse = True)
+                self.group[i] = store[0]
+                self.group[i+1] = store[1]
+            self.group.sort(key=lambda x:x[-1],reverse = True)
+            self.bestgroup.append(self.group[0])
+            total = 0
+            for e in range(self.num):
+                total += self.group[e][-1]
+            self.averagegroup.append(total/self.num)
+            '''
+            '''
+            #tournament selection
+            for select in range(self.num):
+                tournament = []
+                for _ in range(6):
+                    tournament.append(temp[random.randint(0,2*self.num-1)])
+                tournament.sort(key=lambda x:x[-1],reverse = True)
+                self.group[select] = tournament[0]
+            self.group.sort(key=lambda x:x[-1],reverse = True)
+            self.bestgroup.append(self.group[0])
+            total = 0
+            for e in range(self.num):
+                total += self.group[e][-1]
+            self.averagegroup.append(total/self.num)
+            '''
+
+            #'''
+            #roulette selection
             #store the best individual
             temp.sort(key=lambda x:x[-1],reverse = True)
             self.group[0] = temp[0]
@@ -275,22 +338,25 @@ class GA:
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            if gene > 10 and self.bestgroup[-1] == self.bestgroup[-4]:
-                break
+            #if gene > 10 and self.bestgroup[-1] == self.bestgroup[-4]:
+            #    break
+            #'''
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
             if i == 0:
                 print(self.group[i])
             thisone = self.group[i]
-            a = self.convert2to10_in_list(thisone[0])
-            b = self.convert2to10_in_list(thisone[1])
-            c = self.convert2to10_in_list(thisone[2])
-            d = self.convert2to10_in_list(thisone[3])
+            a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
+            b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
+            c = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[2])]
+            d = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[3])]
             e = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[4])]
             f = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[5])]
+            h = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
             #if thisone[9] > 400:
-            print('{0} < oil price < {1} and {2} < speed < {3} and {4} < freight < {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,thisone[-3]*thisone[-2],thisone[-1]))
+            print('{0} < oil price < {1} and {2} < speed < {3} and {4} < freight < {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,h,thisone[-1]))
         print('finish')
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
+        self.export_excel()
