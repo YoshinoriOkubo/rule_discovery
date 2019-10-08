@@ -67,7 +67,7 @@ class FreightReturn:
 
         # latest date from history_data
         latest_history_date_str, latest_freight_rate = self.history_data[-1]
-        #日付型に変換
+
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
 
         for pattern in range(predict_pattern_number):

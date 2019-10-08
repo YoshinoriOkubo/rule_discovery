@@ -17,7 +17,7 @@ from constants  import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,generation=None,num=None,alpha=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,generation=None,num=None,alpha=None,crossing_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
@@ -27,6 +27,7 @@ class GA:
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.num = num if num else DEFAULT_NUM_OF_INDIVIDUAL  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
+        self.crossing_rate = crossing_rate if crossing_rate else DEFAULT_CROSSING_RATE
         self.group = [] # group that has individual
         self.bestgroup = [] # group that has the best individuals in each generation
         self.averagegroup = [] # the average value of fitness in each generation
@@ -39,7 +40,7 @@ class GA:
             x = length - 1 - i
             #print(list[i],x)
             result += list[i] * 2 ** (x)
-        return result
+        return GRAY_CODE[result]
 
     def convert2to10(self,x1,x2,x3,x4,x5):
         return x1*16 + x2*8 + x3*4 + x4*2 + x5
@@ -174,7 +175,7 @@ class GA:
         average_fitness /= 100000000
         return max(0,average_fitness)# + converge/(DEFAULT_PREDICT_PATTERN_NUMBER*VESSEL_LIFE_TIME*12))
 
-    def generateIndividual(self):
+    def generateIndividual(self):#graycode
         temp = []
         for i in range(2):
             temp.append([])
@@ -241,14 +242,17 @@ class GA:
 
         #genetic algorithm
         for gene in range(self.generation):
-            print('{}%完了'.format(gene*100.0/self.generation),time.time()-first)
+            print('{}%finished'.format(gene*100.0/self.generation),time.time()-first)
+
             #crossing
             temp = copy.deepcopy(self.group)
+            #store best individual unchanged
+            temp.append(self.group[0])
             for i in range(0,self.num,2):
-                a,b = self.crossing(temp[i],temp[i+1],6)
-                temp.append(a)
-                temp.append(b)
-
+                if random.random() < self.crossing_rate:
+                    a,b = self.crossing(temp[i],temp[i+1],6)
+                    temp.append(a)
+                    temp.append(b)
 
             #mutation
             for individual in temp:
@@ -256,7 +260,6 @@ class GA:
                     individual = self.mutation(individual)
 
             #rule check
-
             for k in range(len(temp)):
                 rule = temp[k]
                 lower = self.convert2to10_in_list(rule[0])
@@ -283,23 +286,26 @@ class GA:
             #selection
 
             #steady state ga
-            '''
-            for i in range(0,self.num,2):
-                store = []
-                store.append(temp[i])
-                store.append(temp[i+1])
-                store.append(temp[self.num + i])
-                store.append(temp[self.num + i+1])
-                store.sort(key=lambda x:x[-1],reverse = True)
-                self.group[i] = store[0]
-                self.group[i+1] = store[1]
+            #'''
+            for i in range(0,len(temp),2):
+                if i + 1 < self.num:
+                    store = []
+                    store.append(temp[i])
+                    store.append(temp[i+1])
+                    if self.num + i < len(temp):
+                        store.append(temp[self.num + i])
+                    if self.num + i + 1 < len(temp):
+                        store.append(temp[self.num + i+1])
+                    store.sort(key=lambda x:x[-1],reverse = True)
+                    self.group[i] = store[0]
+                    self.group[i+1] = store[1]
             self.group.sort(key=lambda x:x[-1],reverse = True)
             self.bestgroup.append(self.group[0])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            '''
+            #'''
             '''
             #tournament selection
             for select in range(self.num):
@@ -316,7 +322,7 @@ class GA:
             self.averagegroup.append(total/self.num)
             '''
 
-            #'''
+            '''
             #roulette selection
             #store the best individual
             temp.sort(key=lambda x:x[-1],reverse = True)
@@ -331,8 +337,8 @@ class GA:
                 while roulette > 0:
                     roulette -= temp[ark][-1]
                     ark = (ark + 1) % self.num
-                self.group[i] = temp.pop(ark)
-            self.group.sort(key=lambda x:x[-1],reverse = True)
+                self.group[i] = temp[ark]
+            #self.group.sort(key=lambda x:x[-1],reverse = True)
             self.bestgroup.append(self.group[0])
             total = 0
             for e in range(self.num):
@@ -340,7 +346,7 @@ class GA:
             self.averagegroup.append(total/self.num)
             #if gene > 10 and self.bestgroup[-1] == self.bestgroup[-4]:
             #    break
-            #'''
+            '''
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
