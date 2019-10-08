@@ -286,7 +286,7 @@ class GA:
             #selection
 
             #steady state ga
-            #'''
+            '''
             for i in range(0,len(temp),2):
                 if i + 1 < self.num:
                     store = []
@@ -305,7 +305,7 @@ class GA:
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            #'''
+            '''
             '''
             #tournament selection
             for select in range(self.num):
@@ -322,7 +322,7 @@ class GA:
             self.averagegroup.append(total/self.num)
             '''
 
-            '''
+            #'''
             #roulette selection
             #store the best individual
             temp.sort(key=lambda x:x[-1],reverse = True)
@@ -338,15 +338,15 @@ class GA:
                     roulette -= temp[ark][-1]
                     ark = (ark + 1) % self.num
                 self.group[i] = temp[ark]
-            #self.group.sort(key=lambda x:x[-1],reverse = True)
+            self.group.sort(key=lambda x:x[-1],reverse = True)
             self.bestgroup.append(self.group[0])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            #if gene > 10 and self.bestgroup[-1] == self.bestgroup[-4]:
-            #    break
-            '''
+            if gene > 10 and self.bestgroup[-1] == self.bestgroup[-2] == self.bestgroup[-3]:
+                break
+            #'''
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
