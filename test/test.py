@@ -26,9 +26,9 @@ ga.execute_GA()
 ga.depict()
 
 #x = range(180)
-y = ga.speed_history
-for e in y:
-    print(e)
+#y = ga.speed_history
+#for e in y:
+#    print(e)
 #plt.plot(x, y, marker='o',label='best')
 #plt.title('Transition of fitness', fontsize = 20)
 #plt.xlabel('generation', fontsize = 16)
