@@ -31,7 +31,10 @@ class GA:
         self.group = [] # group that has individual
         self.bestgroup = [] # group that has the best individuals in each generation
         self.averagegroup = [] # the average value of fitness in each generation
-        #self.average_fitness = 0 # the average value of fitness
+        self.compare_rule = []
+        for i in range(7):
+            self.compare_rule.append([0,0,0,0])
+        self.compare_rule.append(0)
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -42,22 +45,16 @@ class GA:
             result += list[i] * 2 ** (x)
         return GRAY_CODE[result]
 
-    def convert2to10(self,x1,x2,x3,x4,x5):
-        return x1*16 + x2*8 + x3*4 + x4*2 + x5
-
-    def convert2to10(self,x1,x2,x3,x4,x5,x6,x7):
-        return x1*64 + x2*32 + x3*16 + x4*8 + x5*4 + x6*2 + x7
-
     def adapt_rule(self,oil_price,speed,freight,rule):
         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
         b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
-        if a == b or ( a < oil_price and oil_price < b):
+        if a == b or ( a <= oil_price and oil_price <= b):
             c = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[2])]
             d = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[3])]
-            if c == d or (c < speed and speed < d):
+            if c == d or (c <= speed and speed <= d):
                 e = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])]
                 f = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]
-                if e == f or ( e < freight and freight < f):
+                if e == f or ( e <= freight and freight <= f):
                     return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
         return [False]
 
@@ -93,21 +90,6 @@ class GA:
             temp1.append(a[x])
             temp2.append(b[x])
         return [temp1,temp2]
-
-    '''
-    def mutation(self,individual):
-        x = random.randint(0,5)
-        if x == 4:
-            individual[x] = random.randint(0,2) - 1
-        else:
-            if x == 5:
-                individual[x] = random.randint(0,3)
-            else:
-                length = len(individual[x]) - 1
-                point = random.randint(0,length)
-                individual[x][point] = (individual[x][point] + 1) % 2
-        return individual
-    '''
 
     def mutation(self,individual):
         for x in range(len(individual)-1):
@@ -164,6 +146,34 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     result = self.adapt_rule(current_oil_price,ship.speed,total_freight,rule)
+                    if result[0]:
+                        #converge += 1
+                        ship.change_speed(result[1])
+                    cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
+                DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                average_fitness += cash_flow / DISCOUNT
+            ship.chagne_speed_to_initial()
+        average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
+        average_fitness /= 100000000
+        return max(0,average_fitness)# + converge/(DEFAULT_PREDICT_PATTERN_NUMBER*VESSEL_LIFE_TIME*12))
+
+    def fitness_function_set(self):
+        #converge = 0
+        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+        average_fitness = 0
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
+            for year in range(VESSEL_LIFE_TIME):
+                cash_flow = 0
+                for month in range(12):
+                    current_oil_price = self.oil_price_data[pattern][month]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
+                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    rule_number, result = 0, [False]
+                    while rule_number < len(self.group) and result[0] == False:
+                        result = self.adapt_rule(current_oil_price,ship.speed,total_freight,self.group[rule_number])
+                        rule_number += 1
                     if result[0]:
                         #converge += 1
                         ship.change_speed(result[1])
@@ -233,6 +243,22 @@ class GA:
         wb.save('../output/ship_rule.xlsx')
         print('saving changes')
 
+    def compare_best_and_no_rule(self):
+        fitness_no_rule = self.fitness_function(self.compare_rule)
+        fitness_best = self.bestgroup[-1][-1]
+        fitness_set_of_rule = self.fitness_function_set()
+        print(fitness_no_rule,fitness_best,fitness_set_of_rule)
+        left = [1,2,3]
+        height = [fitness_no_rule,fitness_best,fitness_set_of_rule]
+        label = ['no rule','best rule','sets of rules']
+        plt.bar(left,height,tick_label=label,align='center')
+        plt.title('Comparison between no rule and best rule')
+        plt.ylabel('fitness')
+        save_dir = '../image'
+        plt.savefig(os.path.join(save_dir, 'comparison.png'))
+        #plt.show()
+        plt.close()
+
     def execute_GA(self):
         first = time.time()
 
@@ -262,17 +288,17 @@ class GA:
             #rule check
             for k in range(len(temp)):
                 rule = temp[k]
-                lower = self.convert2to10_in_list(rule[0])
-                upper = self.convert2to10_in_list(rule[1])
-                if lower > upper:
+                oil_lower = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
+                oil_upper = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
+                if oil_lower > oil_upper:
                     temp[k] = self.exchange(rule,0,1)
-                lower = self.convert2to10_in_list(rule[2])
-                upper = self.convert2to10_in_list(rule[3])
-                if lower > upper:
+                speed_lower = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[2])]
+                speed_upper = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[3])]
+                if speed_lower > speed_upper:
                     temp[k] = self.exchange(rule,2,3)
-                lower = self.convert2to10_in_list(rule[4])
-                upper = self.convert2to10_in_list(rule[5])
-                if lower > upper:
+                freight_lower = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])]
+                freight_upper = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]
+                if freight_lower > freight_upper:
                     temp[k] = self.exchange(rule,4,5)
 
             #computation of fitness
@@ -347,6 +373,7 @@ class GA:
             if gene > 10 and self.bestgroup[-1] == self.bestgroup[-2] == self.bestgroup[-3]:
                 break
             #'''
+
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
@@ -361,8 +388,9 @@ class GA:
             f = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[5])]
             h = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
             #if thisone[9] > 400:
-            print('{0} < oil price < {1} and {2} < speed < {3} and {4} < freight < {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,h,thisone[-1]))
+            print('{0} <= oil price <= {1} and {2} <= speed <= {3} and {4} <= freight <= {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,h,thisone[-1]))
         print('finish')
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
         self.export_excel()
+        self.compare_best_and_no_rule()

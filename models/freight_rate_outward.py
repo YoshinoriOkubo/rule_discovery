@@ -4,6 +4,7 @@ import math
 import datetime
 import matplotlib.pyplot as plt
 import os
+import random
 
 # import own modules #
 sys.path.append('../public')
@@ -76,6 +77,14 @@ class FreightOutward:
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 current_freight_rate    = self.calc_freight_rate(current_freight_rate)
+
+                #make a threshold
+                if current_freight_rate > 2500:
+                    current_freight_rate = current_freight_rate * self.d /self.u
+                if current_freight_rate < 500:
+                    current_freight_rate = current_freight_rate * self.u /self.d
+
+
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return
