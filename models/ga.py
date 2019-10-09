@@ -36,6 +36,9 @@ class GA:
             self.compare_rule.append([0,0,0,0])
         self.compare_rule.append(0)
         self.num_condition_part = DEFAUT_NUM_OF_CONDITION
+        self.speed_history = []
+        for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            self.speed_history.append([])
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -143,6 +146,8 @@ class GA:
                     if result[0]:
                         #converge += 1
                         ship.change_speed(result[1])
+                    if rule is None:
+                        self.speed_history[pattern].append(ship.speed)
                     cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 average_fitness += cash_flow / DISCOUNT
@@ -153,7 +158,7 @@ class GA:
 
     def generateIndividual(self):#graycode
         temp = []
-        for condition in range(self.num_condition_part*2):
+        for condition in range(self.num_condition_part*2+1):
             temp.append([])
             for a in range(4):
                 temp[condition].append(random.randint(0,1))
