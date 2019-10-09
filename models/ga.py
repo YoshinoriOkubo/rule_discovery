@@ -58,20 +58,6 @@ class GA:
                     return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
         return [False]
 
-    def exchange(self,rule,p1,p2):
-        newRule = []
-        for i in range(len(rule)-2):
-            if i == p1:
-                newRule.append(copy.deepcopy(rule[p2]))
-            else:
-                if i == p2:
-                    newRule.append(copy.deepcopy(rule[p1]))
-                else:
-                    newRule.append(copy.deepcopy(rule[i]))
-        newRule.append(rule[-2])
-        newRule.append(rule[-1])
-        return newRule
-
     def crossing(self,a,b,num_block):
         #for exapmle, a = [ [1,0,0,0], [0,1,0,1],[1,1,1,0],[0,0,0,0],[1,1,0,0],[1,0,0,1],[1,0,0,1],0]
         temp1 = []
@@ -287,24 +273,34 @@ class GA:
 
             #rule check
             for k in range(len(temp)):
-                rule = temp[k]
-                oil_lower = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
-                oil_upper = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
-                if oil_lower > oil_upper:
-                    temp[k] = self.exchange(rule,0,1)
-                speed_lower = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[2])]
-                speed_upper = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[3])]
-                if speed_lower > speed_upper:
-                    temp[k] = self.exchange(rule,2,3)
-                freight_lower = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])]
-                freight_upper = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]
-                if freight_lower > freight_upper:
-                    temp[k] = self.exchange(rule,4,5)
+                rule = copy.deepcopy(temp[k])
+                a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
+                b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
+                c = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[2])]
+                d = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[3])]
+                e = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[4])]
+                f = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[5])]
+                if a > b:
+                    X = copy.deepcopy(temp[k])
+                    for element in range(4):
+                        temp[k][0][element] = X[1][element]
+                        temp[k][1][element] = X[0][element]
+                if c > d:
+                    Y = copy.deepcopy(temp[k])
+                    for element in range(4):
+                        temp[k][2][element] = Y[3][element]
+                        temp[k][3][element] = Y[2][element]
+                if e > f:
+                    Z = copy.deepcopy(temp[k])
+                    for element in range(4):
+                        temp[k][4][element] = Z[5][element]
+                        temp[k][5][element] = Z[4][element]
 
             #computation of fitness
             for one in range(len(temp)):
                 rule = temp[one]
                 rule[-1] = self.fitness_function(rule)
+
 
             #reduce the number of individual
             #num -= 10
@@ -379,6 +375,7 @@ class GA:
         for i in range(0,self.num):
             if i == 0:
                 print(self.group[i])
+
             thisone = self.group[i]
             a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
@@ -387,8 +384,10 @@ class GA:
             e = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[4])]
             f = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[5])]
             h = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
-            #if thisone[9] > 400:
             print('{0} <= oil price <= {1} and {2} <= speed <= {3} and {4} <= freight <= {5} -> {6}  fitness value = {7}'.format(a,b,c,d,e,f,h,thisone[-1]))
+            if a > b or c > d or e > f:
+                print('error')
+                sys.exit()
         print('finish')
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
