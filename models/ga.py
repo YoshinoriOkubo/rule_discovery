@@ -172,6 +172,8 @@ class GA:
                                     if result[0] and result[1] == ACTION_SELL:
                                         cash_flow += INITIAL_COST_OF_SHIPBUIDING*(1 - (year*12+month)/180)
                                         ship_exist = False
+                                        if rule is None:
+                                            print('SELL')
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -207,7 +209,7 @@ class GA:
             y.append(self.bestgroup[i])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
-        if y[5] != z[5]:
+        if y[3] != z[3]:
             plt.plot(x, z, marker='x',label='average')
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
@@ -397,7 +399,10 @@ class GA:
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
             c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
             d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
-            e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
+            if self.decision == DECISION_SPEED:
+                e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
+            elif self.decision == DECISION_SELL:
+                e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
                 print('rule error')
