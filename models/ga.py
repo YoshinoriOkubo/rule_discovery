@@ -61,8 +61,6 @@ class GA:
                     return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
                 else:
                     return [True,rule[-2][0]]
-
-
         return [False]
 
     def crossing(self,a,b,num_block):
@@ -178,7 +176,6 @@ class GA:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                     average_fitness += cash_flow / DISCOUNT
-
             ship.chagne_speed_to_initial()
         average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         average_fitness /= 100000000
@@ -414,7 +411,6 @@ class GA:
             #if self.check_rule_is_adapted(thisone):
             a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
-
             c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
             d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
             if self.decision == DECISION_SPEED:
@@ -423,7 +419,6 @@ class GA:
                 e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
-
                 print('rule error')
                 sys.exit()
         print('finish')
