@@ -136,19 +136,23 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     #change by whether rule exists
-                    rule_number, result = 0, [False]
-                    if rule is None:
-                        while rule_number < len(self.group) and result[0] == False:
-                            result = self.adapt_rule(current_oil_price,ship.speed,total_freight,self.group[rule_number])
-                            rule_number += 1
+                    if type(rule) is int:
+                        ship.change_speed(self.full_search_method(current_oil_price,total_freight))
+                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     else:
-                        result = self.adapt_rule(current_oil_price,ship.speed,total_freight,rule)
-                    if result[0]:
-                        #converge += 1
-                        ship.change_speed(result[1])
-                    if rule is None:
-                        self.speed_history[pattern].append(ship.speed)
-                    cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
+                        rule_number, result = 0, [False]
+                        if rule is None:
+                            while rule_number < len(self.group) and result[0] == False:
+                                result = self.adapt_rule(current_oil_price,ship.speed,total_freight,self.group[rule_number])
+                                rule_number += 1
+                        else:
+                            result = self.adapt_rule(current_oil_price,ship.speed,total_freight,rule)
+                        if result[0]:
+                            #converge += 1
+                            ship.change_speed(result[1])
+                        if rule is None:
+                            self.speed_history[pattern].append(ship.speed)
+                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
@@ -203,21 +207,31 @@ class GA:
         wb.save('../output/ship_rule.xlsx')
         print('saving changes')
 
-    def compare_best_and_no_rule(self):
+    def compare_rules(self):
         fitness_no_rule = self.fitness_function(self.compare_rule)
         fitness_best = self.bestgroup[-1][-1]
         fitness_set_of_rule = self.fitness_function(None)
-        print(fitness_no_rule,fitness_best,fitness_set_of_rule)
-        left = [1,2,3]
-        height = [fitness_no_rule,fitness_best,fitness_set_of_rule]
-        label = ['no rule','best rule','sets of rules']
+        fitness_full_search = self.fitness_function(FULL_SEARCH)
+        print(fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search)
+        left = [1,2,3,4]
+        height = [fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search]
+        label = ['no rule','best rule','sets of rules','full search']
         plt.bar(left,height,tick_label=label,align='center')
-        plt.title('Comparison between no rule and best rule')
+        plt.title('Comparison')
         plt.ylabel('fitness')
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'comparison.png'))
         #plt.show()
         plt.close()
+
+    def full_search_method(self,oil_price,freight):
+        list = []
+        for speed in VESSEL_SPEED_LIST:
+            ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+            cash_flow = ship.calculate_income_per_month(oil_price,freight)
+            list.append([cash_flow,speed,oil_price,freight])
+        list.sort(key=lambda x:x[0],reverse = True)
+        return list[0][1]
 
     def execute_GA(self):
         first = time.time()
@@ -366,4 +380,4 @@ class GA:
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
         self.export_excel()
-        self.compare_best_and_no_rule()
+        self.compare_rules()

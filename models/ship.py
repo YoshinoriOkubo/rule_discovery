@@ -9,12 +9,10 @@ class Ship:
         self.speed = speed# km/h
         self.route = route
 
-    def calculate_income_per_month(self,oil_price,freight_outward,freight_return):
+    def calculate_income_per_month(self,oil_price,freight):
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + 1
         number_of_trips = 30 / time_spent_to_one_trip
-        #fixed income
-        freight = 0.5 * ( freight_outward * LOAD_FACTOR_ASIA_TO_EUROPE + freight_return * LOAD_FACTOR_EUROPE_TO_ASIA)
         income_in_one_trip = self.size * freight #1600doller/TEU http://www.jpmac.or.jp/relation/trend_graph/26_1_1.pdf
         cost_unfixed_in_one_trip = self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
