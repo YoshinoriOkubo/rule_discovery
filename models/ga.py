@@ -34,30 +34,13 @@ class GA:
         self.averagegroup = [] # the average value of fitness in each generation
         self.num_condition_part = DEFAULT_NUM_OF_CONDITION
         self.compare_rule = []
-<<<<<<< HEAD
         for i in range(self.num_condition_part*2):
-||||||| merged common ancestors
-        for i in range(7):
-=======
-        for i in range(self.num_condition_part*2+1):
->>>>>>> a32d3c797444a1108a6613c91bb3168704f10c51
             self.compare_rule.append([0,0,0,0])
         self.compare_rule.append([1,1,0,1]) #19knot
         self.compare_rule.append(0)
-<<<<<<< HEAD
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         #    self.speed_history.append([])
-||||||| merged common ancestors
-        self.num_condition_part = DEFAUT_NUM_OF_CONDITION
-        self.speed_history = []
-        for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            self.speed_history.append([])
-=======
-        self.speed_history = []
-        for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            self.speed_history.append([])
->>>>>>> a32d3c797444a1108a6613c91bb3168704f10c51
 
     def convert2to10_in_list(self,list):
         result = 0
