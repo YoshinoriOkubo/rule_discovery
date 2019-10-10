@@ -134,9 +134,9 @@ class GA:
                 if ship_exist:
                     for month in range(12):
                         if ship_exist:
-                            current_oil_price = self.oil_price_data[pattern][month]['price']
-                            current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
-                            current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
+                            current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
+                            current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
+                            current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                             total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                             #change by argment
                             #full_search
@@ -172,8 +172,6 @@ class GA:
                                     if result[0] and result[1] == ACTION_SELL:
                                         cash_flow += INITIAL_COST_OF_SHIPBUIDING*(1 - (year*12+month)/180)
                                         ship_exist = False
-                                        if rule is None:
-                                            print('patter{0}'.format(pattern),'Ship was sold!!!!')
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
