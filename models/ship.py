@@ -25,7 +25,7 @@ class Ship:
         return (income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip) * number_of_trips
 
     def change_speed(self,speed):
-        self.speed = speed if speed > MINIMUM_SHIP_SPEED else MINIMUM_SHIP_SPEED
+        self.speed = speed  if speed > MINIMUM_SHIP_SPEED else MINIMUM_SHIP_SPEED
 
     def chagne_speed_to_initial(self):
         self.speed = INITIAL_SPEED

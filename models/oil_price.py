@@ -66,9 +66,7 @@ class Sinario:
 
         # latest date from history_data
         latest_history_date_str, latest_oilprice = self.history_data[-1]
-        #日付型に変換
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
-
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
             current_oilprice = latest_oilprice
@@ -93,6 +91,7 @@ class Sinario:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
+        plt.ylim(0, 160)
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'oil_price.png'))
         plt.close()

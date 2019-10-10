@@ -4,6 +4,7 @@ import math
 import datetime
 import matplotlib.pyplot as plt
 import os
+import random
 
 # import own modules #
 sys.path.append('../public')
@@ -67,7 +68,6 @@ class FreightOutward:
 
         # latest date from history_data
         latest_history_date_str, latest_freight_rate = self.history_data[-1]
-        #日付型に変換
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
 
         for pattern in range(predict_pattern_number):
@@ -77,22 +77,34 @@ class FreightOutward:
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 current_freight_rate    = self.calc_freight_rate(current_freight_rate)
+
+                #make a threshold
+                if current_freight_rate > 2500:
+                    current_freight_rate = current_freight_rate * self.d /self.u
+                if current_freight_rate < 500:
+                    current_freight_rate = current_freight_rate * self.u /self.d
+
+
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return
 
     def depict(self):
         x = range(self.predict_years*12)
-        y = []
-        for i in range(self.predict_years*12):
-            y.append(self.predicted_data[0][i]['price'])
-        plt.plot(x, y,label='outward_price')
-        plt.title('Transition of feright rate outward', fontsize = 20)
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            y = []
+            for i in range(self.predict_years*12):
+                y.append(self.predicted_data[pattern][i]['price'])
+            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
+        plt.title('Transition of freight rate outward', fontsize = 20)
         plt.xlabel('month', fontsize = 16)
-        plt.ylabel('freight rate outward', fontsize = 16)
+        plt.ylabel('freight rate return', fontsize = 16)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
+        save_dir = '../image'
+        plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
+        plt.close()
         #save_dir = '../image'
         #plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
         #plt.show()
