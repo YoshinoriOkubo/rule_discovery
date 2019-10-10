@@ -17,13 +17,14 @@ from constants  import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,generation=None,num=None,alpha=None,crossing_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,decision,generation=None,num=None,alpha=None,crossing_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
         self.TEU_size = TEU_size #size of ship(TEU)
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
+        self.decision = decision # decision of action parts. decision is speed change or sell ship
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.num = num if num else DEFAULT_NUM_OF_INDIVIDUAL  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
@@ -33,12 +34,13 @@ class GA:
         self.averagegroup = [] # the average value of fitness in each generation
         self.num_condition_part = DEFAULT_NUM_OF_CONDITION
         self.compare_rule = []
-        for i in range(self.num_condition_part*2+1):
+        for i in range(self.num_condition_part*2):
             self.compare_rule.append([0,0,0,0])
+        self.compare_rule.append([1,1,0,1]) #19knot
         self.compare_rule.append(0)
-        self.speed_history = []
-        for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            self.speed_history.append([])
+        #self.speed_history = []
+        #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        #    self.speed_history.append([])
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -52,10 +54,13 @@ class GA:
         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
         b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
         if a == b or ( a <= oil_price and oil_price <= b):
-            e = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
-            f = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
-            if e == f or ( e <= freight and freight <= f):
-                return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
+            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
+            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
+            if c == d or ( c <= freight and freight <= d):
+                if self.decision == DECISION_SPEED:
+                    return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
+                else:
+                    return [True,rule[-2][0]]
         return [False]
 
     def crossing(self,a,b,num_block):
@@ -123,32 +128,56 @@ class GA:
         average_fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
+            ship_exist = True
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
-                for month in range(12):
-                    current_oil_price = self.oil_price_data[pattern][month]['price']
-                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
-                    current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
-                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                    #change by argment
-                    if type(rule) is int:
-                        ship.change_speed(self.full_search_method(current_oil_price,total_freight))
-                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                    else:
-                        rule_number, result = 0, [False]
-                        if rule is None:
-                            while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                rule_number += 1
-                        else:
-                            result = self.adapt_rule(current_oil_price,total_freight,rule)
-                        if result[0]:
-                            ship.change_speed(result[1])
-                        if rule is None:
-                            self.speed_history[pattern].append(ship.speed)
-                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                average_fitness += cash_flow / DISCOUNT
+                if ship_exist:
+                    for month in range(12):
+                        if ship_exist:
+                            current_oil_price = self.oil_price_data[pattern][month]['price']
+                            current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
+                            current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
+                            total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                            #change by argment
+                            #full_search
+                            if type(rule) is int:
+                                ship.change_speed(self.full_search_method(current_oil_price,total_freight))
+                                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                            else:
+                                if self.decision == DECISION_SPEED:
+                                    #sets_of_group
+                                    rule_number, result = 0, [False]
+                                    if rule is None:
+                                        while rule_number < len(self.group) and result[0] == False:
+                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                            rule_number += 1
+                                    #one rule
+                                    else:
+                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                    if result[0]:
+                                        ship.change_speed(result[1])
+                                    #if rule is None:
+                                    #    self.speed_history[pattern].append(ship.speed)
+                                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                elif self.decision == DECISION_SELL:
+                                    #sets_of_group
+                                    rule_number, result = 0, [False]
+                                    if rule is None:
+                                        while rule_number < len(self.group) and result[0] == False:
+                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                            rule_number += 1
+                                    #one rule
+                                    else:
+                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                    if result[0] and result[1] == ACTION_SELL:
+                                        cash_flow += INITIAL_COST_OF_SHIPBUIDING*(1 - (year*12+month)/180)
+                                        ship_exist = False
+                                        if rule is None:
+                                            print('patter{0}'.format(pattern),'Ship was sold!!!!')
+                                    else:
+                                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                    DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                    average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
         average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         average_fitness /= 100000000
@@ -156,10 +185,19 @@ class GA:
 
     def generateIndividual(self):
         temp = []
-        for condition in range(self.num_condition_part*2+1):
-            temp.append([])
-            for a in range(4):
-                temp[condition].append(random.randint(0,1))
+        if self.decision == DECISION_SPEED:
+            for condition in range(self.num_condition_part*2+1):
+                temp.append([])
+                for a in range(4):
+                    temp[condition].append(random.randint(0,1))
+        elif self.decision == DECISION_SELL:
+            for condition in range(self.num_condition_part*2):
+                temp.append([])
+                for a in range(4):
+                    temp[condition].append(random.randint(0,1))
+            temp.append([random.randint(0,1)])
+        else:
+            sys.exit()
         temp.append(0)
         return temp
 
@@ -168,10 +206,11 @@ class GA:
         y = []
         z = []
         for i in range(len(self.bestgroup)):
-            y.append(self.bestgroup[i][-1])
+            y.append(self.bestgroup[i])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
-        plt.plot(x, z, marker='x',label='average')
+        if y[5] != z[5]:
+            plt.plot(x, z, marker='x',label='average')
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
         plt.ylabel('fitness value', fontsize = 16)
@@ -202,7 +241,7 @@ class GA:
 
     def compare_rules(self):
         fitness_no_rule = self.fitness_function(self.compare_rule)
-        fitness_best = self.bestgroup[-1][-1]
+        fitness_best = self.bestgroup[-1]
         fitness_set_of_rule = self.fitness_function(None)
         fitness_full_search = self.fitness_function(FULL_SEARCH)
         print(fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search)
@@ -212,6 +251,7 @@ class GA:
         plt.bar(left,height,tick_label=label,align='center')
         plt.title('Comparison')
         plt.ylabel('fitness')
+        plt.ylim(fitness_no_rule-1,fitness_full_search+1)
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'comparison.png'))
         plt.close()
@@ -242,7 +282,12 @@ class GA:
             temp.append(self.group[0])
             for i in range(0,self.num,2):
                 if random.random() < self.crossing_rate:
-                    a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
+                    if self.decision == DECISION_SPEED:
+                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
+                    elif self.decision == DECISION_SELL:
+                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2)
+                    else:
+                         sys.exit()
                     temp.append(a)
                     temp.append(b)
 
@@ -264,10 +309,10 @@ class GA:
                         temp[k][0][element] = X[1][element]
                         temp[k][1][element] = X[0][element]
                 if c > d:
-                    Z = copy.deepcopy(temp[k])
+                    Y = copy.deepcopy(temp[k])
                     for element in range(4):
-                        temp[k][2][element] = Z[3][element]
-                        temp[k][3][element] = Z[2][element]
+                        temp[k][2][element] = Y[3][element]
+                        temp[k][3][element] = Y[2][element]
 
             #computation of fitness
             for one in range(len(temp)):
@@ -295,7 +340,7 @@ class GA:
                     self.group[i] = store[0]
                     self.group[i+1] = store[1]
             self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0])
+            self.bestgroup.append(self.group[0][-1])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
@@ -310,7 +355,7 @@ class GA:
                 tournament.sort(key=lambda x:x[-1],reverse = True)
                 self.group[select] = tournament[0]
             self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0])
+            self.bestgroup.append(self.group[0][-1])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
@@ -334,7 +379,7 @@ class GA:
                     ark = (ark + 1) % self.num
                 self.group[i] = temp[ark]
             self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0])
+            self.bestgroup.append(self.group[0][-1])
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
@@ -354,7 +399,7 @@ class GA:
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
             c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
             d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
-            e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
+            e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
                 print('rule error')

@@ -21,7 +21,7 @@ freight_outward.depict()
 freight_return = FreightReturn()
 freight_return.generate_sinario()
 freight_return.depict()
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,DECISION_SELL)
 ga.execute_GA()
 ga.depict()
 
