@@ -91,16 +91,20 @@ class FreightOutward:
 
     def depict(self):
         x = range(self.predict_years*12)
-        y = []
-        for i in range(self.predict_years*12):
-            y.append(self.predicted_data[0][i]['price'])
-        plt.plot(x, y,label='outward_price')
-        plt.title('Transition of feright rate outward', fontsize = 20)
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            y = []
+            for i in range(self.predict_years*12):
+                y.append(self.predicted_data[pattern][i]['price'])
+            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
+        plt.title('Transition of freight rate outward', fontsize = 20)
         plt.xlabel('month', fontsize = 16)
-        plt.ylabel('freight rate outward', fontsize = 16)
+        plt.ylabel('freight rate return', fontsize = 16)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
+        save_dir = '../image'
+        plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
+        plt.close()
         #save_dir = '../image'
         #plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
         #plt.show()
