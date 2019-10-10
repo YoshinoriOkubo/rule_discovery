@@ -172,8 +172,6 @@ class GA:
                                     if result[0] and result[1] == ACTION_SELL:
                                         cash_flow += INITIAL_COST_OF_SHIPBUIDING*(1 - (year*12+month)/180)
                                         ship_exist = False
-                                        if rule is None:
-                                            print('SELL')
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -209,8 +207,8 @@ class GA:
             y.append(self.bestgroup[i])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
-        if y[3] != z[3]:
-            plt.plot(x, z, marker='x',label='average')
+        #if y[3] != z[3]:
+        plt.plot(x, z, marker='x',label='average')
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
         plt.ylabel('fitness value', fontsize = 16)
@@ -264,6 +262,20 @@ class GA:
             list.append([cash_flow,speed,oil_price,freight])
         list.sort(key=lambda x:x[0],reverse = True)
         return list[0][1]
+
+    def check_rule_is_adapted(self,rule):
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            for year in range(VESSEL_LIFE_TIME):
+                for month in range(12):
+                    current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
+                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                    if result[0] and rule[-2] == ACTION_SELL:
+                        print(year*12+month)
+                        return True
+        return False
 
     def execute_GA(self):
         first = time.time()
@@ -367,6 +379,7 @@ class GA:
             #store the best individual
             temp.sort(key=lambda x:x[-1],reverse = True)
             self.group[0] = temp[0]
+            random.shuffle(temp)
             ark = 0 # the number used to roulette in crossing
             probability = 0
             for i in range(len(temp)):
@@ -392,9 +405,10 @@ class GA:
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
             if i == 0:
-                print(self.group[i])
+                print('best rule', self.group[i])
 
             thisone = self.group[i]
+            #if self.check_rule_is_adapted(thisone):
             a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
             c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
