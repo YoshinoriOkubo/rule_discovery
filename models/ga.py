@@ -36,7 +36,10 @@ class GA:
         self.compare_rule = []
         for i in range(self.num_condition_part*2):
             self.compare_rule.append([0,0,0,0])
-        self.compare_rule.append([1,1,0,1]) #19knot
+        if self.decision == DECISION_SPEED:
+            self.compare_rule.append([1,1,0,1]) #19knot
+        elif self.decision == DECISION_SELL:
+            self.compare_rule.append([1])
         self.compare_rule.append(0)
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -193,7 +196,8 @@ class GA:
                 temp.append([])
                 for a in range(4):
                     temp[condition].append(random.randint(0,1))
-            temp.append([random.randint(0,1)])
+            #temp.append([random.randint(0,1)])
+            temp.append([0])
         else:
             sys.exit()
         temp.append(0)
@@ -239,17 +243,29 @@ class GA:
 
     def compare_rules(self):
         fitness_no_rule = self.fitness_function(self.compare_rule)
-        fitness_best = self.bestgroup[-1]
-        fitness_set_of_rule = self.fitness_function(None)
+        if self.decision == DECISION_SPEED:
+            fitness_best = self.bestgroup[-1]
+        elif self.decision == DECISION_SELL:
+            fitness_best = 0
+            for i in range(self.num):
+                if self.group[i][-2][0] == ACTION_SELL:
+                    if self.check_rule_is_adapted(self.group[i]):
+                        fitness_best = self.group[i][-1]
+                        break
         fitness_full_search = self.fitness_function(FULL_SEARCH)
-        print(fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search)
-        left = [1,2,3,4]
-        height = [fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search]
-        label = ['no rule','best rule','sets of rules','full search']
+        print(fitness_no_rule,fitness_best,fitness_full_search)
+        left = [1,2,3]
+        height = [fitness_no_rule,fitness_best,fitness_full_search]
+        label = ['no rule','best rule','full search']
+        #fitness_set_of_rule = self.fitness_function(None)
+        #print(fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search)
+        #left = [1,2,3,4]
+        #height = [fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search]
+        #label = ['no rule','best rule','sets of rules','full search']
         plt.bar(left,height,tick_label=label,align='center')
         plt.title('Comparison')
         plt.ylabel('fitness')
-        plt.ylim(fitness_no_rule-1,fitness_full_search+1)
+        plt.ylim(fitness_best-1,fitness_full_search+1)
         save_dir = '../image'
         plt.savefig(os.path.join(save_dir, 'comparison.png'))
         plt.close()
@@ -272,8 +288,7 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     result = self.adapt_rule(current_oil_price,total_freight,rule)
-                    if result[0] and rule[-2] == ACTION_SELL:
-                        print(year*12+month)
+                    if result[0] and rule[-2][0] == ACTION_SELL:
                         return True
         return False
 
