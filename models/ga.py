@@ -40,6 +40,9 @@ class GA:
             self.compare_rule.append([1,1,0,1]) #19knot
         elif self.decision == DECISION_SELL:
             self.compare_rule.append([1])
+        elif self.decision == DECISION_CHARTER:
+            self.compare_rule.append([0])
+            self.compare_rule.append([1])
         self.compare_rule.append(0)
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -51,7 +54,14 @@ class GA:
         for i in range(len(list)):
             x = length - 1 - i
             result += list[i] * 2 ** (x)
-        return GRAY_CODE[result]
+        if len(list) == 4:
+            return GRAY_CODE_4[result]
+        elif len(list) == 2:
+            return GRAY_CODE_2[result]
+        elif len(list) == 1:
+            return result
+        else:
+            return None
 
     def adapt_rule(self,oil_price,freight,rule):
         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
@@ -62,12 +72,19 @@ class GA:
             if c == d or ( c <= freight and freight <= d):
                 if self.decision == DECISION_SPEED:
                     return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
-                else:
+                elif self.decision == DECISION_SELL:
                     return [True,rule[-2][0]]
+                elif self.decision == DECISION_CHARTER:
+                    return [True,rule[-2][0],self.convert2to10_in_list(rule[-3])]
+                else:
+                    sys.exit()
         return [False]
 
     def crossing(self,a,b,num_block):
-        #for exapmle, a = [ [1,0,0,0], [0,1,0,1],[1,1,0,0],[1,0,0,1],[1,0,0,1],0]
+        #for exapmle,
+        #speed = [ [1,0,0,0], [0,1,0,1],[1,1,0,0],[1,0,0,1],[1,0,0,1]]
+        #sell =  [ [1,0,0,0], [0,1,0,1],[1,1,0,0],[1,0,0,1],[0]]
+        #charter = [ [1,0,0,0], [0,1,0,1],[1,1,0,0],[1,0,0,1],[1,0],[0]]
         temp1 = []
         temp2 = []
         for x in range(num_block):
@@ -126,12 +143,26 @@ class GA:
 
 
     '''
+
+    def sell_ship(self,pattern,time):
+        freight_criteria = self.freight_rate_outward_data[pattern][0]['price']
+        freight_now = self.freight_rate_outward_data[pattern][time]['price']
+        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria)
+
+    def charter_ship(self,oil_price,freight):
+        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+        cash = ship.calculate_income_per_month(oil_price,freight)
+        return cash * RISK_PREMIUM
+
     def fitness_function(self,rule):
         ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
         average_fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
             ship_exist = True
+            charter_ship = False
+            charter_fee = 0
+            charter_month_remain = 0
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
                 if ship_exist:
@@ -173,10 +204,25 @@ class GA:
                                     else:
                                         result = self.adapt_rule(current_oil_price,total_freight,rule)
                                     if result[0] and result[1] == ACTION_SELL:
-                                        cash_flow += INITIAL_COST_OF_SHIPBUIDING*(1 - (year*12+month)/180)
+                                        cash_flow += self.sell_ship(pattern,year*12+month)
                                         ship_exist = False
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                elif self.decision == DECISION_CHARTER:
+                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                    if charter_ship == True:
+                                        cash_flow += charter_fee
+                                        charter_month_remain -= 1
+                                    else:
+                                        if result[0] and result[1] == ACTION_CHARTER:
+                                            charter_ship = True
+                                            charter_fee = self.charter_ship(current_oil_price,total_freight)
+                                            charter_month_remain = result[2] - 1
+                                            cash_flow += charter_fee
+                                        else:
+                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                    if charter_month_remain == 0:
+                                        charter_ship = False
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                     average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
@@ -197,6 +243,13 @@ class GA:
                 for a in range(4):
                     temp[condition].append(random.randint(0,1))
             #temp.append([random.randint(0,1)])
+            temp.append([0])
+        elif self.decision == DECISION_CHARTER:
+            for condition in range(self.num_condition_part*2):
+                temp.append([])
+                for a in range(4):
+                    temp[condition].append(random.randint(0,1))
+            temp.append([random.randint(0,1),random.randint(0,1)])
             temp.append([0])
         else:
             sys.exit()
@@ -245,6 +298,7 @@ class GA:
         fitness_no_rule = self.fitness_function(self.compare_rule)
         if self.decision == DECISION_SPEED:
             fitness_best = self.bestgroup[-1]
+            fitness_full_search = self.fitness_function(FULL_SEARCH)
         elif self.decision == DECISION_SELL:
             fitness_best = 0
             for i in range(self.num):
@@ -252,7 +306,17 @@ class GA:
                     if self.check_rule_is_adapted(self.group[i]):
                         fitness_best = self.group[i][-1]
                         break
-        fitness_full_search = self.fitness_function(FULL_SEARCH)
+            fitness_full_search = self.full_search_method_sell()
+        elif self.decision == DECISION_CHARTER:
+            fitness_best = 0
+            for i in range(self.num):
+                if self.group[i][-2][0] == ACTION_CHARTER:
+                    if self.check_rule_is_adapted(self.group[i]):
+                        fitness_best = self.group[i][-1]
+                        break
+            fitness_full_search = 0
+        else:
+            sys.exit()
         print(fitness_no_rule,fitness_best,fitness_full_search)
         left = [1,2,3]
         height = [fitness_no_rule,fitness_best,fitness_full_search]
@@ -270,14 +334,48 @@ class GA:
         plt.savefig(os.path.join(save_dir, 'comparison.png'))
         plt.close()
 
-    def full_search_method(self,oil_price,freight):
+    def full_search_method_sell(self):
         list = []
-        for speed in VESSEL_SPEED_LIST:
-            ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
-            cash_flow = ship.calculate_income_per_month(oil_price,freight)
-            list.append([cash_flow,speed,oil_price,freight])
-        list.sort(key=lambda x:x[0],reverse = True)
-        return list[0][1]
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+            fitness_list = []
+            for i in range(VESSEL_LIFE_TIME*12):
+                fitness_list.append([0,0,i])
+            for time in range(VESSEL_LIFE_TIME*12):
+                current_oil_price = self.oil_price_data[pattern][time]['price']
+                current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
+                current_freight_rate_return = self.freight_rate_return_data[pattern][time]['price']
+                total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                for index in range(VESSEL_LIFE_TIME*12):
+                    if index < time:
+                        pass
+                    elif index == time:
+                        fitness_list[index][1] += self.sell_ship(pattern,time)
+                    else:
+                        fitness_list[index][1] += ship.calculate_income_per_month(current_oil_price,total_freight)
+                if (time + 1) % 12 == 0:
+                    for index in range(VESSEL_LIFE_TIME*12):
+                        if fitness_list[index][1] > 0:
+                            DISCOUNT = (1 + DISCOUNT_RATE) ** (time/12)
+                            fitness_list[index][0] += fitness_list[index][1]/DISCOUNT
+                            fitness_list[index][1] = 0
+            fitness_list.sort(key=lambda x:x[0],reverse = True)
+            #print(fitness_list[0][2])
+            list.append(fitness_list[0][0]/100000000)
+        best = 0
+        for e in range(len(list)):
+            best += list[e]
+        return best/DEFAULT_PREDICT_PATTERN_NUMBER
+
+    def full_search_method(self,oil_price,freight):
+        if self.decision == DECISION_SPEED:
+            list = []
+            for speed in VESSEL_SPEED_LIST:
+                ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+                cash_flow = ship.calculate_income_per_month(oil_price,freight)
+                list.append([cash_flow,speed,oil_price,freight])
+            list.sort(key=lambda x:x[0],reverse = True)
+            return list[0][1]
 
     def check_rule_is_adapted(self,rule):
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -288,7 +386,7 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     result = self.adapt_rule(current_oil_price,total_freight,rule)
-                    if result[0] and rule[-2][0] == ACTION_SELL:
+                    if result[0]:
                         return True
         return False
 
@@ -313,6 +411,8 @@ class GA:
                         a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
                     elif self.decision == DECISION_SELL:
                         a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2)
+                    elif self.decision == DECISION_CHARTER:
+                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
                     else:
                          sys.exit()
                     temp.append(a)
@@ -432,6 +532,10 @@ class GA:
                 e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
             elif self.decision == DECISION_SELL:
                 e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
+            elif self.decision == DECISION_CHARTER:
+                e = '{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])]) if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER else 'STAY'
+                if self.convert2to10_in_list(thisone[-3]) == 0:
+                    e = 'STAY'
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
                 print('rule error')

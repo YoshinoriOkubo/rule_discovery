@@ -14,7 +14,7 @@ from constants  import *
 class FreightOutward:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_freight_rate_data(OUTWARD)
+            self.history_data = load_monthly_freight_rate_data(CCFI)
         else:
             self.history_data = history_data
         # initialize parameters
@@ -79,10 +79,10 @@ class FreightOutward:
                 current_freight_rate    = self.calc_freight_rate(current_freight_rate)
 
                 #make a threshold
-                if current_freight_rate > 2500:
-                    current_freight_rate = current_freight_rate * self.d /self.u
-                if current_freight_rate < 500:
-                    current_freight_rate = current_freight_rate * self.u /self.d
+                #if current_freight_rate > 2500:
+                    #current_freight_rate = current_freight_rate * self.d /self.u
+                #if current_freight_rate < 500:
+                    #current_freight_rate = current_freight_rate * self.u /self.d
 
 
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))

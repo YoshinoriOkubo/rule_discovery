@@ -43,7 +43,10 @@ def load_monthly_freight_rate_data(direction,from_date=None, to_date=None):
         if direction == RETURN:
             history_data_path = '../data/freight_rate_history_return.csv'
         else:
-            raise Exception('Error!')
+            if direction == CCFI:
+                history_data_path = '../data/ccfi_history.csv'
+            else:
+                raise Exception('Error!')
     # read data
     dt   = np.dtype({'names': ('date', 'price'),
                    'formats': ('S10' , np.float)})
