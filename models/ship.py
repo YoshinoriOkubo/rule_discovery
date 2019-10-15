@@ -16,11 +16,7 @@ class Ship:
         income_in_one_trip = self.size * freight #1600doller/TEU http://www.jpmac.or.jp/relation/trend_graph/26_1_1.pdf
         cost_unfixed_in_one_trip = self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
-
-        #print(income_in_one_trip)
-        #print(cost_fixed_in_one_trip)
-        #print(cost_unfixed_in_one_trip)
-        return (income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip) * number_of_trips
+        return max(-1 * cost_fixed_in_one_trip,(income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip)) * number_of_trips
 
     def change_speed(self,speed):
         self.speed = speed  if speed > MINIMUM_SHIP_SPEED else MINIMUM_SHIP_SPEED

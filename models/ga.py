@@ -75,7 +75,7 @@ class GA:
                 elif self.decision == DECISION_SELL:
                     return [True,rule[-2][0]]
                 elif self.decision == DECISION_CHARTER:
-                    return [True,rule[-2][0],self.convert2to10_in_list(rule[-3])]
+                    return [True,rule[-2][0],CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])]]
                 else:
                     sys.exit()
         return [False]
@@ -103,10 +103,19 @@ class GA:
         return [temp1,temp2]
 
     def mutation(self,individual):
-        for x in range(len(individual)-1):
-            length = len(individual[x]) - 1
-            point = random.randint(0,length)
-            individual[x][point] = (individual[x][point] + 1) % 2
+        #for x in range(len(individual)-1):
+        #    length = len(individual[x]) - 1
+        #    point = random.randint(0,length)
+        #    individual[x][point] = (individual[x][point] + 1) % 2
+        if self.decision == DECISION_SPEED:
+            mutation_block = random.randint(0,len(individual)-2)
+        elif self.decision == DECISION_SELL:
+            mutation_block = random.randint(0,len(individual)-3)
+        elif self.decision == DECISION_CHARTER:
+            mutation_block = random.randint(0,len(individual)-3)
+        length = len(individual[mutation_block]) - 1
+        point = random.randint(0,length)
+        individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
 
     '''
@@ -140,8 +149,6 @@ class GA:
         self.average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         self.average_fitness /= 1000000
         return max(0,self.average_fitness)
-
-
     '''
 
     def sell_ship(self,pattern,time):
@@ -175,7 +182,7 @@ class GA:
                             #change by argment
                             #full_search
                             if type(rule) is int:
-                                ship.change_speed(self.full_search_method(current_oil_price,total_freight))
+                                ship.change_speed(self.full_search_method_speed(current_oil_price,total_freight))
                                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                             else:
                                 if self.decision == DECISION_SPEED:
@@ -209,11 +216,13 @@ class GA:
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                                 elif self.decision == DECISION_CHARTER:
-                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                    if charter_month_remain == 0:
+                                        charter_ship = False
                                     if charter_ship == True:
                                         cash_flow += charter_fee
                                         charter_month_remain -= 1
                                     else:
+                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
                                         if result[0] and result[1] == ACTION_CHARTER:
                                             charter_ship = True
                                             charter_fee = self.charter_ship(current_oil_price,total_freight)
@@ -221,8 +230,6 @@ class GA:
                                             cash_flow += charter_fee
                                         else:
                                             cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                    if charter_month_remain == 0:
-                                        charter_ship = False
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                     average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
@@ -243,14 +250,14 @@ class GA:
                 for a in range(4):
                     temp[condition].append(random.randint(0,1))
             #temp.append([random.randint(0,1)])
-            temp.append([0])
+            temp.append([ACTION_SELL])
         elif self.decision == DECISION_CHARTER:
             for condition in range(self.num_condition_part*2):
                 temp.append([])
                 for a in range(4):
                     temp[condition].append(random.randint(0,1))
             temp.append([random.randint(0,1),random.randint(0,1)])
-            temp.append([0])
+            temp.append([ACTION_CHARTER])
         else:
             sys.exit()
         temp.append(0)
@@ -272,26 +279,41 @@ class GA:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
-        save_dir = '../image'
+        save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'fitness.png'))
 
     def export_excel(self):
-        wb = openpyxl.load_workbook('../output/ship_rule.xlsx')
+        rule_type = ''
+        if self.decision == DECISION_SPEED:
+            rule_type = 'speed'
+        elif self.decision == DECISION_SELL:
+            rule_type = 'sell'
+        elif self.decision == DECISION_CHARTER:
+            rule_type = 'charter'
+        path = '../output/ship_rule_{0}.xlsx'.format(rule_type)
+        wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
         for i in range(0,self.num):
             individual = self.group[i]
             sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
-            for j in range(len(individual)):
-                if j < len(individual) - 1:
-                    if j == 2 or j == 3 or j == 6:
-                        sheet.cell(row = i + 1, column = j + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[j])]
-                    elif j == 0 or j == 1:
-                        sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
-                    else:
-                        sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
+            for j in range(self.num_condition_part*2):
+                if j == 0 or j == 1:
+                    sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
                 else:
-                    sheet.cell(row = i + 1, column = j + 2).value = individual[j]
-        wb.save('../output/ship_rule.xlsx')
+                    sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
+            if self.decision == DECISION_SPEED:
+                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])]
+            elif self.decision == DECISION_SELL:
+                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('SELL'
+                                                                                            if self.convert2to10_in_list(individual[-2]) == ACTION_SELL and self.check_rule_is_adapted(individual)
+                                                                                            else 'NOT ADAPTED')
+            elif self.decision == DECISION_CHARTER:
+                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])])
+                                                                                            if self.convert2to10_in_list(individual[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(individual)
+                                                                                            else 'NOT ADAPTED')
+            sheet.cell(row = i + 1, column = self.num_condition_part*2 + 1 + 2).value = individual[-1]
+        wb.save(path)
+        wb.close()
         print('saving changes')
 
     def compare_rules(self):
@@ -330,9 +352,19 @@ class GA:
         plt.title('Comparison')
         plt.ylabel('fitness')
         plt.ylim(fitness_best-1,fitness_full_search+1)
-        save_dir = '../image'
+        save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'comparison.png'))
         plt.close()
+
+    def full_search_method_speed(self,oil_price,freight):
+        if self.decision == DECISION_SPEED:
+            list = []
+            for speed in VESSEL_SPEED_LIST:
+                ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+                cash_flow = ship.calculate_income_per_month(oil_price,freight)
+                list.append([cash_flow,speed,oil_price,freight])
+            list.sort(key=lambda x:x[0],reverse = True)
+            return list[0][1]
 
     def full_search_method_sell(self):
         list = []
@@ -366,16 +398,6 @@ class GA:
         for e in range(len(list)):
             best += list[e]
         return best/DEFAULT_PREDICT_PATTERN_NUMBER
-
-    def full_search_method(self,oil_price,freight):
-        if self.decision == DECISION_SPEED:
-            list = []
-            for speed in VESSEL_SPEED_LIST:
-                ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
-                cash_flow = ship.calculate_income_per_month(oil_price,freight)
-                list.append([cash_flow,speed,oil_price,freight])
-            list.sort(key=lambda x:x[0],reverse = True)
-            return list[0][1]
 
     def check_rule_is_adapted(self,rule):
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -490,17 +512,19 @@ class GA:
             '''
 
             #'''
-            #roulette selection
-            #store the best individual
+            #roulette selection and elite storing
+            #store the best 5% individual
             temp.sort(key=lambda x:x[-1],reverse = True)
-            self.group[0] = temp[0]
+            elite_number = int(self.num * 0.05)
+            for i in range(elite_number):
+                self.group[i] = temp[i]
             random.shuffle(temp)
             ark = 0 # the number used to roulette in crossing
             probability = 0
             for i in range(len(temp)):
                 probability += temp[i][-1]
             roulette = 0
-            for i in range(1,self.num):
+            for i in range(elite_number,self.num):
                 roulette = random.randint(0,int(probability))
                 while roulette > 0:
                     roulette -= temp[ark][-1]
@@ -531,11 +555,13 @@ class GA:
             if self.decision == DECISION_SPEED:
                 e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
             elif self.decision == DECISION_SELL:
-                e = 'SELL' if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL else 'STAY'
+                e = ('SELL'
+                        if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL and self.check_rule_is_adapted(thisone)
+                        else 'NOT ADAPTED')
             elif self.decision == DECISION_CHARTER:
-                e = '{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])]) if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER else 'STAY'
-                if self.convert2to10_in_list(thisone[-3]) == 0:
-                    e = 'STAY'
+                e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])])
+                        if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone)
+                        else 'NOT ADAPTED')
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
                 print('rule error')

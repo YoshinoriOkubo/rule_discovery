@@ -92,6 +92,6 @@ class Sinario:
         plt.grid(True)
         plt.legend(loc = 'lower right')
         plt.ylim(0, 160)
-        save_dir = '../image'
+        save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'oil_price.png'))
         plt.close()

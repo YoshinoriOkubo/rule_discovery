@@ -101,7 +101,7 @@ class FreightReturn:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
-        save_dir = '../image'
+        save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
         plt.close()
         #plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
