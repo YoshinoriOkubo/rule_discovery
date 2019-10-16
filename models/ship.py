@@ -14,12 +14,16 @@ class Ship:
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + 1
         number_of_trips = 30 / time_spent_to_one_trip
         income_in_one_trip = self.size * freight #1600doller/TEU http://www.jpmac.or.jp/relation/trend_graph/26_1_1.pdf
-        cost_unfixed_in_one_trip = self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
+        cost_unfixed_in_one_trip = (self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed())
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
-        return max(-1 * cost_fixed_in_one_trip,(income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip)) * number_of_trips
+        profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
+        if profit_in_one_trip > 0:
+            return (IDLE_RATE*(-cost_fixed_in_one_trip)+(1-IDLE_RATE)*profit_in_one_trip)*number_of_trips
+        else:
+            return -cost_fixed_in_one_trip * number_of_trips
 
     def change_speed(self,speed):
-        self.speed = speed  if speed > MINIMUM_SHIP_SPEED else MINIMUM_SHIP_SPEED
+        self.speed = speed  
 
     def chagne_speed_to_initial(self):
         self.speed = INITIAL_SPEED

@@ -164,7 +164,7 @@ class GA:
 
     def fitness_function(self,rule):
         ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
-        average_fitness = 0
+        fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             ship_exist = True
             charter_ship = False
@@ -230,13 +230,14 @@ class GA:
                                             cash_flow += charter_fee
                                         else:
                                             cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                    if year < DEPRECIATION_TIME:
+                        cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                    average_fitness += cash_flow / DISCOUNT
+                    fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
-        average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
-        average_fitness -= INITIAL_COST_OF_SHIPBUIDING
-        average_fitness /= HUNDRED_MILLION
-        return max(0,average_fitness)
+        fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
+        fitness /= HUNDRED_MILLION
+        return max(0,fitness)
 
     def generateIndividual(self):
         temp = []
