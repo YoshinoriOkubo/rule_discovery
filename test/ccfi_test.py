@@ -10,6 +10,8 @@ from ga import GA
 sys.path.append('../public')
 from my_modules import *
 from constants  import *
+import time
+
 
 f = FreightOutward()
 f.generate_sinario()

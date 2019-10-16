@@ -42,7 +42,7 @@ class GA:
             self.compare_rule.append([1])
         elif self.decision == DECISION_CHARTER:
             self.compare_rule.append([0])
-            self.compare_rule.append([1])
+            self.compare_rule.append([ACTION_STAY])
         self.compare_rule.append(0)
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -77,6 +77,7 @@ class GA:
                 elif self.decision == DECISION_CHARTER:
                     return [True,rule[-2][0],CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])]]
                 else:
+                    print('selected decision item does not exist')
                     sys.exit()
         return [False]
 
@@ -165,7 +166,6 @@ class GA:
         ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
         average_fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
             ship_exist = True
             charter_ship = False
             charter_fee = 0
@@ -234,7 +234,8 @@ class GA:
                     average_fitness += cash_flow / DISCOUNT
             ship.chagne_speed_to_initial()
         average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
-        average_fitness /= 100000000
+        average_fitness -= INITIAL_COST_OF_SHIPBUIDING
+        average_fitness /= HUNDRED_MILLION
         return max(0,average_fitness)
 
     def generateIndividual(self):
@@ -259,6 +260,7 @@ class GA:
             temp.append([random.randint(0,1),random.randint(0,1)])
             temp.append([ACTION_CHARTER])
         else:
+            print('selected decision item does not exist')
             sys.exit()
         temp.append(0)
         return temp
@@ -280,7 +282,13 @@ class GA:
         plt.grid(True)
         plt.legend(loc = 'lower right')
         save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'fitness.png'))
+        if self.decision == DECISION_SPEED:
+            name = 'speed'
+        elif self.decision == DECISION_SELL:
+            name = 'sell'
+        elif self.decision == DECISION_CHARTER:
+            name = 'charter'
+        plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
 
     def export_excel(self):
         rule_type = ''
@@ -319,9 +327,11 @@ class GA:
     def compare_rules(self):
         fitness_no_rule = self.fitness_function(self.compare_rule)
         if self.decision == DECISION_SPEED:
+            name = 'speed'
             fitness_best = self.bestgroup[-1]
             fitness_full_search = self.fitness_function(FULL_SEARCH)
         elif self.decision == DECISION_SELL:
+            name = 'sell'
             fitness_best = 0
             for i in range(self.num):
                 if self.group[i][-2][0] == ACTION_SELL:
@@ -330,14 +340,16 @@ class GA:
                         break
             fitness_full_search = self.full_search_method_sell()
         elif self.decision == DECISION_CHARTER:
+            name = 'charter'
             fitness_best = 0
             for i in range(self.num):
                 if self.group[i][-2][0] == ACTION_CHARTER:
                     if self.check_rule_is_adapted(self.group[i]):
                         fitness_best = self.group[i][-1]
                         break
-            fitness_full_search = 0
+            fitness_full_search = self.full_search_method_charter()
         else:
+            print('selected decision item does not exist')
             sys.exit()
         print(fitness_no_rule,fitness_best,fitness_full_search)
         left = [1,2,3]
@@ -349,11 +361,13 @@ class GA:
         #height = [fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search]
         #label = ['no rule','best rule','sets of rules','full search']
         plt.bar(left,height,tick_label=label,align='center')
-        plt.title('Comparison')
+        plt.title('Comparison among three decision rule')
         plt.ylabel('fitness')
-        plt.ylim(fitness_best-1,fitness_full_search+1)
+        min_fit = min(fitness_no_rule,min(fitness_best,fitness_full_search))
+        max_fit = max(fitness_no_rule,max(fitness_best,fitness_full_search))
+        plt.ylim(min(0,min_fit-1),max_fit+1)
         save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'comparison.png'))
+        plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
 
     def full_search_method_speed(self,oil_price,freight):
@@ -372,7 +386,7 @@ class GA:
             ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             fitness_list = []
             for i in range(VESSEL_LIFE_TIME*12):
-                fitness_list.append([0,0,i])
+                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING,0,i])
             for time in range(VESSEL_LIFE_TIME*12):
                 current_oil_price = self.oil_price_data[pattern][time]['price']
                 current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
@@ -393,11 +407,80 @@ class GA:
                             fitness_list[index][1] = 0
             fitness_list.sort(key=lambda x:x[0],reverse = True)
             #print(fitness_list[0][2])
-            list.append(fitness_list[0][0]/100000000)
+            list.append(fitness_list[0][0]/HUNDRED_MILLION)
         best = 0
         for e in range(len(list)):
             best += list[e]
         return best/DEFAULT_PREDICT_PATTERN_NUMBER
+
+    def full_search_method_charter(self):
+        fitness_list_charter = []
+        checklist = []
+        for period in [0,1,2,3]:
+            fitness_list_charter.append([])
+            checklist.append([0,period])
+            charter_list = []
+            for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+                fitness_list_charter[period].append([])
+                ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+                store = []
+                store.append([0,[],0])
+                for element in range(1,CHARTER_PERIOD[period]):
+                    oil_price = self.oil_price_data[pattern][-element]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][-element]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][-element]['price']
+                    freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    cash_0 = ship.calculate_income_per_month(oil_price,freight)
+                    charter_0 = self.charter_ship(oil_price,freight)
+                    if cash_0 + store[element-1][0] > charter_0*element:
+                        store.append([cash_0 + store[element-1][0],[1],element])
+                        charter_list.append(['STAY',180-element])
+                    else:
+                        store.append([charter_0*element,[0],element])
+                        charter_list.append(['CHARTER',180-element])
+                for x in range(CHARTER_PERIOD[period],VESSEL_LIFE_TIME*12+1):
+                    oil_price_fx = self.oil_price_data[pattern][-x]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][-x]['price']
+                    freight_fx = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    cash = ship.calculate_income_per_month(oil_price_fx,freight_fx)
+                    charter = self.charter_ship(oil_price_fx,freight_fx)
+                    if cash + store[-1][0] > charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0]:
+                        store.append([cash + store[-1][0],[1],x])
+                        charter_list.append(['STAY',180-x])
+                    else:
+                        store.append([charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0],[0],x])
+                        charter_list.append(['CHARTER',180-x])
+                charter_list.reverse()
+
+                if period == 3:
+                    x = 0
+                    for e in charter_list:
+                        if x > 0:
+                            x -= 1
+                        else:
+                            if e[0] == 'CHARTER':
+                                #print(e)
+                                x  = 35
+                    path = '../output/full_rule.xlsx'
+                    w = openpyxl.load_workbook(path)
+                    sheet = w['Sheet1']
+                    for i in range(VESSEL_LIFE_TIME*12):
+                        sheet.cell(row = i + 1, column = 1).value = charter_list[i][0]
+                    w.save(path)
+                    w.close()
+                    #print('saving changes')
+
+                store.reverse()
+                a = 0
+                for year in range(0,VESSEL_LIFE_TIME):
+                    cash_of_year = store[year*12][0] - store[year*12 + 12][0]
+                    DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                    a += cash_of_year/DISCOUNT
+                checklist[period][0] += (a - INITIAL_COST_OF_SHIPBUIDING)/HUNDRED_MILLION
+            checklist[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
+        checklist.sort(key=lambda x:x[0],reverse = True)
+        return checklist[0][0]
 
     def check_rule_is_adapted(self,rule):
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -436,7 +519,8 @@ class GA:
                     elif self.decision == DECISION_CHARTER:
                         a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
                     else:
-                         sys.exit()
+                        print('selected decision item does not exist')
+                        sys.exit()
                     temp.append(a)
                     temp.append(b)
 

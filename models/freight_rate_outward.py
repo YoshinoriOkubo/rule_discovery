@@ -5,7 +5,7 @@ import datetime
 import matplotlib.pyplot as plt
 import os
 import random
-
+import openpyxl
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -87,6 +87,7 @@ class FreightOutward:
 
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        self.export_excel()
         return
 
     def depict(self):
@@ -108,3 +109,14 @@ class FreightOutward:
         #save_dir = '../image'
         #plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
         #plt.show()
+
+    def export_excel(self):
+        path = '../output/freight_outward.xlsx'
+        wb = openpyxl.load_workbook(path)
+        sheet = wb['Sheet1']
+        for i in range(self.predict_years*12):
+            for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+                sheet.cell(row = i + 1, column = j + 1).value = self.predicted_data[j][i]['price']
+        wb.save(path)
+        wb.close()
+        print('saving changes')

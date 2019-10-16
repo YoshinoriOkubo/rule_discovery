@@ -4,7 +4,7 @@ import math
 import datetime
 import matplotlib.pyplot as plt
 import os
-
+import openpyxl
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -76,6 +76,7 @@ class Sinario:
                 current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        self.export_excel()
         return
 
     def depict(self):
@@ -95,3 +96,14 @@ class Sinario:
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'oil_price.png'))
         plt.close()
+
+    def export_excel(self):
+        path = '../output/oil_price.xlsx'
+        wb = openpyxl.load_workbook(path)
+        sheet = wb['Sheet1']
+        for i in range(self.predict_years*12):
+            for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+                sheet.cell(row = i + 1, column = j + 1).value = self.predicted_data[j][i]['price']
+        wb.save(path)
+        wb.close()
+        print('saving changes')
