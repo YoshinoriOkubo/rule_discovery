@@ -12,7 +12,7 @@ from my_modules import *
 from constants  import *
 from ship import Ship
 
-rule = 
+rule =
 
 sinario = Sinario()
 sinario.generate_sinario()

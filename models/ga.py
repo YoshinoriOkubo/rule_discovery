@@ -202,10 +202,18 @@ class GA:
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                                 elif self.decision == DECISION_CHARTER:
+                                    #sets_of_group
+                                    rule_number, result = 0, [False]
+                                    if rule is None:
+                                        while rule_number < len(self.group) and result[0] == False:
+                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                            rule_number += 1
+                                    #one rule
+                                    else:
+                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
                                     if ship.charter == True:
                                         cash_flow += ship.in_charter()
                                     else:
-                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
                                         if result[0] and result[1] == ACTION_CHARTER:
                                             ship.charter_month_remain = result[2] - 1
                                             cash_flow += ship.charter_ship(current_oil_price,total_freight)
@@ -270,6 +278,7 @@ class GA:
         elif self.decision == DECISION_CHARTER:
             name = 'charter'
         plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
+        plt.close()
 
     def export_excel(self):
         rule_type = ''
@@ -332,8 +341,11 @@ class GA:
         else:
             print('selected decision item does not exist')
             sys.exit()
-        print('no rule',fitness_no_rule)
-        print('best rule',fitness_best)
+        #for sets of rules extracted by the algorithm
+        #fitness_set_of_rule = self.fitness_function(None)
+        #print('fitness sets of rule',fitness_set_of_rule)
+        print('no rule         ',fitness_no_rule)
+        print('best rule       ',fitness_best)
         print('full search rule',fitness_full_search)
         left = [1,2,3]
         height = [fitness_no_rule,fitness_best,fitness_full_search]

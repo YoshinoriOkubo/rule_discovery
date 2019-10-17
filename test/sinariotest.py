@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 sys.path.append('../models')
 from oil_price import Sinario
 from freight_rate_outward import FreightOutward
@@ -28,18 +29,19 @@ for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
 plt.title('Transition of oil price', fontsize = 20)
 plt.xlabel('month', fontsize = 16)
 plt.ylabel('oil price', fontsize = 16)
-plt.tick_params(labelsize=14)
+#plt.tick_params(labelsize=14)
 plt.grid(True)
-plt.legend(loc = 'lower right')
+#plt.legend(loc = 'lower right')
 plt.xlim(0,600)
 plt.ylim(0, 160)
-plt.show()
-
+save_dir = '../output'
+plt.savefig(os.path.join(save_dir, 'oil_scenario_whole_time.png'))
+plt.close()
 
 '''
 freight_outward = FreightOutward()
 freight_return  = FreightReturn()
-'''
+
 #x = Sinario()
 #x.generate_sinario()
 #x.depict()
