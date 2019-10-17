@@ -8,6 +8,10 @@ class Ship:
         self.size = size
         self.speed = speed# km/h
         self.route = route
+        self.exist = True
+        self.charter = False
+        self.charter_fee = 0
+        self.charter_month_remain = 0
 
     def calculate_income_per_month(self,oil_price,freight):
         speed_km_h = self.change_knot_to_km_h(self.speed)
@@ -22,11 +26,28 @@ class Ship:
         else:
             return -cost_fixed_in_one_trip * number_of_trips
 
-    def change_speed(self,speed):
-        self.speed = speed  
+    def sell_ship(self,freight_data,time):
+        freight_criteria = freight_data[0]['price']
+        freight_now = freight_data[time]['price']
+        self.exist = False
+        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria)
 
-    def chagne_speed_to_initial(self):
-        self.speed = INITIAL_SPEED
+    def charter_ship(self,oil_price,freight):
+        self.charter = True
+        cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM
+        self.charter_fee = cash
+        return cash
+
+    def in_charter(self):
+        cash = self.charter_fee
+        self.charter_month_remain -= 1
+        if self.charter_month_remain == 0:
+            self.charter = False
+        return cash
+
+
+    def change_speed(self,speed):
+        self.speed = speed
 
     def calculate_fuel_consumption_from_speed(self):
         speed_km_h = self.change_knot_to_km_h(self.speed)

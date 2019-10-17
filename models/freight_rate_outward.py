@@ -20,7 +20,6 @@ class FreightOutward:
         # initialize parameters
         if (neu is None or sigma is None or u is None or d is None or p is None):
             self.calc_params_from_history()
-            print(self.neu, self.sigma, self.u, self.d, self.p)
         else:
             self.neu, self.sigma, self.u, self.d, self.p = neu, sigma, u, d, p
 
@@ -96,7 +95,7 @@ class FreightOutward:
             y = []
             for i in range(self.predict_years*12):
                 y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
+            plt.plot(x, y,label='pattern {0}'.format(pattern+1))
         plt.title('Transition of freight rate outward', fontsize = 20)
         plt.xlabel('month', fontsize = 16)
         plt.ylabel('freight rate return', fontsize = 16)
@@ -119,4 +118,3 @@ class FreightOutward:
                 sheet.cell(row = i + 1, column = j + 1).value = self.predicted_data[j][i]['price']
         wb.save(path)
         wb.close()
-        print('saving changes')

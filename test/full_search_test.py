@@ -39,14 +39,15 @@ for i in range(180):
 workbook.close()
 
 Ship = ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-cash = -INITIAL_COST_OF_SHIPBUIDING
+cash = 0
 charter = []
 
-a = 15
-b = 60
-c = 127
-d = 165
-charter_timing = [a,b,c,d]
+a = 6
+b = 100
+c = 145
+d = 132
+e = 168
+charter_timing = [a,b,c,d,e]
 for i in charter_timing:
     current_oil_price = oil[i]
     current_freight_rate_outward = freight_outward[i]
@@ -68,10 +69,18 @@ for year in range(15):
             cash_year += charter[1]
         elif year*12+month >= c and year*12+month < c + 36:
             cash_year += charter[2]
-        elif year*12+month >= d and year*12+month < d + 36:
-            cash_year += charter[3]
+        #elif year*12+month >= d and year*12+month < d + 36:
+        #    cash_year += charter[3]
+        #elif year*12+month >= e and year*12+month < e + 36:
+        #    cash_year += charter[4]
         else:
+            current_oil_price = oil[year*12+month]
+            current_freight_rate_outward = freight_outward[year*12+month]
+            current_freight_rate_return = freight_return[year*12+month]
+            total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
             cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
+    if year < DEPRECIATION_TIME:
+        cash_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
     cash += cash_year/(DISCOUNT)
 print(cash/HUNDRED_MILLION)

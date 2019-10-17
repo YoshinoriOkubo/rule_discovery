@@ -14,6 +14,7 @@ from ship import Ship
 sys.path.append('../public')
 sys.path.append('../output')
 from constants  import *
+from tqdm import tqdm
 
 class GA:
 
@@ -39,10 +40,10 @@ class GA:
         if self.decision == DECISION_SPEED:
             self.compare_rule.append([1,1,0,1]) #19knot
         elif self.decision == DECISION_SELL:
-            self.compare_rule.append([1])
+            self.compare_rule.append([ACTION_STAY])
         elif self.decision == DECISION_CHARTER:
             self.compare_rule.append([0])
-            self.compare_rule.append([ACTION_STAY])
+            self.compare_rule.append([ACTION_NOTHING])
         self.compare_rule.append(0)
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -152,29 +153,15 @@ class GA:
         return max(0,self.average_fitness)
     '''
 
-    def sell_ship(self,pattern,time):
-        freight_criteria = self.freight_rate_outward_data[pattern][0]['price']
-        freight_now = self.freight_rate_outward_data[pattern][time]['price']
-        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria)
-
-    def charter_ship(self,oil_price,freight):
-        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
-        cash = ship.calculate_income_per_month(oil_price,freight)
-        return cash * RISK_PREMIUM
-
     def fitness_function(self,rule):
-        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
         fitness = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            ship_exist = True
-            charter_ship = False
-            charter_fee = 0
-            charter_month_remain = 0
+            ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
-                if ship_exist:
+                if ship.exist:
                     for month in range(12):
-                        if ship_exist:
+                        if ship.exist:
                             current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                             current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                             current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
@@ -211,30 +198,23 @@ class GA:
                                     else:
                                         result = self.adapt_rule(current_oil_price,total_freight,rule)
                                     if result[0] and result[1] == ACTION_SELL:
-                                        cash_flow += self.sell_ship(pattern,year*12+month)
-                                        ship_exist = False
+                                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                                 elif self.decision == DECISION_CHARTER:
-                                    if charter_month_remain == 0:
-                                        charter_ship = False
-                                    if charter_ship == True:
-                                        cash_flow += charter_fee
-                                        charter_month_remain -= 1
+                                    if ship.charter == True:
+                                        cash_flow += ship.in_charter()
                                     else:
                                         result = self.adapt_rule(current_oil_price,total_freight,rule)
                                         if result[0] and result[1] == ACTION_CHARTER:
-                                            charter_ship = True
-                                            charter_fee = self.charter_ship(current_oil_price,total_freight)
-                                            charter_month_remain = result[2] - 1
-                                            cash_flow += charter_fee
+                                            ship.charter_month_remain = result[2] - 1
+                                            cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                         else:
                                             cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     if year < DEPRECIATION_TIME:
                         cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                     fitness += cash_flow / DISCOUNT
-            ship.chagne_speed_to_initial()
         fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         fitness /= HUNDRED_MILLION
         return max(0,fitness)
@@ -352,15 +332,12 @@ class GA:
         else:
             print('selected decision item does not exist')
             sys.exit()
-        print(fitness_no_rule,fitness_best,fitness_full_search)
+        print('no rule',fitness_no_rule)
+        print('best rule',fitness_best)
+        print('full search rule',fitness_full_search)
         left = [1,2,3]
         height = [fitness_no_rule,fitness_best,fitness_full_search]
         label = ['no rule','best rule','full search']
-        #fitness_set_of_rule = self.fitness_function(None)
-        #print(fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search)
-        #left = [1,2,3,4]
-        #height = [fitness_no_rule,fitness_best,fitness_set_of_rule,fitness_full_search]
-        #label = ['no rule','best rule','sets of rules','full search']
         plt.bar(left,height,tick_label=label,align='center')
         plt.title('Comparison among three decision rule')
         plt.ylabel('fitness')
@@ -372,42 +349,42 @@ class GA:
         plt.close()
 
     def full_search_method_speed(self,oil_price,freight):
-        if self.decision == DECISION_SPEED:
-            list = []
-            for speed in VESSEL_SPEED_LIST:
-                ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
-                cash_flow = ship.calculate_income_per_month(oil_price,freight)
-                list.append([cash_flow,speed,oil_price,freight])
-            list.sort(key=lambda x:x[0],reverse = True)
-            return list[0][1]
+        list = []
+        for speed in VESSEL_SPEED_LIST:
+            ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+            cash_flow = ship.calculate_income_per_month(oil_price,freight)
+            list.append([cash_flow,speed,oil_price,freight])
+        list.sort(key=lambda x:x[0],reverse = True)
+        return list[0][1]
 
     def full_search_method_sell(self):
         list = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             fitness_list = []
-            for i in range(VESSEL_LIFE_TIME*12):
-                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING,0,i])
+            for i in range(VESSEL_LIFE_TIME*12+1):
+                fitness_list.append([0,0,i])
             for time in range(VESSEL_LIFE_TIME*12):
                 current_oil_price = self.oil_price_data[pattern][time]['price']
                 current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
                 current_freight_rate_return = self.freight_rate_return_data[pattern][time]['price']
                 total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                for index in range(VESSEL_LIFE_TIME*12):
+                for index in range(VESSEL_LIFE_TIME*12+1):
                     if index < time:
                         pass
                     elif index == time:
-                        fitness_list[index][1] += self.sell_ship(pattern,time)
+                        fitness_list[index][1] += ship.sell_ship(self.freight_rate_outward_data[pattern],time)
                     else:
                         fitness_list[index][1] += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if (time + 1) % 12 == 0:
-                    for index in range(VESSEL_LIFE_TIME*12):
-                        if fitness_list[index][1] > 0:
-                            DISCOUNT = (1 + DISCOUNT_RATE) ** (time/12)
-                            fitness_list[index][0] += fitness_list[index][1]/DISCOUNT
-                            fitness_list[index][1] = 0
+                    for index in range(VESSEL_LIFE_TIME*12+1):
+                        cash_year = fitness_list[index][1]
+                        if time < DEPRECIATION_TIME*12:
+                            cash_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                        DISCOUNT = (1 + DISCOUNT_RATE) ** ((time+1)/12)
+                        fitness_list[index][0] += cash_year/DISCOUNT
+                        fitness_list[index][1] = 0
             fitness_list.sort(key=lambda x:x[0],reverse = True)
-            #print(fitness_list[0][2])
             list.append(fitness_list[0][0]/HUNDRED_MILLION)
         best = 0
         for e in range(len(list)):
@@ -432,7 +409,7 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-element]['price']
                     freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     cash_0 = ship.calculate_income_per_month(oil_price,freight)
-                    charter_0 = self.charter_ship(oil_price,freight)
+                    charter_0 = ship.charter_ship(oil_price,freight)
                     if cash_0 + store[element-1][0] > charter_0*element:
                         store.append([cash_0 + store[element-1][0],[1],element])
                         charter_list.append(['STAY',180-element])
@@ -445,7 +422,7 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-x]['price']
                     freight_fx = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     cash = ship.calculate_income_per_month(oil_price_fx,freight_fx)
-                    charter = self.charter_ship(oil_price_fx,freight_fx)
+                    charter = ship.charter_ship(oil_price_fx,freight_fx)
                     if cash + store[-1][0] > charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash + store[-1][0],[1],x])
                         charter_list.append(['STAY',180-x])
@@ -453,7 +430,6 @@ class GA:
                         store.append([charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0],[0],x])
                         charter_list.append(['CHARTER',180-x])
                 charter_list.reverse()
-
                 if period == 3:
                     x = 0
                     for e in charter_list:
@@ -461,7 +437,7 @@ class GA:
                             x -= 1
                         else:
                             if e[0] == 'CHARTER':
-                                #print(e)
+                                print(e)
                                 x  = 35
                     path = '../output/full_rule.xlsx'
                     w = openpyxl.load_workbook(path)
@@ -471,14 +447,15 @@ class GA:
                     w.save(path)
                     w.close()
                     #print('saving changes')
-
                 store.reverse()
                 a = 0
                 for year in range(0,VESSEL_LIFE_TIME):
                     cash_of_year = store[year*12][0] - store[year*12 + 12][0]
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                    if year < DEPRECIATION_TIME:
+                        cash_of_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                     a += cash_of_year/DISCOUNT
-                checklist[period][0] += (a - INITIAL_COST_OF_SHIPBUIDING)/HUNDRED_MILLION
+                checklist[period][0] += a/HUNDRED_MILLION
             checklist[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
         checklist.sort(key=lambda x:x[0],reverse = True)
         return checklist[0][0]
@@ -496,7 +473,7 @@ class GA:
                         return True
         return False
 
-    def execute_GA(self):
+    def execute_GA(self,method):
         first = time.time()
 
         #randomly generating individual group
@@ -504,9 +481,8 @@ class GA:
             self.group.append(self.generateIndividual())
 
         #genetic algorithm
-        for gene in range(self.generation):
-            print('{}%finished'.format(gene*100.0/self.generation),time.time()-first)
-
+        for gene in tqdm(range(self.generation)):
+            time.sleep(1/self.generation)
             #crossing
             temp = copy.deepcopy(self.group)
             #store best individual unchanged
@@ -558,63 +534,47 @@ class GA:
             #num -= 10
 
             #selection
-
-            #steady state ga
-            '''
-            for i in range(0,len(temp),2):
-                if i + 1 < self.num:
-                    store = []
-                    store.append(temp[i])
-                    store.append(temp[i+1])
-                    if self.num + i < len(temp):
-                        store.append(temp[self.num + i])
-                    if self.num + i + 1 < len(temp):
-                        store.append(temp[self.num + i+1])
-                    store.sort(key=lambda x:x[-1],reverse = True)
-                    self.group[i] = store[0]
-                    self.group[i+1] = store[1]
-            self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0][-1])
-            total = 0
-            for e in range(self.num):
-                total += self.group[e][-1]
-            self.averagegroup.append(total/self.num)
-            '''
-            '''
-            #tournament selection
-            for select in range(self.num):
-                tournament = []
-                for _ in range(6):
-                    tournament.append(temp[random.randint(0,2*self.num-1)])
-                tournament.sort(key=lambda x:x[-1],reverse = True)
-                self.group[select] = tournament[0]
-            self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0][-1])
-            total = 0
-            for e in range(self.num):
-                total += self.group[e][-1]
-            self.averagegroup.append(total/self.num)
-            '''
-
-            #'''
-            #roulette selection and elite storing
-            #store the best 5% individual
-            temp.sort(key=lambda x:x[-1],reverse = True)
-            elite_number = int(self.num * 0.05)
-            for i in range(elite_number):
-                self.group[i] = temp[i]
-            random.shuffle(temp)
-            ark = 0 # the number used to roulette in crossing
-            probability = 0
-            for i in range(len(temp)):
-                probability += temp[i][-1]
-            roulette = 0
-            for i in range(elite_number,self.num):
-                roulette = random.randint(0,int(probability))
-                while roulette > 0:
-                    roulette -= temp[ark][-1]
-                    ark = (ark + 1) % self.num
-                self.group[i] = temp[ark]
+            if method == ROULETTE:#roulette selection and elite storing
+                #store the best 5% individual
+                temp.sort(key=lambda x:x[-1],reverse = True)
+                elite_number = int(self.num * 0.05)
+                for i in range(elite_number):
+                    self.group[i] = temp[i]
+                random.shuffle(temp)
+                ark = 0 # the number used to roulette in crossing
+                probability = 0
+                for i in range(len(temp)):
+                    probability += temp[i][-1]
+                roulette = 0
+                for i in range(elite_number,self.num):
+                    roulette = random.randint(0,int(probability))
+                    while roulette > 0:
+                        roulette -= temp[ark][-1]
+                        ark = (ark + 1) % self.num
+                    self.group[i] = temp[ark]
+            elif method == TOURNAMENT:#tournament selection
+                for select in range(self.num):
+                    tournament = []
+                    for _ in range(6):
+                        tournament.append(temp[random.randint(0,2*self.num-1)])
+                    tournament.sort(key=lambda x:x[-1],reverse = True)
+                    self.group[select] = tournament[0]
+            elif method == STEADY_STATE:#steady state ga
+                for i in range(0,len(temp),2):
+                    if i + 1 < self.num:
+                        store = []
+                        store.append(temp[i])
+                        store.append(temp[i+1])
+                        if self.num + i < len(temp):
+                            store.append(temp[self.num + i])
+                        if self.num + i + 1 < len(temp):
+                            store.append(temp[self.num + i+1])
+                        store.sort(key=lambda x:x[-1],reverse = True)
+                        self.group[i] = store[0]
+                        self.group[i+1] = store[1]
+            else:
+                print('Selected method does not exist')
+                sys.exit()
             self.group.sort(key=lambda x:x[-1],reverse = True)
             self.bestgroup.append(self.group[0][-1])
             total = 0
@@ -623,16 +583,12 @@ class GA:
             self.averagegroup.append(total/self.num)
             if gene > 10 and self.bestgroup[-1] == self.bestgroup[-2] == self.bestgroup[-3]:
                 break
-            #'''
-
         #print result
         self.group.sort(key=lambda x:x[-1],reverse = True)
         for i in range(0,self.num):
             if i == 0:
                 print('best rule', self.group[i])
-
             thisone = self.group[i]
-            #if self.check_rule_is_adapted(thisone):
             a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
             b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
             c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
@@ -647,7 +603,8 @@ class GA:
                 e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])])
                         if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone)
                         else 'NOT ADAPTED')
-            print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
+            if self.check_rule_is_adapted(thisone):
+                print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
             if a > b or c > d:
                 print('rule error')
                 sys.exit()
@@ -656,3 +613,7 @@ class GA:
         print('Spent time is {0}'.format(exe))
         self.export_excel()
         self.compare_rules()
+        #initialize attribute
+        self.gruop = []
+        self.bestgroup = []
+        self.averagegroup = []
