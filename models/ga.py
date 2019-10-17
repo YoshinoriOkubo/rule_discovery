@@ -79,15 +79,23 @@ class GA:
 
     def adapt_rule(self,oil_price,freight,rule):
         if self.decision == DECISION_INTEGRATE:
+            result = []
             for rule_index in range(len(rule)-1):
-                a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[rule_index][0])]
-                b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[rule_index][1])]
+                rule_for_X = rule[rule_index]
+                result.append([False])
+                a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
+                b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
                 if a == b or ( a <= oil_price and oil_price <= b):
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[rule_index][2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[rule_index][3])]
+                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
+                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
                     if c == d or ( c <= freight and freight <= d):
-                        return [True,RULE_SET[rule_index]]
-            return [False]
+                        if RULE_SET[rule_index] == DECISION_SPEED:
+                            result[rule_index] = [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]]
+                        elif RULE_SET[rule_index] == DECISION_SELL and rule_for_X[-1] == ACTION_SELL:
+                            result[rule_index] = [True]
+                        elif RULE_SET[rule_index] == DECISION_CHARTER and rule_for_X == ACTION_CHARTER:
+                            result[rule_index] = [True,CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])]]
+            return result
         else:
             a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
             b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
@@ -155,13 +163,14 @@ class GA:
         if self.decision == DECISION_INTEGRATE:
             for rule_index in range(len(individual)-1):
                 if random.random() < 1/(len(individual)-1):
+                    rule_for_X = individual[rule_index]
                     if rule_index == 0:
-                        mutation_block = random.randint(0,len(individual[rule_index])-1)
+                        mutation_block = random.randint(0,len(rule_for_X)-1)
                     else:
-                        mutation_block = random.randint(0,len(individual[rule_index])-2)
-                    length = len(individual[rule_index][mutation_block]) - 1
+                        mutation_block = random.randint(0,len(rule_for_X)-2)
+                    length = len(rule_for_X[mutation_block]) - 1
                     point = random.randint(0,length)
-                    individual[rule_index][mutation_block][point] = (individual[rule_index][mutation_block][point] + 1) % 2
+                    rule_for_X[mutation_block][point] = (rule_for_X[mutation_block][point] + 1) % 2
         else:
             if self.decision == DECISION_SPEED:
                 mutation_block = random.randint(0,len(individual)-2)
@@ -213,95 +222,83 @@ class GA:
             ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
-                if ship.exist:
-                    for month in range(12):
-                        if ship.exist:
-                            current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
-                            current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
-                            current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
-                            total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                            #change by argment
-                            #full_search
-                            if type(rule) is int:
-                                ship.change_speed(self.full_search_method_speed(current_oil_price,total_freight))
+                for month in range(12):
+                    if ship.exist:
+                        current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
+                        current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
+                        current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
+                        total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                        #change by argment
+                        #full_search
+                        if type(rule) is int:
+                            ship.change_speed(self.full_search_method_speed(current_oil_price,total_freight))
+                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                        else:
+                            if self.decision == DECISION_SPEED:
+                                #sets_of_group
+                                rule_number, result = 0, [False]
+                                if rule is None:
+                                    while rule_number < len(self.group) and result[0] == False:
+                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                        rule_number += 1
+                                #one rule
+                                else:
+                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                if result[0]:
+                                    ship.change_speed(result[1])
+                                #if rule is None:
+                                #    self.speed_history[pattern].append(ship.speed)
                                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                            else:
-                                if self.decision == DECISION_SPEED:
-                                    #sets_of_group
-                                    rule_number, result = 0, [False]
-                                    if rule is None:
-                                        while rule_number < len(self.group) and result[0] == False:
-                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                            rule_number += 1
-                                    #one rule
-                                    else:
-                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                    if result[0]:
-                                        ship.change_speed(result[1])
-                                    #if rule is None:
-                                    #    self.speed_history[pattern].append(ship.speed)
+                            elif self.decision == DECISION_SELL:
+                                #sets_of_group
+                                rule_number, result = 0, [False]
+                                if rule is None:
+                                    while rule_number < len(self.group) and result[0] == False:
+                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                        rule_number += 1
+                                #one rule
+                                else:
+                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                if result[0] and result[1] == ACTION_SELL:
+                                    cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                                else:
                                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                elif self.decision == DECISION_SELL:
-                                    #sets_of_group
-                                    rule_number, result = 0, [False]
-                                    if rule is None:
-                                        while rule_number < len(self.group) and result[0] == False:
-                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                            rule_number += 1
-                                    #one rule
-                                    else:
-                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                    if result[0] and result[1] == ACTION_SELL:
-                                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                            elif self.decision == DECISION_CHARTER:
+                                #sets_of_group
+                                rule_number, result = 0, [False]
+                                if rule is None:
+                                    while rule_number < len(self.group) and result[0] == False:
+                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                        rule_number += 1
+                                #one rule
+                                else:
+                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                if ship.charter == True:
+                                    cash_flow += ship.in_charter()
+                                else:
+                                    if result[0] and result[1] == ACTION_CHARTER:
+                                        ship.charter_month_remain = result[2] - 1
+                                        cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                elif self.decision == DECISION_CHARTER:
-                                    #sets_of_group
-                                    rule_number, result = 0, [False]
-                                    if rule is None:
-                                        while rule_number < len(self.group) and result[0] == False:
-                                            result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                            rule_number += 1
-                                    #one rule
+                            elif self.decision == DECISION_INTEGRATE:
+                                result = self.adapt_rule(current_oil_price,total_freight,rule)
+                                if ship.charter == True:
+                                    cash_flow += ship.in_charter()
+                                else:
+                                    if result[0][0] == True:
+                                        ship.change_speed(result[0][1])
+                                    if result[1][0] == True:
+                                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                                    elif result[2][0] == True:
+                                        ship.charter_month_remain = result[2][1] - 1
+                                        cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                     else:
-                                        result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                    if ship.charter == True:
-                                        cash_flow += ship.in_charter()
-                                    else:
-                                        if result[0] and result[1] == ACTION_CHARTER:
-                                            ship.charter_month_remain = result[2] - 1
-                                            cash_flow += ship.charter_ship(current_oil_price,total_freight)
-                                        else:
-                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                elif self.decision == DECISION_INTEGRATE:
-                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                    if ship.charter == True:
-                                        cash_flow += ship.in_charter()
-                                    else:
-                                        if result[0] == True:
-                                            if result[1] == DECISION_SPEED:
-                                                ship.change_speed(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[0][-1])])
-                                                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                            elif result[1] == DECISION_SELL:
-                                                if rule[1][-1] == ACTION_SELL:
-                                                    cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
-                                                else:
-                                                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                            elif result[1] == DECISION_CHARTER:
-                                                if rule[2][-1] == ACTION_CHARTER:
-                                                    ship.charter_month_remain = CHARTER_PERIOD[self.convert2to10_in_list(rule[2][-2])] - 1
-                                                    cash_flow += ship.charter_ship(current_oil_price,total_freight)
-                                                else:
-                                                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                                            else:
-                                                print('Slected decision item which is adapted by the rule does not exist')
-                                                sys.exit()
-                                        else:
-                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                    if year < DEPRECIATION_TIME:
-                        cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
-                    DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                    fitness += cash_flow / DISCOUNT
+                                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                if year < DEPRECIATION_TIME:
+                    cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                fitness += cash_flow / DISCOUNT
         fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         fitness /= HUNDRED_MILLION
         return max(0,fitness)
@@ -357,7 +354,7 @@ class GA:
         y = []
         z = []
         for i in range(len(self.bestgroup)):
-            y.append(self.bestgroup[i])
+            y.append(self.bestgroup[i][-1])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
         #if y[3] != z[3]:
@@ -375,6 +372,8 @@ class GA:
             name = 'sell'
         elif self.decision == DECISION_CHARTER:
             name = 'charter'
+        elif self.decision == DECISION_INTEGRATE:
+            name = 'integrate'
         plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
         plt.close()
 
@@ -416,12 +415,12 @@ class GA:
         fitness_no_rule = self.fitness_function(self.compare_rule)
         if self.decision == DECISION_INTEGRATE:
             name = 'integrate'
-            fitness_best = self.bestgroup[-1]
+            fitness_best = self.bestgroup[-1][-1]
             fitness_full_search = 0
         else:
             if self.decision == DECISION_SPEED:
                 name = 'speed'
-                fitness_best = self.bestgroup[-1]
+                fitness_best = self.bestgroup[-1][-1]
                 fitness_full_search = self.fitness_function(FULL_SEARCH)
             elif self.decision == DECISION_SELL:
                 name = 'sell'
@@ -458,7 +457,7 @@ class GA:
         plt.ylabel('fitness')
         min_fit = min(fitness_no_rule,min(fitness_best,fitness_full_search))
         max_fit = max(fitness_no_rule,max(fitness_best,fitness_full_search))
-        plt.ylim(min(0,min_fit-1),max_fit+1)
+        plt.ylim(max(0,min_fit-1),max_fit+1)
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
@@ -637,20 +636,21 @@ class GA:
             if self.decision == DECISION_INTEGRATE:
                 for k in range(len(temp)):
                     for rule_index in range(len(temp[k])-1):
-                        a = OIL_PRICE_LIST[self.convert2to10_in_list(temp[k][rule_index][0])]
-                        b = OIL_PRICE_LIST[self.convert2to10_in_list(temp[k][rule_index][1])]
-                        c = FREIGHT_RATE_LIST[self.convert2to10_in_list(temp[k][rule_index][2])]
-                        d = FREIGHT_RATE_LIST[self.convert2to10_in_list(temp[k][rule_index][3])]
+                        rule_for_X = temp[k][rule_index]
+                        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
+                        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
+                        c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
+                        d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
                         if a > b:
                             X = copy.deepcopy(temp[k])
                             for element in range(4):
-                                temp[k][rule_index][0][element] = X[rule_index][1][element]
-                                temp[k][rule_index][1][element] = X[rule_index][0][element]
+                                rule_for_X[0][element] = X[rule_index][1][element]
+                                rule_for_X[1][element] = X[rule_index][0][element]
                         if c > d:
                             Y = copy.deepcopy(temp[k])
                             for element in range(4):
-                                temp[k][rule_index][2][element] = Y[rule_index][3][element]
-                                temp[k][rule_index][3][element] = Y[rule_index][2][element]
+                                rule_for_X[2][element] = Y[rule_index][3][element]
+                                rule_for_X[3][element] = Y[rule_index][2][element]
             else:
                 for k in range(len(temp)):
                     a = OIL_PRICE_LIST[self.convert2to10_in_list(temp[k][0])]
@@ -678,6 +678,11 @@ class GA:
             #num -= 10
 
             #selection
+            #store last generation's best individual unchanged
+            if gene > 0:
+                self.group[0] = self.bestgroup[gene-1]
+            else:#this does not have meaning, just number adjustment
+                self.group[0] = temp[0]
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
                 temp.sort(key=lambda x:x[-1],reverse = True)
@@ -690,14 +695,14 @@ class GA:
                 for i in range(len(temp)):
                     probability += temp[i][-1]
                 roulette = 0
-                for i in range(elite_number,self.num):
+                for i in range(elite_number,self.num-1):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
                         roulette -= temp[ark][-1]
                         ark = (ark + 1) % self.num
                     self.group[i] = temp[ark]
             elif method == TOURNAMENT:#tournament selection
-                for select in range(self.num):
+                for select in range(self.num-1):
                     tournament = []
                     for _ in range(6):
                         tournament.append(temp[random.randint(0,2*self.num-1)])
@@ -720,12 +725,13 @@ class GA:
                 print('Selected method does not exist')
                 sys.exit()
             self.group.sort(key=lambda x:x[-1],reverse = True)
-            self.bestgroup.append(self.group[0][-1])
+            self.bestgroup.append(self.group[0])
+            random.shuffle(self.group)
             total = 0
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            if gene > 10 and self.bestgroup[-1] == self.bestgroup[-2] == self.bestgroup[-3]:
+            if gene > 20 and self.bestgroup[-1][-1] == self.bestgroup[-2][-1] == self.bestgroup[-3][-1]:
                 break
 
         #print result
@@ -736,21 +742,19 @@ class GA:
             thisone = self.group[i]
             if self.decision == DECISION_INTEGRATE:
                 for rule_index in range(3):
-                    a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[rule_index][0])]
-                    b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[rule_index][1])]
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[rule_index][2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[rule_index][3])]
+                    rule_for_X = thisone[rule_index]
+                    a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
+                    b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
+                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
+                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
                     if RULE_SET[rule_index] == DECISION_SPEED:
-                        e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[rule_index][-1])]
+                        e = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]
                     elif RULE_SET[rule_index] == DECISION_SELL:
-                        e = ('SELL'
-                                if self.convert2to10_in_list(thisone[rule_index][-1]) == ACTION_SELL and self.check_rule_is_adapted(thisone[rule_index])
-                                else 'NOT ADAPTED')
+                        e = 'SELL' if self.check_rule_is_adapted(rule_for_X) else 'NOT ADAPTED'
                     elif RULE_SET[rule_index] == DECISION_CHARTER:
-                        e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[rule_index][-2])])
-                                if self.convert2to10_in_list(thisone[rule_index][-1]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone[rule_index])
+                        e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
+                                if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
-                    #if self.check_rule_is_adapted(thisone[rule_index]):
                     if i < NUM_DISPLAY:
                         print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}'.format(a,b,c,d,e))
                 if i < NUM_DISPLAY:
@@ -763,12 +767,10 @@ class GA:
                 if self.decision == DECISION_SPEED:
                     e = VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
                 elif self.decision == DECISION_SELL:
-                    e = ('SELL'
-                            if self.convert2to10_in_list(thisone[-2]) == ACTION_SELL and self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
+                    e = 'SELL' if self.check_rule_is_adapted(thisone) else 'NOT ADAPTED'
                 elif self.decision == DECISION_CHARTER:
                     e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])])
-                            if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone)
+                            if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
                     print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
@@ -779,7 +781,7 @@ class GA:
 
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
-        #self.depict()
+        self.depict()
         #self.export_excel()
         self.compare_rules()
 
