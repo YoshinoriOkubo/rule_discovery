@@ -23,11 +23,22 @@ freight_return.generate_sinario()
 freight_return.depict()
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+            DECISION_SPEED)
+ga.execute_GA()
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+            DECISION_SELL)
+ga.execute_GA()
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_CHARTER)
-ga.execute_GA(ROULETTE)
+ga.execute_GA()
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+            DECISION_INTEGRATE)
+ga.execute_GA()
 #ga.execute_GA(TOURNAMENT)
 #ga.execute_GA(STEADY_STATE)
-ga.depict()
 
 #x = range(180)
 #y = ga.speed_history
