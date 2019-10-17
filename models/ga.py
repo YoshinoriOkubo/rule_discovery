@@ -431,6 +431,7 @@ class GA:
                         charter_list.append(['CHARTER',180-x])
                 charter_list.reverse()
                 if period == 3:
+                    '''
                     x = 0
                     for e in charter_list:
                         if x > 0:
@@ -439,14 +440,15 @@ class GA:
                             if e[0] == 'CHARTER':
                                 print(e)
                                 x  = 35
+                    '''
                     path = '../output/full_rule.xlsx'
                     w = openpyxl.load_workbook(path)
                     sheet = w['Sheet1']
                     for i in range(VESSEL_LIFE_TIME*12):
-                        sheet.cell(row = i + 1, column = 1).value = charter_list[i][0]
+                        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+                            sheet.cell(row = i + 1, column = pattern + 1).value = charter_list[i][pattern]
                     w.save(path)
                     w.close()
-                    #print('saving changes')
                 store.reverse()
                 a = 0
                 for year in range(0,VESSEL_LIFE_TIME):
