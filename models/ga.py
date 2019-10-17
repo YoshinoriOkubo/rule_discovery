@@ -527,10 +527,10 @@ class GA:
                     charter_0 = ship.charter_ship(oil_price,freight)
                     if cash_0 + store[element-1][0] > charter_0*element:
                         store.append([cash_0 + store[element-1][0],[1],element])
-                        charter_list.append(['STAY',180-element])
+                        charter_list.append(['STAY',VESSEL_LIFE_TIME*12-element])
                     else:
                         store.append([charter_0*element,[0],element])
-                        charter_list.append(['CHARTER',180-element])
+                        charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-element])
                 for x in range(CHARTER_PERIOD[period],VESSEL_LIFE_TIME*12+1):
                     oil_price_fx = self.oil_price_data[pattern][-x]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
@@ -540,10 +540,10 @@ class GA:
                     charter = ship.charter_ship(oil_price_fx,freight_fx)
                     if cash + store[-1][0] > charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash + store[-1][0],[1],x])
-                        charter_list.append(['STAY',180-x])
+                        charter_list.append(['STAY',VESSEL_LIFE_TIME*12-x])
                     else:
                         store.append([charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0],[0],x])
-                        charter_list.append(['CHARTER',180-x])
+                        charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-x])
                 charter_list.reverse()
                 if period == 3:
                     '''
@@ -751,9 +751,9 @@ class GA:
                                 if self.convert2to10_in_list(thisone[rule_index][-1]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone[rule_index])
                                 else 'NOT ADAPTED')
                     #if self.check_rule_is_adapted(thisone[rule_index]):
-                    if i < 10:
+                    if i < NUM_DISPLAY:
                         print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}'.format(a,b,c,d,e))
-                if i < 10:
+                if i < NUM_DISPLAY:
                     print('fitness value = {}'.format(thisone[-1]))
             else:
                 a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
@@ -770,7 +770,7 @@ class GA:
                     e = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])])
                             if self.convert2to10_in_list(thisone[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
-                if self.check_rule_is_adapted(thisone) and i < 10:
+                if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
                     print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
                 if a > b or c > d:
                     print('rule error')
