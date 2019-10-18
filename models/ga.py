@@ -10,11 +10,11 @@ from multiprocessing import Pool
 import multiprocessing as multi
 from oil_price import Sinario
 from ship import Ship
+from tqdm import tqdm
 # import own modules #
 sys.path.append('../public')
 sys.path.append('../output')
 from constants  import *
-from tqdm import tqdm
 
 class GA:
 
@@ -51,7 +51,7 @@ class GA:
             for i in range(self.num_condition_part*2):
                 self.compare_rule.append([0,0,0,0])
             if self.decision == DECISION_SPEED:
-                self.compare_rule.append([1,1,0,1]) #19knot
+                self.compare_rule.append(INITIAL_SPEED_CHROMOSOME) #19knot
             elif self.decision == DECISION_SELL:
                 self.compare_rule.append([ACTION_STAY])
             elif self.decision == DECISION_CHARTER:
@@ -599,6 +599,14 @@ class GA:
                             return True
                     return False
 
+    def check_convergence(self,target,criteria):
+        flag = True
+        for index in range(1,criteria+1):
+            if target[-index][-1] != target[-(index+1)][-1]:
+                flag = False
+                break
+        return flag
+
     def execute_GA(self,method=ROULETTE):
         first = time.time()
 
@@ -731,7 +739,7 @@ class GA:
             for e in range(self.num):
                 total += self.group[e][-1]
             self.averagegroup.append(total/self.num)
-            if gene > 20 and self.bestgroup[-1][-1] == self.bestgroup[-2][-1] == self.bestgroup[-3][-1]:
+            if gene > DEFAULT_GENERATION/2 and self.check_convergence(self.bestgroup,5):
                 break
 
         #print result
