@@ -725,7 +725,7 @@ class GA:
                 #store the best 5% individual
                 temp.sort(key=lambda x:x[-1],reverse = True)
                 elite_number = int(self.num * 0.05)
-                for i in range(elite_number):
+                for i in range(1,elite_number+1):
                     self.group[i] = temp[i]
                 random.shuffle(temp)
                 ark = 0 # the number used to roulette in crossing
@@ -733,7 +733,7 @@ class GA:
                 for i in range(len(temp)):
                     probability += temp[i][-1]
                 roulette = 0
-                for i in range(elite_number,self.num-1):
+                for i in range(elite_number+1,self.num):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
                         roulette -= temp[ark][-1]
