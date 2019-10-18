@@ -41,7 +41,7 @@ class GA:
                 for i in range(self.num_condition_part*2):
                     self.compare_rule[rule_index].append([0,0,0,0])
                 if RULE_SET[rule_index] == DECISION_SPEED:
-                    self.compare_rule[rule_index].append([1,1,0,1]) #19knot
+                    self.compare_rule[rule_index].append(INITIAL_SPEED_CHROMOSOME) #19knot
                 elif RULE_SET[rule_index] == DECISION_SELL:
                     self.compare_rule[rule_index].append([ACTION_STAY])
                 elif RULE_SET[rule_index] == DECISION_CHARTER:
@@ -58,6 +58,7 @@ class GA:
                 self.compare_rule.append([0,0])
                 self.compare_rule.append([ACTION_NOTHING])
         self.compare_rule.append(0)
+        #self.compare_rule.append([0,0])# average profit and varianve
         #self.speed_history = []
         #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         #    self.speed_history.append([])
@@ -90,11 +91,13 @@ class GA:
                     d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
                     if c == d or ( c <= freight and freight <= d):
                         if RULE_SET[rule_index] == DECISION_SPEED:
-                            result[rule_index] = [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]]
-                        elif RULE_SET[rule_index] == DECISION_SELL and rule_for_X[-1] == ACTION_SELL:
-                            result[rule_index] = [True]
-                        elif RULE_SET[rule_index] == DECISION_CHARTER and rule_for_X == ACTION_CHARTER:
-                            result[rule_index] = [True,CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])]]
+                            result[rule_index][0] = True
+                            result[rule_index].append(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])])
+                        elif RULE_SET[rule_index] == DECISION_SELL and rule_for_X[-1][0] == ACTION_SELL:
+                            result[rule_index][0] = True
+                        elif RULE_SET[rule_index] == DECISION_CHARTER and rule_for_X[-1][0] == ACTION_CHARTER:
+                            result[rule_index][0] = True
+                            result[rule_index].append(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
             return result
         else:
             a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
@@ -127,32 +130,56 @@ class GA:
                 for rule_index in range(len(a)-1):
                     temp1.append([])
                     temp2.append([])
-                    point = random.randint(0,len(a[rule_index])-1)
-                    for i in range(0,point):
-                        temp1[rule_index].append(b[rule_index][i])
-                        temp2[rule_index].append(a[rule_index][i])
-                    for i in range(point,len(a[rule_index])):
-                        temp1[rule_index].append(a[rule_index][i])
-                        temp2[rule_index].append(b[rule_index][i])
-                temp1.append(0)
-                temp2.append(0)
+                    if RULE_SET[rule_index] == DECISION_SPEED or RULE_SET[rule_index] == DECISION_CHARTER:
+                        num_block = self.num_condition_part*2 + 1
+                    elif RULE_SET[rule_index] == DECISION_SELL:
+                        num_block = self.num_condition_part*2
+                    crossing_block = random.randint(0,num_block-1)
+                    for x in range(num_block):
+                        if x == crossing_block:
+                            temp1[rule_index].append([])
+                            temp2[rule_index].append([])
+                            length = len(a[rule_index][x]) - 1
+                            crossing_point = random.randint(0,length)
+                            for i in range(0,crossing_point):
+                                temp1[rule_index][x].append(a[rule_index][x][i])
+                                temp2[rule_index][x].append(b[rule_index][x][i])
+                            for i in range(crossing_point,len(a[rule_index][x])):
+                                temp1[rule_index][x].append(b[rule_index][x][i])
+                                temp2[rule_index][x].append(a[rule_index][x][i])
+                        else:
+                            temp1[rule_index].append(a[rule_index][x])
+                            temp2[rule_index].append(b[rule_index][x])
+                    for x in range(num_block,len(a[rule_index])):
+                        temp1[rule_index].append(a[rule_index][x])
+                        temp2[rule_index].append(b[rule_index][x])
             else:
                 print('function crossing needs one more argment')
                 sys.exit()
         else:
+            crossing_block = random.randint(0,num_block-1)
             for x in range(num_block):
-                temp1.append([])
-                temp2.append([])
-                point = random.randint(0,len(a[x]))
-                for i in range(0,point):
-                    temp1[x].append(a[x][i])
-                    temp2[x].append(b[x][i])
-                for i in range(point,len(a[x])):
-                    temp1[x].append(b[x][i])
-                    temp2[x].append(a[x][i])
-            for x in range(num_block,len(a)):
+                if x == crossing_block:
+                    temp1.append([])
+                    temp2.append([])
+                    length = len(a[x]) - 1
+                    crossing_point = random.randint(0,length)
+                    for i in range(0,crossing_point):
+                        temp1[x].append(a[x][i])
+                        temp2[x].append(b[x][i])
+                    for i in range(crossing_point,len(a[x])):
+                        temp1[x].append(b[x][i])
+                        temp2[x].append(a[x][i])
+                else:
+                    temp1.append(a[x])
+                    temp2.append(b[x])
+            for x in range(num_block,len(a)-1):
                 temp1.append(a[x])
                 temp2.append(b[x])
+        temp1.append(0)
+        temp2.append(0)
+        #temp1.append([0,0])
+        #temp2.append([0,0])
         return [temp1,temp2]
 
     def mutation(self,individual):
@@ -164,7 +191,7 @@ class GA:
             for rule_index in range(len(individual)-1):
                 if random.random() < 1/(len(individual)-1):
                     rule_for_X = individual[rule_index]
-                    if rule_index == 0:
+                    if RULE_SET[rule_index] == DECISION_SPEED:
                         mutation_block = random.randint(0,len(rule_for_X)-1)
                     else:
                         mutation_block = random.randint(0,len(rule_for_X)-2)
@@ -179,6 +206,9 @@ class GA:
             elif self.decision == DECISION_CHARTER:
                 mutation_block = random.randint(0,len(individual)-3)
             length = len(individual[mutation_block]) - 1
+            if length < 1:
+                print(mutation_block)
+                print(individual)
             point = random.randint(0,length)
             individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
@@ -290,11 +320,12 @@ class GA:
                                         ship.change_speed(result[0][1])
                                     if result[1][0] == True:
                                         cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
-                                    elif result[2][0] == True:
-                                        ship.charter_month_remain = result[2][1] - 1
-                                        cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                     else:
-                                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                        if result[2][0] == True:
+                                            ship.charter_month_remain = result[2][1] - 1
+                                            cash_flow += ship.charter_ship(current_oil_price,total_freight)
+                                        else:
+                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if year < DEPRECIATION_TIME:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -592,12 +623,11 @@ class GA:
                             d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
                             if c == d or ( c <= freight and freight <= d):
                                 return True
-                        return False
                     else:
                         result = self.adapt_rule(oil_price,freight,rule)
                         if result[0]:
                             return True
-                    return False
+        return False
 
     def check_convergence(self,target,criteria):
         flag = True
@@ -749,7 +779,7 @@ class GA:
                 print('best rule', self.group[i])
             thisone = self.group[i]
             if self.decision == DECISION_INTEGRATE:
-                for rule_index in range(3):
+                for rule_index in range(len(RULE_SET)):
                     rule_for_X = thisone[rule_index]
                     a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
                     b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
