@@ -438,28 +438,55 @@ class GA:
             rule_type = 'sell'
         elif self.decision == DECISION_CHARTER:
             rule_type = 'charter'
+        elif self.decision == DECISION_INTEGRATE:
+            rule_type = 'integrate'
         path = '../output/ship_rule_{0}.xlsx'.format(rule_type)
         wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
-        for i in range(0,self.num):
-            individual = self.group[i]
-            sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
-            for j in range(self.num_condition_part*2):
-                if j == 0 or j == 1:
-                    sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
-                else:
-                    sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
-            if self.decision == DECISION_SPEED:
-                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])]
-            elif self.decision == DECISION_SELL:
-                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('SELL'
-                                                                                            if self.convert2to10_in_list(individual[-2]) == ACTION_SELL and self.check_rule_is_adapted(individual)
-                                                                                            else 'NOT ADAPTED')
-            elif self.decision == DECISION_CHARTER:
-                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])])
-                                                                                            if self.convert2to10_in_list(individual[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(individual)
-                                                                                            else 'NOT ADAPTED')
-            sheet.cell(row = i + 1, column = self.num_condition_part*2 + 1 + 2).value = individual[-1]
+        if self.decision == DECISION_INTEGRATE:
+            for i in range(0,self.num*4,4):
+                individual = self.group[int(i/4)]
+                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
+                for rule_index in range(len(RULE_SET)):
+                    rule_for_X = individual[rule_index]
+                    for j in range(self.num_condition_part*2):
+                        if j == 0 or j == 1:
+                            sheet.cell(row = i + 1 + rule_index, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[j])]
+                        else:
+                            sheet.cell(row = i + 1 + rule_index, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[j])]
+                    if RULE_SET[rule_index] == DECISION_SPEED:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]
+                    elif RULE_SET[rule_index] == DECISION_SELL:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('SELL'
+                                                                                                    if self.check_rule_is_adapted(rule_for_X)
+                                                                                                    else 'NOT ADAPTED')
+                    elif RULE_SET[rule_index] == DECISION_CHARTER:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
+                                                                                                    if self.check_rule_is_adapted(rule_for_X)
+                                                                                                    else 'NOT ADAPTED')
+                sheet.cell(row = i + 1 + len(RULE_SET), column = 2).value = individual[-1][0]
+                sheet.cell(row = i + 1 + len(RULE_SET), column = 3).value = individual[-1][1]
+        else:
+            for i in range(0,self.num):
+                individual = self.group[i]
+                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
+                for j in range(self.num_condition_part*2):
+                    if j == 0 or j == 1:
+                        sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
+                    else:
+                        sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
+                if self.decision == DECISION_SPEED:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])]
+                elif self.decision == DECISION_SELL:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('SELL'
+                                                                                                if self.convert2to10_in_list(individual[-2]) == ACTION_SELL and self.check_rule_is_adapted(individual)
+                                                                                                else 'NOT ADAPTED')
+                elif self.decision == DECISION_CHARTER:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{}month charter'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])])
+                                                                                                if self.convert2to10_in_list(individual[-2]) == ACTION_CHARTER and self.check_rule_is_adapted(individual)
+                                                                                                else 'NOT ADAPTED')
+                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 1 + 2).value = individual[-1][0]
+                sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2 + 2).value = individual[-1][1]
         wb.save(path)
         wb.close()
         print('saving changes')
@@ -833,7 +860,7 @@ class GA:
         print('Spent time is {0}'.format(exe))
         self.depict_fitness()
         self.depict_average_variance()
-        #self.export_excel()
+        self.export_excel()
         self.compare_rules()
 
         #initialize attribute
