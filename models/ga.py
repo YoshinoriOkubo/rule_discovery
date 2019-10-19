@@ -255,6 +255,7 @@ class GA:
                         current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                         current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                         total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                        ship.calculate_idle_rate(current_freight_rate_outward)
                         #change by argment
                         #full_search
                         if type(rule) is int:
@@ -563,6 +564,7 @@ class GA:
                 current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
                 current_freight_rate_return = self.freight_rate_return_data[pattern][time]['price']
                 total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                ship.calculate_idle_rate(current_freight_rate_outward)
                 for index in range(VESSEL_LIFE_TIME*12+1):
                     if index < time:
                         pass
@@ -599,6 +601,7 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-element]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-element]['price']
                     freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    ship.calculate_idle_rate(current_freight_rate_outward)
                     cash_0 = ship.calculate_income_per_month(oil_price,freight)
                     charter_0 = ship.charter_ship(oil_price,freight)
                     if cash_0 + store[element-1][0] > charter_0*element:
@@ -612,6 +615,7 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-x]['price']
                     freight_fx = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    ship.calculate_idle_rate(current_freight_rate_outward)
                     cash = ship.calculate_income_per_month(oil_price_fx,freight_fx)
                     charter = ship.charter_ship(oil_price_fx,freight_fx)
                     if cash + store[-1][0] > charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0]:

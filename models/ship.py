@@ -12,6 +12,14 @@ class Ship:
         self.charter = False
         self.charter_fee = 0
         self.charter_month_remain = 0
+        self.idle_rate = 0
+
+    def calculate_idle_rate(self,freight_outward):
+        gap = 0.485597471 + freight_outward * -0.000325635
+        if gap < 0:
+            self.idle_rate = 0
+        else:
+            self.idle_rate = 1 - 1 /(1 + gap)
 
     def calculate_income_per_month(self,oil_price,freight):
         speed_km_h = self.change_knot_to_km_h(self.speed)
@@ -22,7 +30,7 @@ class Ship:
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
-            return (IDLE_RATE*(-cost_fixed_in_one_trip)+(1-IDLE_RATE)*profit_in_one_trip)*number_of_trips
+            return (self.idle_rate*(-cost_fixed_in_one_trip)+(1-self.idle_rate)*profit_in_one_trip)*number_of_trips
         else:
             return -cost_fixed_in_one_trip * number_of_trips
 
