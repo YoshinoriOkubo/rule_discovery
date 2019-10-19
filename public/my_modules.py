@@ -106,3 +106,15 @@ def prob(prob_value):
     nonzero_num = np.count_nonzero(np.random.binomial(1, prob_value, N))
     threshold   = N * prob_value
     return (nonzero_num > threshold)
+
+def calc_statistics(list):
+    n = len(list)
+    e = 0
+    sigma = 0
+    for i in range(n):
+        e += list[i]
+    e /= n
+    for i in range(n):
+        sigma += (list[i] - e)**2
+    sigma /= n
+    return [e,sigma]    

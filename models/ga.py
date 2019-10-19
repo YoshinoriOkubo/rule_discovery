@@ -15,6 +15,7 @@ from tqdm import tqdm
 sys.path.append('../public')
 sys.path.append('../output')
 from constants  import *
+from my_modules import *
 
 class GA:
 
@@ -41,27 +42,24 @@ class GA:
                 for i in range(self.num_condition_part*2):
                     self.compare_rule[rule_index].append([0,0,0,0])
                 if RULE_SET[rule_index] == DECISION_SPEED:
-                    self.compare_rule[rule_index].append(INITIAL_SPEED_CHROMOSOME) #19knot
+                    self.compare_rule[rule_index].append([1,1,0,1]) #19knot
                 elif RULE_SET[rule_index] == DECISION_SELL:
                     self.compare_rule[rule_index].append([ACTION_STAY])
                 elif RULE_SET[rule_index] == DECISION_CHARTER:
-                    self.compare_rule[rule_index].append([0,0])
+                    self.compare_rule[rule_index].append([0,0])#charter period
                     self.compare_rule[rule_index].append([ACTION_NOTHING])
         else:
             for i in range(self.num_condition_part*2):
                 self.compare_rule.append([0,0,0,0])
             if self.decision == DECISION_SPEED:
-                self.compare_rule.append(INITIAL_SPEED_CHROMOSOME) #19knot
+                self.compare_rule.append([1,1,0,1]) #19knot
             elif self.decision == DECISION_SELL:
                 self.compare_rule.append([ACTION_STAY])
             elif self.decision == DECISION_CHARTER:
-                self.compare_rule.append([0,0])
+                self.compare_rule.append([0,0])#charter period
                 self.compare_rule.append([ACTION_NOTHING])
-        self.compare_rule.append(0)
-        #self.compare_rule.append([0,0])# average profit and varianve
-        #self.speed_history = []
-        #for i in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        #    self.speed_history.append([])
+        #self.compare_rule.append(0) #average alone
+        self.compare_rule.append([0,0])# average profit and varianve
 
     def convert2to10_in_list(self,list):
         result = 0
@@ -176,10 +174,8 @@ class GA:
             for x in range(num_block,len(a)-1):
                 temp1.append(a[x])
                 temp2.append(b[x])
-        temp1.append(0)
-        temp2.append(0)
-        #temp1.append([0,0])
-        #temp2.append([0,0])
+        temp1.append([0,0])
+        temp2.append([0,0])
         return [temp1,temp2]
 
     def mutation(self,individual):
@@ -247,8 +243,9 @@ class GA:
     '''
 
     def fitness_function(self,rule):
-        fitness = 0
+        Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            fitness = 0
             ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
@@ -276,8 +273,6 @@ class GA:
                                     result = self.adapt_rule(current_oil_price,total_freight,rule)
                                 if result[0]:
                                     ship.change_speed(result[1])
-                                #if rule is None:
-                                #    self.speed_history[pattern].append(ship.speed)
                                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                             elif self.decision == DECISION_SELL:
                                 #sets_of_group
@@ -330,9 +325,11 @@ class GA:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 fitness += cash_flow / DISCOUNT
-        fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
-        fitness /= HUNDRED_MILLION
-        return max(0,fitness)
+                fitness /= HUNDRED_MILLION
+            Record.append(fitness)
+        e, sigma = calc_statistics(Record)
+        e = max(0,e)
+        return [e,sigma]
 
     def generateIndividual(self):
         temp = []
@@ -377,15 +374,15 @@ class GA:
         else:
             print('selected decision item does not exist')
             sys.exit()
-        temp.append(0)
+        temp.append([0,0])
         return temp
 
-    def depict(self):
+    def depict_fitness(self):
         x = range(0,len(self.bestgroup))
         y = []
         z = []
         for i in range(len(self.bestgroup)):
-            y.append(self.bestgroup[i][-1])
+            y.append(self.bestgroup[i][-1][0])
             z.append(self.averagegroup[i])
         plt.plot(x, y, marker='o',label='best')
         #if y[3] != z[3]:
@@ -443,23 +440,23 @@ class GA:
         print('saving changes')
 
     def compare_rules(self):
-        fitness_no_rule = self.fitness_function(self.compare_rule)
+        fitness_no_rule = self.fitness_function(self.compare_rule)[0]
         if self.decision == DECISION_INTEGRATE:
             name = 'integrate'
-            fitness_best = self.bestgroup[-1][-1]
+            fitness_best = self.bestgroup[-1][-1][0]
             fitness_full_search = 0
         else:
             if self.decision == DECISION_SPEED:
                 name = 'speed'
-                fitness_best = self.bestgroup[-1][-1]
-                fitness_full_search = self.fitness_function(FULL_SEARCH)
+                fitness_best = self.bestgroup[-1][-1][0]
+                fitness_full_search = self.fitness_function(FULL_SEARCH)[0]
             elif self.decision == DECISION_SELL:
                 name = 'sell'
                 fitness_best = 0
                 for i in range(self.num):
                     if self.group[i][-2][0] == ACTION_SELL:
                         if self.check_rule_is_adapted(self.group[i]):
-                            fitness_best = self.group[i][-1]
+                            fitness_best = self.group[i][-1][0]
                             break
                 fitness_full_search = self.full_search_method_sell()
             elif self.decision == DECISION_CHARTER:
@@ -468,7 +465,7 @@ class GA:
                 for i in range(self.num):
                     if self.group[i][-2][0] == ACTION_CHARTER:
                         if self.check_rule_is_adapted(self.group[i]):
-                            fitness_best = self.group[i][-1]
+                            fitness_best = self.group[i][-1][0]
                             break
                 fitness_full_search = self.full_search_method_charter()
             else:
@@ -537,14 +534,11 @@ class GA:
         return best/DEFAULT_PREDICT_PATTERN_NUMBER
 
     def full_search_method_charter(self):
-        fitness_list_charter = []
-        checklist = []
+        fitness = []
         for period in [0,1,2,3]:
-            fitness_list_charter.append([])
-            checklist.append([0,period])
-            charter_list = []
+            fitness.append([0,period])
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                fitness_list_charter[period].append([])
+                charter_list = [] # check whether or not do charter in each time with this
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
                 store = []
                 store.append([0,[],0])
@@ -575,25 +569,16 @@ class GA:
                         store.append([charter*CHARTER_PERIOD[period] + store[-CHARTER_PERIOD[period]][0],[0],x])
                         charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-x])
                 charter_list.reverse()
-                if period == 3:
-                    '''
-                    x = 0
-                    for e in charter_list:
-                        if x > 0:
-                            x -= 1
-                        else:
-                            if e[0] == 'CHARTER':
-                                print(e)
-                                x  = 35
-                    '''
-                    path = '../output/full_rule.xlsx'
-                    w = openpyxl.load_workbook(path)
-                    sheet = w['Sheet1']
-                    for i in range(VESSEL_LIFE_TIME*12):
-                        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                            sheet.cell(row = i + 1, column = pattern + 1).value = charter_list[i][pattern]
-                    w.save(path)
-                    w.close()
+                '''
+                path = '../output/full_rule_charter.xlsx'
+                w = openpyxl.load_workbook(path)
+                sheet = w['Sheet{}'.format(period+1)]
+                for i in range(VESSEL_LIFE_TIME*12):
+                    sheet.cell(row = i + 1, column = pattern + 1).value = charter_list[i][0]
+                w.save(path)
+                w.close()
+                '''
+                fitness[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
                 store.reverse()
                 a = 0
                 for year in range(0,VESSEL_LIFE_TIME):
@@ -602,10 +587,9 @@ class GA:
                     if year < DEPRECIATION_TIME:
                         cash_of_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                     a += cash_of_year/DISCOUNT
-                checklist[period][0] += a/HUNDRED_MILLION
-            checklist[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
-        checklist.sort(key=lambda x:x[0],reverse = True)
-        return checklist[0][0]
+                fitness[period][0] += a/HUNDRED_MILLION
+        fitness.sort(key=lambda x:x[0],reverse = True)
+        return fitness[0][0]
 
     def check_rule_is_adapted(self,rule):
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -709,7 +693,7 @@ class GA:
             #computation of fitness
             for one in range(len(temp)):
                 rule = temp[one]
-                rule[-1] = self.fitness_function(rule)
+                rule[-1][0], rule[-1][1] = self.fitness_function(rule)
 
 
             #reduce the number of individual
@@ -723,7 +707,7 @@ class GA:
                 self.group[0] = temp[0]
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
-                temp.sort(key=lambda x:x[-1],reverse = True)
+                temp.sort(key=lambda x:x[-1][0],reverse = True)
                 elite_number = int(self.num * 0.05)
                 for i in range(1,elite_number+1):
                     self.group[i] = temp[i]
@@ -731,12 +715,12 @@ class GA:
                 ark = 0 # the number used to roulette in crossing
                 probability = 0
                 for i in range(len(temp)):
-                    probability += temp[i][-1]
+                    probability += temp[i][-1][0]
                 roulette = 0
                 for i in range(elite_number+1,self.num):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
-                        roulette -= temp[ark][-1]
+                        roulette -= temp[ark][-1][0]
                         ark = (ark + 1) % self.num
                     self.group[i] = temp[ark]
             elif method == TOURNAMENT:#tournament selection
@@ -744,7 +728,7 @@ class GA:
                     tournament = []
                     for _ in range(6):
                         tournament.append(temp[random.randint(0,2*self.num-1)])
-                    tournament.sort(key=lambda x:x[-1],reverse = True)
+                    tournament.sort(key=lambda x:x[-1][0],reverse = True)
                     self.group[select] = tournament[0]
             elif method == STEADY_STATE:#steady state ga
                 for i in range(0,len(temp),2):
@@ -756,24 +740,24 @@ class GA:
                             store.append(temp[self.num + i])
                         if self.num + i + 1 < len(temp):
                             store.append(temp[self.num + i+1])
-                        store.sort(key=lambda x:x[-1],reverse = True)
+                        store.sort(key=lambda x:x[-1][0],reverse = True)
                         self.group[i] = store[0]
                         self.group[i+1] = store[1]
             else:
                 print('Selected method does not exist')
                 sys.exit()
-            self.group.sort(key=lambda x:x[-1],reverse = True)
+            self.group.sort(key=lambda x:x[-1][0],reverse = True)
             self.bestgroup.append(self.group[0])
             random.shuffle(self.group)
             total = 0
             for e in range(self.num):
-                total += self.group[e][-1]
+                total += self.group[e][-1][0]
             self.averagegroup.append(total/self.num)
             if gene > DEFAULT_GENERATION/2 and self.check_convergence(self.bestgroup,5):
                 break
 
         #print result
-        self.group.sort(key=lambda x:x[-1],reverse = True)
+        self.group.sort(key=lambda x:x[-1][0],reverse = True)
         for i in range(0,self.num):
             if i == 0:
                 print('best rule', self.group[i])
@@ -796,7 +780,8 @@ class GA:
                     if i < NUM_DISPLAY:
                         print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}'.format(a,b,c,d,e))
                 if i < NUM_DISPLAY:
-                    print('fitness value = {}'.format(thisone[-1]))
+                    print('Expectation = {}'.format(thisone[-1][0]))
+                    print('Variance = {}'.format(thisone[-1][1]))
             else:
                 a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
                 b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
@@ -811,7 +796,9 @@ class GA:
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
-                    print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}  fitness value = {5}'.format(a,b,c,d,e,thisone[-1]))
+                    print('{0} <= oil price <= {1} and {2} <= freight <= {3} -> {4}'.format(a,b,c,d,e))
+                    print('Expectation = {}'.format(thisone[-1][0]))
+                    print('Variance = {}'.format(thisone[-1][1]))
                 if a > b or c > d:
                     print('rule error')
                     sys.exit()
@@ -819,7 +806,7 @@ class GA:
 
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
-        self.depict()
+        self.depict_fitness()
         #self.export_excel()
         self.compare_rules()
 
