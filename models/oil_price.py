@@ -84,13 +84,13 @@ class Sinario:
             y = []
             for i in range(self.predict_years*12):
                 y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y,label='pattern {}'.format(pattern+1))
+            plt.plot(x, y)#,label='pattern {}'.format(pattern+1))
         plt.title('Transition of oil price', fontsize = 20)
         plt.xlabel('month', fontsize = 16)
         plt.ylabel('oil price', fontsize = 16)
-        plt.tick_params(labelsize=14)
+        #plt.tick_params(labelsize=14)
+        #plt.legend(loc = 'lower right')
         plt.grid(True)
-        plt.legend(loc = 'lower right')
         plt.ylim(0, 160)
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'oil_price.png'))

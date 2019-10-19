@@ -325,7 +325,7 @@ class GA:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 fitness += cash_flow / DISCOUNT
-                fitness /= HUNDRED_MILLION
+            fitness /= HUNDRED_MILLION
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
         e = max(0,e)
@@ -403,6 +403,31 @@ class GA:
         elif self.decision == DECISION_INTEGRATE:
             name = 'integrate'
         plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
+        plt.close()
+
+    def depict_average_variance(self):
+        x = []
+        y = []
+        for i in range(self.num):
+            x.append(self.group[i][-1][0])
+            y.append(self.group[i][-1][1])
+        plt.scatter(x,y)
+        plt.xlim(0,max(x)*1.1)
+        plt.ylim(0,max(y)*1.1)
+        plt.title("Rule Performance")
+        plt.xlabel("Expectation")
+        plt.ylabel("Variance")
+        plt.grid(True)
+        save_dir = '../output'
+        if self.decision == DECISION_SPEED:
+            name = 'speed'
+        elif self.decision == DECISION_SELL:
+            name = 'sell'
+        elif self.decision == DECISION_CHARTER:
+            name = 'charter'
+        elif self.decision == DECISION_INTEGRATE:
+            name = 'integrate'
+        plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
         plt.close()
 
     def export_excel(self):
@@ -485,7 +510,7 @@ class GA:
         plt.ylabel('fitness')
         min_fit = min(fitness_no_rule,min(fitness_best,fitness_full_search))
         max_fit = max(fitness_no_rule,max(fitness_best,fitness_full_search))
-        plt.ylim(max(0,min_fit-1),max_fit+1)
+        plt.ylim(max(0,min_fit*0.9),max_fit*1.1)
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
@@ -807,6 +832,7 @@ class GA:
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
         self.depict_fitness()
+        self.depict_average_variance()
         #self.export_excel()
         self.compare_rules()
 
