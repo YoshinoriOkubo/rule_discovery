@@ -257,71 +257,66 @@ class GA:
                         total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                         ship.calculate_idle_rate(current_freight_rate_outward)
                         #change by argment
-                        #full_search
-                        if type(rule) is int:
-                            ship.change_speed(self.full_search_method_speed(current_oil_price,total_freight))
+                        if self.decision == DECISION_SPEED:
+                            #sets_of_group
+                            rule_number, result = 0, [False]
+                            if rule is None:
+                                while rule_number < len(self.group) and result[0] == False:
+                                    result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                    rule_number += 1
+                            #one rule
+                            else:
+                                result = self.adapt_rule(current_oil_price,total_freight,rule)
+                            if result[0]:
+                                ship.change_speed(result[1])
                             cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                        else:
-                            if self.decision == DECISION_SPEED:
-                                #sets_of_group
-                                rule_number, result = 0, [False]
-                                if rule is None:
-                                    while rule_number < len(self.group) and result[0] == False:
-                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                        rule_number += 1
-                                #one rule
-                                else:
-                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                if result[0]:
-                                    ship.change_speed(result[1])
+                        elif self.decision == DECISION_SELL:
+                            #sets_of_group
+                            rule_number, result = 0, [False]
+                            if rule is None:
+                                while rule_number < len(self.group) and result[0] == False:
+                                    result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                    rule_number += 1
+                            #one rule
+                            else:
+                                result = self.adapt_rule(current_oil_price,total_freight,rule)
+                            if result[0] and result[1] == ACTION_SELL:
+                                cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                            else:
                                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                            elif self.decision == DECISION_SELL:
-                                #sets_of_group
-                                rule_number, result = 0, [False]
-                                if rule is None:
-                                    while rule_number < len(self.group) and result[0] == False:
-                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                        rule_number += 1
-                                #one rule
-                                else:
-                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                if result[0] and result[1] == ACTION_SELL:
-                                    cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                        elif self.decision == DECISION_CHARTER:
+                            #sets_of_group
+                            rule_number, result = 0, [False]
+                            if rule is None:
+                                while rule_number < len(self.group) and result[0] == False:
+                                    result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
+                                    rule_number += 1
+                            #one rule
+                            else:
+                                result = self.adapt_rule(current_oil_price,total_freight,rule)
+                            if ship.charter == True:
+                                cash_flow += ship.in_charter()
+                            else:
+                                if result[0] and result[1] == ACTION_CHARTER:
+                                    ship.charter_month_remain = result[2] - 1
+                                    cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                 else:
                                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                            elif self.decision == DECISION_CHARTER:
-                                #sets_of_group
-                                rule_number, result = 0, [False]
-                                if rule is None:
-                                    while rule_number < len(self.group) and result[0] == False:
-                                        result = self.adapt_rule(current_oil_price,total_freight,self.group[rule_number])
-                                        rule_number += 1
-                                #one rule
+                        elif self.decision == DECISION_INTEGRATE:
+                            result = self.adapt_rule(current_oil_price,total_freight,rule)
+                            if ship.charter == True:
+                                cash_flow += ship.in_charter()
+                            else:
+                                if result[0][0] == True:
+                                    ship.change_speed(result[0][1])
+                                if result[1][0] == True:
+                                    cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
                                 else:
-                                    result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                if ship.charter == True:
-                                    cash_flow += ship.in_charter()
-                                else:
-                                    if result[0] and result[1] == ACTION_CHARTER:
-                                        ship.charter_month_remain = result[2] - 1
+                                    if result[2][0] == True:
+                                        ship.charter_month_remain = result[2][1] - 1
                                         cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                     else:
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                            elif self.decision == DECISION_INTEGRATE:
-                                result = self.adapt_rule(current_oil_price,total_freight,rule)
-                                if ship.charter == True:
-                                    cash_flow += ship.in_charter()
-                                else:
-                                    if result[0][0] == True:
-                                        ship.change_speed(result[0][1])
-                                    if result[1][0] == True:
-                                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
-                                    else:
-                                        if result[2][0] == True:
-                                            ship.charter_month_remain = result[2][1] - 1
-                                            cash_flow += ship.charter_ship(current_oil_price,total_freight)
-                                        else:
-                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if year < DEPRECIATION_TIME:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -502,7 +497,7 @@ class GA:
             if self.decision == DECISION_SPEED:
                 name = 'speed'
                 fitness_best = self.bestgroup[-1][-1][0]
-                fitness_full_search = self.fitness_function(FULL_SEARCH)[0]
+                fitness_full_search = self.full_search_method_speed()
             elif self.decision == DECISION_SELL:
                 name = 'sell'
                 fitness_best = 0
@@ -543,14 +538,33 @@ class GA:
         plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
 
-    def full_search_method_speed(self,oil_price,freight):
-        list = []
-        for speed in VESSEL_SPEED_LIST:
-            ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
-            cash_flow = ship.calculate_income_per_month(oil_price,freight)
-            list.append([cash_flow,speed,oil_price,freight])
-        list.sort(key=lambda x:x[0],reverse = True)
-        return list[0][1]
+    def full_search_method_speed(self):
+        cash = 0
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            for year in range(VESSEL_LIFE_TIME):
+                cash_year = 0
+                for month in range(12):
+                    list = []
+                    ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+                    current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
+                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
+                    current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
+                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    ship.calculate_idle_rate(current_freight_rate_outward)
+                    for speed in VESSEL_SPEED_LIST:
+                        search_ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+                        cash_flow = search_ship.calculate_income_per_month(current_oil_price,total_freight)
+                        list.append([cash_flow,speed])
+                    list.sort(key=lambda x:x[0],reverse = True)
+                    ship.change_speed(list[0][1])
+                    cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
+                if year < DEPRECIATION_TIME:
+                    cash_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                cash += cash_year/DISCOUNT
+        cash /= DEFAULT_PREDICT_PATTERN_NUMBER
+        cash /= HUNDRED_MILLION
+        return cash
 
     def full_search_method_sell(self):
         list = []
