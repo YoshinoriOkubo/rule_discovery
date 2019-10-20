@@ -242,7 +242,7 @@ class GA:
         return max(0,self.average_fitness)
     '''
 
-    def fitness_function(self,rule):
+    def fitness_function(self,rule,priority=None):
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
@@ -309,14 +309,24 @@ class GA:
                             else:
                                 if result[0][0] == True:
                                     ship.change_speed(result[0][1])
-                                if result[1][0] == True:
-                                    cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
-                                else:
+                                if priority == PRIORITY_SELL_CHARTER:
+                                    if result[1][0] == True:
+                                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                                    else:
+                                        if result[2][0] == True:
+                                            ship.charter_month_remain = result[2][1] - 1
+                                            cash_flow += ship.charter_ship(current_oil_price,total_freight)
+                                        else:
+                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                elif priority == PRIORITY_CHARTER_SELL:
                                     if result[2][0] == True:
                                         ship.charter_month_remain = result[2][1] - 1
                                         cash_flow += ship.charter_ship(current_oil_price,total_freight)
                                     else:
-                                        cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                                        if result[1][0] == True:
+                                            cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month)
+                                        else:
+                                            cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if year < DEPRECIATION_TIME:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -699,7 +709,7 @@ class GA:
                 break
         return flag
 
-    def execute_GA(self,method=ROULETTE):
+    def execute_GA(self,priority,method=ROULETTE):
         first = time.time()
 
         #randomly generating individual group
@@ -771,7 +781,7 @@ class GA:
             #computation of fitness
             for one in range(len(temp)):
                 rule = temp[one]
-                rule[-1][0], rule[-1][1] = self.fitness_function(rule)
+                rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
 
 
             #reduce the number of individual
@@ -783,7 +793,7 @@ class GA:
                 self.group[0] = self.bestgroup[gene-1]
             else:#this does not have meaning, just number adjustment
                 self.group[0] = temp[0]
-                self.depict_average_variance(gene,temp) 
+                self.depict_average_variance(gene,temp)
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
                 temp.sort(key=lambda x:x[-1][0],reverse = True)
