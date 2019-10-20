@@ -3,7 +3,7 @@ import copy
 import time
 import sys
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 import os
 import openpyxl
 from multiprocessing import Pool
@@ -324,7 +324,6 @@ class GA:
             fitness /= HUNDRED_MILLION
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
-        e = max(0,e)
         return [e,sigma]
 
     def generateIndividual(self):
@@ -401,14 +400,20 @@ class GA:
         plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
         plt.close()
 
-    def depict_average_variance(self):
+    def depict_average_variance(self,gene=None,list=None):
         x = []
         y = []
         for i in range(self.num):
-            x.append(self.group[i][-1][0])
-            y.append(self.group[i][-1][1])
+            if gene == 0:
+                x.append(list[i][-1][0])
+                y.append(list[i][-1][1])
+            else:
+                x.append(self.group[i][-1][0])
+                y.append(self.group[i][-1][1])
         plt.scatter(x,y)
-        plt.xlim(0,max(x)*1.1)
+        x_min = min(x)
+        x_min = x_min*0.9 if x_min>0 else x_min*1.1
+        plt.xlim(x_min,max(x)*1.1)
         plt.ylim(0,max(y)*1.1)
         plt.title("Rule Performance")
         plt.xlabel("Expectation")
@@ -423,7 +428,10 @@ class GA:
             name = 'charter'
         elif self.decision == DECISION_INTEGRATE:
             name = 'integrate'
-        plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
+        if gene == 0:
+            plt.savefig(os.path.join(save_dir, 'Evaluation_{}_initial.png'.format(name)))
+        else:
+            plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
         plt.close()
 
     def export_excel(self):
@@ -545,14 +553,14 @@ class GA:
                 cash_year = 0
                 for month in range(12):
                     list = []
-                    ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+                    ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     ship.calculate_idle_rate(current_freight_rate_outward)
                     for speed in VESSEL_SPEED_LIST:
-                        search_ship = Ship(TEU_SIZE,speed,ROUTE_DISTANCE)
+                        search_ship = Ship(self.TEU_size,speed,self.route_distance)
                         cash_flow = search_ship.calculate_income_per_month(current_oil_price,total_freight)
                         list.append([cash_flow,speed])
                     list.sort(key=lambda x:x[0],reverse = True)
@@ -775,6 +783,7 @@ class GA:
                 self.group[0] = self.bestgroup[gene-1]
             else:#this does not have meaning, just number adjustment
                 self.group[0] = temp[0]
+                self.depict_average_variance(gene,temp) 
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
                 temp.sort(key=lambda x:x[-1][0],reverse = True)
@@ -785,12 +794,12 @@ class GA:
                 ark = 0 # the number used to roulette in crossing
                 probability = 0
                 for i in range(len(temp)):
-                    probability += temp[i][-1][0]
+                    probability += max(0,temp[i][-1][0])
                 roulette = 0
                 for i in range(elite_number+1,self.num):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
-                        roulette -= temp[ark][-1][0]
+                        roulette -= max(0,temp[ark][-1][0])
                         ark = (ark + 1) % self.num
                     self.group[i] = temp[ark]
             elif method == TOURNAMENT:#tournament selection
