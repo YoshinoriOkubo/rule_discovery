@@ -549,12 +549,22 @@ class GA:
         left = [1,2,3]
         height = [fitness_no_rule,fitness_best,fitness_full_search]
         label = ['no rule','best rule','full search']
-        plt.bar(left,height,tick_label=label,align='center')
         plt.title('Comparison among three decision rule')
         plt.ylabel('fitness')
         min_fit = min(fitness_no_rule,min(fitness_best,fitness_full_search))
         max_fit = max(fitness_no_rule,max(fitness_best,fitness_full_search))
-        plt.ylim(max(0,min_fit*0.9),max_fit*1.1)
+        if max_fit < 0:
+            plt.ylim(min_fit*1.1,max_fit*0.9)
+        else:
+            if min_fit < 0:
+                plt.ylim(min_fit*1.1,max_fit*1.1)
+            else:
+                plt.ylim(min_fit*0.9,max_fit*1.1)
+        colorlist = ['b','b','b']
+        for i in range(len(height)):
+            if height[i] < 0:
+                colorlist[i] = 'r'
+        plt.bar(left,height,color=colorlist,tick_label=label,align='center')
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
@@ -869,7 +879,7 @@ class GA:
             for e in range(self.num):
                 total += self.group[e][-1][0]
             self.averagegroup.append(total/self.num)
-            if gene > 10 and self.check_convergence(self.bestgroup,5):
+            if gene > 10 and self.check_convergence(self.bestgroup,10):
                 break
 
         #print result
