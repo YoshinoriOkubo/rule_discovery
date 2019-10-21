@@ -4,6 +4,7 @@ sys.path.append('../models')
 from oil_price import Sinario
 from freight_rate_outward import FreightOutward
 from freight_rate_return import FreightReturn
+from exchange_rate import ExchangeRate
 import matplotlib.pyplot as plt
 from ga import GA
 import time
@@ -13,7 +14,7 @@ from my_modules import *
 from constants  import *
 
 start = time.time()
-
+'''
 sinario = Sinario()
 sinario.generate_sinario()
 sinario.depict()
@@ -23,7 +24,7 @@ freight_outward.depict()
 freight_return = FreightReturn(freight_outward.predicted_data)
 freight_return.generate_sinario()
 freight_return.depict()
-'''
+
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SPEED)
@@ -41,9 +42,10 @@ ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.pre
             DECISION_CHARTER)
 ga.execute_GA()
 '''
+'''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_INTEGRATE)
 ga.execute_GA()
-
+'''
 print(time.time()-start)

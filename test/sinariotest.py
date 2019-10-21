@@ -5,6 +5,7 @@ sys.path.append('../models')
 from oil_price import Sinario
 from freight_rate_outward import FreightOutward
 from freight_rate_return import FreightReturn
+from exchange_rate import ExchangeRate
 import matplotlib.pyplot as plt
 from ga import GA
 # import own modules #
@@ -36,6 +37,31 @@ plt.xlim(0,600)
 plt.ylim(0, 160)
 save_dir = '../output'
 plt.savefig(os.path.join(save_dir, 'oil_scenario_whole_time.png'))
+plt.close()
+
+x = ExchangeRate()
+x.generate_sinario()
+x.depict()
+num = len(x.history_data)
+X = range(15*12+num)
+for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+    y = []
+    for i in range(180+num):
+        if i < num:
+            y.append(x.history_data[i][1])
+        else:
+            y.append(x.predicted_data[pattern][i-num]['price'])
+    plt.plot(X, y)#,label='pattern {0}'.format(pattern+1))
+plt.title('Transition of oil price', fontsize = 20)
+plt.xlabel('month', fontsize = 16)
+plt.ylabel('oil price', fontsize = 16)
+#plt.tick_params(labelsize=14)
+plt.grid(True)
+#plt.legend(loc = 'lower right')
+#plt.xlim(0,800)
+#plt.ylim(0, 300)
+save_dir = '../output'
+plt.savefig(os.path.join(save_dir, 'exchange_rate_scenario_whole_time.png'))
 plt.close()
 
 '''
