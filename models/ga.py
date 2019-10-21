@@ -93,7 +93,7 @@ class GA:
                             result[rule_index].append(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])])
                         elif RULE_SET[rule_index] == DECISION_SELL:
                             result[rule_index][0] = True
-                            result[rule_index].append(SELL_PERCENTAGE[self.convert2to10_in_list(rule_for_X[-1])])
+                            result[rule_index].append(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                         elif RULE_SET[rule_index] == DECISION_CHARTER and rule_for_X[-1][0] == ACTION_CHARTER:
                             result[rule_index][0] = True
                             result[rule_index].append(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
@@ -108,7 +108,7 @@ class GA:
                     if self.decision == DECISION_SPEED:
                         return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
                     elif self.decision == DECISION_SELL:
-                        return [True,SELL_PERCENTAGE[self.convert2to10_in_list(rule[-2])]]
+                        return [True,SELL_NUMBER[self.convert2to10_in_list(rule[-2])]]
                     elif self.decision == DECISION_CHARTER:
                         return [True,rule[-2][0],CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])]]
                     else:
@@ -253,7 +253,7 @@ class GA:
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
                 for month in range(12):
-                    if ship.exist > 0:
+                    if ship.exist_number > 0:
                         current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                         current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                         current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
@@ -328,10 +328,11 @@ class GA:
                                             cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if year < DEPRECIATION_TIME:
-                    cash_flow -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                    cash_flow -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 fitness += cash_flow / DISCOUNT
             fitness /= HUNDRED_MILLION
+            fitness /= INITIAL_NUMBER_OF_SHIPS
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
         return [e,sigma]
@@ -471,7 +472,7 @@ class GA:
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_SELL:
-                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = (SELL_PERCENTAGE[self.convert2to10_in_list(rule_for_X[-1])]
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = (SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])]
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_CHARTER:
@@ -494,7 +495,7 @@ class GA:
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 elif self.decision == DECISION_SELL:
-                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = (SELL_PERCENTAGE[self.convert2to10_in_list(individual[-2])]
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = (SELL_NUMBER[self.convert2to10_in_list(individual[-2])]
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 elif self.decision == DECISION_CHARTER:
@@ -579,11 +580,12 @@ class GA:
                     ship.change_speed(list[0][1])
                     cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if year < DEPRECIATION_TIME:
-                    cash_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                    cash_year -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash += cash_year/DISCOUNT
         cash /= DEFAULT_PREDICT_PATTERN_NUMBER
         cash /= HUNDRED_MILLION
+        cash /= INITIAL_NUMBER_OF_SHIPS
         return cash
 
     def full_search_method_sell(self):
@@ -603,19 +605,19 @@ class GA:
                     if index < time:
                         pass
                     elif index == time:
-                        fitness_list[index][1] += ship.sell_ship(self.freight_rate_outward_data[pattern],time,1.0)
+                        fitness_list[index][1] += ship.sell_ship(self.freight_rate_outward_data[pattern],time,100)
                     else:
                         fitness_list[index][1] += ship.calculate_income_per_month(current_oil_price,total_freight)
                 if (time + 1) % 12 == 0:
                     for index in range(VESSEL_LIFE_TIME*12+1):
                         cash_year = fitness_list[index][1]
                         if time < DEPRECIATION_TIME*12:
-                            cash_year -= INITIAL_COST_OF_SHIPBUIDING/DEPRECIATION_TIME
+                            cash_year -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                         DISCOUNT = (1 + DISCOUNT_RATE) ** ((time+1)/12)
                         fitness_list[index][0] += cash_year/DISCOUNT
                         fitness_list[index][1] = 0
             fitness_list.sort(key=lambda x:x[0],reverse = True)
-            list.append(fitness_list[0][0]/HUNDRED_MILLION)
+            list.append(fitness_list[0][0]/(HUNDRED_MILLION*INITIAL_NUMBER_OF_SHIPS))
         best = 0
         for e in range(len(list)):
             best += list[e]
@@ -697,8 +699,9 @@ class GA:
                 fitness[period][0] += store[-1][0]
                 for year in range(DEPRECIATION_TIME):
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                    fitness[period][0] -= INITIAL_COST_OF_SHIPBUIDING/(DISCOUNT*DEPRECIATION_TIME)
+                    fitness[period][0] -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/(DISCOUNT*DEPRECIATION_TIME)
             fitness[period][0] /= HUNDRED_MILLION
+            fitness[period][0] /= INITIAL_NUMBER_OF_SHIPS
             fitness[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
         fitness.sort(key=lambda x:x[0],reverse = True)
         return fitness[0][0]
@@ -866,7 +869,7 @@ class GA:
             for e in range(self.num):
                 total += self.group[e][-1][0]
             self.averagegroup.append(total/self.num)
-            if gene > DEFAULT_GENERATION/2 and self.check_convergence(self.bestgroup,5):
+            if gene > 10 and self.check_convergence(self.bestgroup,5):
                 break
 
         #print result
@@ -887,7 +890,7 @@ class GA:
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_SELL:
-                        e = (SELL_PERCENTAGE[self.convert2to10_in_list(rule_for_X[-1])]
+                        e = (SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])]
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_CHARTER:
@@ -909,7 +912,7 @@ class GA:
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 elif self.decision == DECISION_SELL:
-                    e = (SELL_PERCENTAGE[self.convert2to10_in_list(thisone[-2])]
+                    e = (SELL_NUMBER[self.convert2to10_in_list(thisone[-2])]
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 elif self.decision == DECISION_CHARTER:

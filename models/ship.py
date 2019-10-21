@@ -8,7 +8,7 @@ class Ship:
         self.size = size
         self.speed = speed# km/h
         self.route = route
-        self.exist = 1.0
+        self.exist_number = INITIAL_NUMBER_OF_SHIPS
         self.charter = False
         self.charter_fee = 0
         self.charter_month_remain = 0
@@ -30,24 +30,27 @@ class Ship:
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
-            return (self.idle_rate*(-cost_fixed_in_one_trip)+(1-self.idle_rate)*profit_in_one_trip)*number_of_trips * self.exist
+            idle_rate = self.idle_rate - (100 - self.exist_number)/100
+            if idle_rate < 0:
+                idle_rate = 0
+            return (idle_rate*(-cost_fixed_in_one_trip)+(1-idle_rate)*profit_in_one_trip)*number_of_trips * self.exist_number
         else:
-            return -cost_fixed_in_one_trip * number_of_trips * self.exist
+            return -cost_fixed_in_one_trip * number_of_trips * self.exist_number
 
-    def sell_ship(self,freight_data,time,percentage):
+    def sell_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
-        if self.exist > percentage:
-            self.exist -= percentage
+        if self.exist_number > number:
+            self.exist_number -= number
         else:
-            percentage = self.exist
-            self.exist = 0
-        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria) * percentage
+            number = self.exist_number
+            self.exist_number = 0
+        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria) * number
 
     def charter_ship(self,oil_price,freight):
         self.charter = True
         cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM
-        self.charter_fee = cash * self.exist
+        self.charter_fee = cash
         return cash
 
     def in_charter(self):
