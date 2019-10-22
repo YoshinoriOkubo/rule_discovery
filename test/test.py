@@ -14,7 +14,7 @@ from my_modules import *
 from constants  import *
 
 start = time.time()
-'''
+
 sinario = Sinario()
 sinario.generate_sinario()
 sinario.depict()
@@ -24,26 +24,29 @@ freight_outward.depict()
 freight_return = FreightReturn(freight_outward.predicted_data)
 freight_return.generate_sinario()
 freight_return.depict()
-
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+exchange_rate = ExchangeRate()
+exchange_rate.generate_sinario()
+exchange_rate.depict()
+'''
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SPEED)
 ga.execute_GA()
-'''
-'''
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+
+
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SELL)
 ga.execute_GA()
 '''
-'''
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_CHARTER)
 ga.execute_GA()
+
 '''
-'''
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,
+ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_INTEGRATE)
 ga.execute_GA()

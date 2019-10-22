@@ -19,10 +19,11 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,TEU_size,init_speed,route_distance,decision,generation=None,num=None,alpha=None,crossing_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,decision,generation=None,num=None,alpha=None,crossing_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
+        self.exchange_rate = exchange_rate # exchange_rate history data
         self.TEU_size = TEU_size #size of ship(TEU)
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
@@ -325,6 +326,7 @@ class GA:
                 if year < DEPRECIATION_TIME:
                     cash_flow -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                cash_flow *= self.exchange_rate[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
             fitness /= HUNDRED_MILLION
             fitness /= INITIAL_NUMBER_OF_SHIPS
@@ -591,6 +593,7 @@ class GA:
                 if year < DEPRECIATION_TIME:
                     cash_year -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
+                cash_year *= self.exchange_rate[pattern][year*12+11]['price']
                 cash += cash_year/DISCOUNT
         cash /= DEFAULT_PREDICT_PATTERN_NUMBER
         cash /= HUNDRED_MILLION
@@ -623,6 +626,7 @@ class GA:
                         if time < DEPRECIATION_TIME*12:
                             cash_year -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
                         DISCOUNT = (1 + DISCOUNT_RATE) ** ((time+1)/12)
+                        cash_year *= self.exchange_rate[pattern][time]['price']
                         fitness_list[index][0] += cash_year/DISCOUNT
                         fitness_list[index][1] = 0
             fitness_list.sort(key=lambda x:x[0],reverse = True)
@@ -642,20 +646,22 @@ class GA:
                 store = []
                 store.append([0,[],0])
                 for time in range(1,CHARTER_PERIOD[period]):
-                    time_reverse = 180 - time
-                    year = int(time_reverse/12) + 1
-                    DISCOUNT = (1 + DISCOUNT_RATE) ** year
                     oil_price = self.oil_price_data[pattern][-time]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-time]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-time]['price']
                     freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     ship.calculate_idle_rate(current_freight_rate_outward)
-                    cash_0 = ship.calculate_income_per_month(oil_price,freight)/DISCOUNT
+                    time_reverse_0 = 180 - time
+                    year_cash_0 = int(time_reverse_0/12) + 1
+                    DISCOUNT_cash_0 = (1 + DISCOUNT_RATE) ** year_cash_0
+                    exchange_cash_0 = self.exchange_rate[pattern][year_cash_0*12-1]['price']
+                    cash_0 = ship.calculate_income_per_month(oil_price,freight)*exchange_cash_0/DISCOUNT_cash_0
                     charter_0 = 0
-                    for a in range(time_reverse,180):
-                        year = int(a/12) + 1
-                        DISCOUNT = (1 + DISCOUNT_RATE) ** year
-                        charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM/DISCOUNT
+                    for a in range(time_reverse_0,180):
+                        year_charter_0 = int(a/12) + 1
+                        DISCOUNT_charter_0 = (1 + DISCOUNT_RATE) ** year_charter_0
+                        exchange_charter_0 = self.exchange_rate[pattern][year_charter_0*12-1]['price']
+                        charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
                         store.append([cash_0 + store[time-1][0],[1],time])
                         #charter_list.append(['STAY',VESSEL_LIFE_TIME*12-time])
@@ -663,25 +669,27 @@ class GA:
                         store.append([charter_0,[0],time])
                         #charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-time])
                 for x in range(CHARTER_PERIOD[period],VESSEL_LIFE_TIME*12+1):
-                    time_reverse = 180 - x
-                    year = int(time_reverse/12) + 1
-                    DISCOUNT = (1 + DISCOUNT_RATE) ** year
                     oil_price_fx = self.oil_price_data[pattern][-x]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-x]['price']
                     freight_fx = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     ship.calculate_idle_rate(current_freight_rate_outward)
-                    cash = ship.calculate_income_per_month(oil_price_fx,freight_fx)/DISCOUNT
-                    charter = 0
-                    for a in range(time_reverse,time_reverse+CHARTER_PERIOD[period]):
-                        year = int(a/12) + 1
-                        DISCOUNT = (1 + DISCOUNT_RATE) ** year
-                        charter += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT
-                    if cash + store[-1][0] > charter + store[-CHARTER_PERIOD[period]][0]:
-                        store.append([cash + store[-1][0],[1],x])
+                    time_reverse_x = 180 - x
+                    year_cash_x = int(time_reverse_x/12) + 1
+                    DISCOUNT_cash_x = (1 + DISCOUNT_RATE) ** year_cash_x
+                    exchange_cash_x = self.exchange_rate[pattern][year_cash_x*12-1]['price']
+                    cash_x = ship.calculate_income_per_month(oil_price_fx,freight_fx)*exchange_cash_x/DISCOUNT_cash_x
+                    charter_x = 0
+                    for a in range(time_reverse_x,time_reverse_x+CHARTER_PERIOD[period]):
+                        year_charter_x = int(a/12) + 1
+                        DISCOUNT_charter_x = (1 + DISCOUNT_RATE) ** year_charter_x
+                        exchange_charter_x = self.exchange_rate[pattern][year_charter_x*12-1]['price']
+                        charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT_charter_x
+                    if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
+                        store.append([cash_x + store[-1][0],[1],x])
                         #charter_list.append(['STAY',VESSEL_LIFE_TIME*12-x])
                     else:
-                        store.append([charter + store[-CHARTER_PERIOD[period]][0],[0],x])
+                        store.append([charter_x + store[-CHARTER_PERIOD[period]][0],[0],x])
                         #charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-x])
                 '''
                 charter_list.reverse()
@@ -707,7 +715,8 @@ class GA:
                 fitness[period][0] += store[-1][0]
                 for year in range(DEPRECIATION_TIME):
                     DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                    fitness[period][0] -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/(DISCOUNT*DEPRECIATION_TIME)
+                    exchange = self.exchange_rate[pattern][year*12+11]['price']
+                    fitness[period][0] -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*exchange/(DISCOUNT*DEPRECIATION_TIME)
             fitness[period][0] /= HUNDRED_MILLION
             fitness[period][0] /= INITIAL_NUMBER_OF_SHIPS
             fitness[period][0] /= DEFAULT_PREDICT_PATTERN_NUMBER
