@@ -37,5 +37,7 @@ e,sigma = ga.fitness_function([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]
 print('5 ships')
 print(e)
 e,sigma = ga.fitness_function([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1],[1,0,0,0],[0,0]])
-print('100 shipsd')
+print('100 ships')
 print(e)
+print('100 ships with future eye')
+print(ga.full_search_method_charter())

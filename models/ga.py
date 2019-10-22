@@ -672,6 +672,7 @@ class GA:
                         year_charter_0 = int(a/12) + 1
                         DISCOUNT_charter_0 = (1 + DISCOUNT_RATE) ** year_charter_0
                         exchange_charter_0 = self.exchange_rate[pattern][year_charter_0*12-1]['price']
+                        ship.idle_rate = 0
                         charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
                         store.append([cash_0 + store[time-1][0],[1],time])
@@ -695,6 +696,7 @@ class GA:
                         year_charter_x = int(a/12) + 1
                         DISCOUNT_charter_x = (1 + DISCOUNT_RATE) ** year_charter_x
                         exchange_charter_x = self.exchange_rate[pattern][year_charter_x*12-1]['price']
+                        ship.idle_rate = 0
                         charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT_charter_x
                     if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash_x + store[-1][0],[1],x])
@@ -938,7 +940,7 @@ class GA:
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_SELL:
-                        g = (SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])]
+                        g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_CHARTER:
@@ -962,7 +964,7 @@ class GA:
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 elif self.decision == DECISION_SELL:
-                    g = (SELL_NUMBER[self.convert2to10_in_list(thisone[-2])]
+                    g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 elif self.decision == DECISION_CHARTER:
