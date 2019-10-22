@@ -13,8 +13,6 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-start = time.time()
-
 sinario = Sinario()
 sinario.generate_sinario()
 sinario.depict()
@@ -27,26 +25,17 @@ freight_return.depict()
 exchange_rate = ExchangeRate()
 exchange_rate.generate_sinario()
 exchange_rate.depict()
-'''
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
-            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-            DECISION_SPEED)
-ga.execute_GA()
-'''
-
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
-            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-            DECISION_SELL)
-ga.execute_GA()
 
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_CHARTER)
-ga.execute_GA()
-'''
-ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
-            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-            DECISION_INTEGRATE)
-ga.execute_GA()
-'''
-print(time.time()-start)
+e,sigma = ga.fitness_function([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1],[0,0,0,0],[0,0]])
+print('0 ships')
+print(e)
+
+e,sigma = ga.fitness_function([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1],[0,0,0,1],[0,0]])
+print('5 ships')
+print(e)
+e,sigma = ga.fitness_function([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1],[1,0,0,0],[0,0]])
+print('100 shipsd')
+print(e)
