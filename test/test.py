@@ -27,6 +27,7 @@ freight_return.depict()
 exchange_rate = ExchangeRate()
 exchange_rate.generate_sinario()
 exchange_rate.depict()
+depict_real_freight(freight_outward,freight_return)
 '''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,

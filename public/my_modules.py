@@ -1,6 +1,8 @@
 import calendar as cal
 import numpy as np
 import datetime
+import os
+import matplotlib.pyplot as plt
 from constants import *
 
 #load history data of crude oil
@@ -151,3 +153,39 @@ def calc_statistics(list):
         sigma += (list[i] - e)**2
     sigma /= n
     return [e,sigma]
+
+def depict_real_freight(freight_outward,freight_return):
+    distribution = [0,0,0,0,0,0,0,0]
+    range_0 = [200,300,400,500,600,700,800,900,1000]
+    total_freight = []
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        total_freight.append([])
+        for x in range(VESSEL_LIFE_TIME * 12):
+            f = 0.5*(freight_outward.predicted_data[pattern][x]['price'] * LOAD_FACTOR_ASIA_TO_EUROPE + freight_return.predicted_data[pattern][x]['price'] * LOAD_FACTOR_EUROPE_TO_ASIA)
+            total_freight[pattern].append(f)
+            for i in range(8):
+                if range_0[i] < f and f < range_0[i+1]:
+                    distribution[i] += 1
+        _x = range(0,VESSEL_LIFE_TIME*12)
+        plt.plot(_x, total_freight[pattern])
+        plt.title('Transition of total freight', fontsize = 20)
+        plt.xlabel('month', fontsize = 16)
+        plt.ylabel('total freight rate value', fontsize = 16)
+        plt.grid(True)
+    save_dir = '../output'
+    plt.savefig(os.path.join(save_dir, 'real_freight.png'))
+    plt.close()
+    #s'''
+
+    for index in range(len(distribution)):
+        distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
+    #left = [200,300,400,500,600,700,800,900]
+    left = [0,1,2,3,4,5,6,7]
+    label = ['200','300','400','500','600','700','800','900']
+    plt.title('Freight distribution')
+    plt.xlabel('real freight')
+    plt.ylabel('Propability')
+    plt.bar(left,distribution,tick_label=label,align='center')
+    save_dir = '../output'
+    plt.savefig(os.path.join(save_dir, 'freight_distribution.png'))
+    plt.close()

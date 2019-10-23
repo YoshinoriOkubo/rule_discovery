@@ -67,7 +67,7 @@ for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             if range_0[i] < f and f < range_0[i+1]:
                 distribution[i] += 1
 for index in range(len(distribution)):
-    distribution[index] = distribution[index]/(pattern*180.0)
+    distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
     print(distribution[index])
 left = [0,1,2,3,4,5,6,7,8,9]
 label = ['0','20','30','40','50','60','70','80','90','100']
@@ -107,7 +107,7 @@ plt.close()
 #s'''
 
 for index in range(len(distribution)):
-    distribution[index] = distribution[index]/(pattern*180.0)
+    distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
     print(distribution[index])
 #left = [200,300,400,500,600,700,800,900]
 left = [0,1,2,3,4,5,6,7]

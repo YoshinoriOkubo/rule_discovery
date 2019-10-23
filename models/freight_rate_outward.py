@@ -109,6 +109,25 @@ class FreightOutward:
         #plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
         #plt.show()
 
+        num = len(self.history_data)
+        x = range(VESSEL_LIFE_TIME*12+num)
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            y = []
+            for i in range(180+num):
+                if i < num:
+                    y.append(self.history_data[i][1])
+                else:
+                    y.append(self.predicted_data[pattern][i-num]['price'])
+            plt.plot(x, y)
+        plt.title('Transition of freight rate', fontsize = 20)
+        plt.xlabel('month', fontsize = 16)
+        plt.ylabel('freight rate', fontsize = 16)
+        plt.grid(True)
+        save_dir = '../output'
+        plt.savefig(os.path.join(save_dir, 'freight_scenario_whole_time.png'))
+        plt.close()
+
+
     def export_excel(self):
         path = '../output/freight_outward.xlsx'
         wb = openpyxl.load_workbook(path)

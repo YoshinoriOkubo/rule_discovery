@@ -227,7 +227,7 @@ class GA:
     def fitness_function(self,rule,priority=None):
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            fitness = -INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS
+            fitness = 0
             ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
@@ -302,6 +302,7 @@ class GA:
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
+            fitness -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
             fitness /= HUNDRED_MILLION
             fitness /= INITIAL_NUMBER_OF_SHIPS
             Record.append(fitness)
@@ -553,7 +554,7 @@ class GA:
         plt.close()
 
     def full_search_method_speed(self):
-        cash = -INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS
+        cash = 0
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for year in range(VESSEL_LIFE_TIME):
                 cash_year = 0
@@ -575,6 +576,7 @@ class GA:
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_year *= self.exchange_rate[pattern][year*12+11]['price']
                 cash += cash_year/DISCOUNT
+            cash -= -INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
         cash /= DEFAULT_PREDICT_PATTERN_NUMBER
         cash /= HUNDRED_MILLION
         cash /= INITIAL_NUMBER_OF_SHIPS
@@ -586,7 +588,7 @@ class GA:
             fitness_list = []
             for i in range(VESSEL_LIFE_TIME*12+1):
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
-                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS,0,i,ship])
+                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price'],0,i,ship])
             for time in range(VESSEL_LIFE_TIME*12):
                 current_oil_price = self.oil_price_data[pattern][time]['price']
                 current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
@@ -617,7 +619,7 @@ class GA:
     def full_search_method_charter(self):
         fitness = []
         for period in [0,1,2,3]:
-            fitness.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS,period])
+            fitness.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[0][0]['price']*DEFAULT_PREDICT_PATTERN_NUMBER,period])
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 #charter_list = [] # check whether or not do charter in each time with this
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
