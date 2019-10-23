@@ -32,7 +32,9 @@ class GA:
         self.num = num if num else DEFAULT_NUM_OF_INDIVIDUAL  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
         self.crossing_rate = crossing_rate if crossing_rate else DEFAULT_CROSSING_RATE
+        self.priority = []
         self.group = [] # group that has individual
+        self.temp = [] #temporary group that has individuals
         self.bestgroup = [] # group that has the best individuals in each generation
         self.averagegroup = [] # the average value of fitness in each generation
         self.num_condition_part = DEFAULT_NUM_OF_CONDITION
@@ -222,39 +224,6 @@ class GA:
             individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
 
-    '''
-
-    def process(self,pattern,rule):
-        ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
-        fitness = -1 * INITIAL_COST_OF_SHIPBUIDING
-        for year in range(VESSEL_LIFE_TIME):
-            cash_flow = 0
-            for month in range(12):
-                current_oil_price = self.oil_price_data[pattern][month]['price']
-                current_freight_rate_outward = self.freight_rate_outward_data[pattern][month]['price']
-                current_freight_rate_return = self.freight_rate_return_data[pattern][month]['price']
-                result = self.adapt_rule(current_oil_price,ship.speed,rule)
-                if result[0]:
-                    ship.change_speed(ship.speed + result[1])
-                cash_flow += ship.calculate_income_per_month(current_oil_price,current_freight_rate_outward,current_freight_rate_return)
-            DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-            self.average_fitness += cash_flow / DISCOUNT
-
-    def wrap_process(self,num):
-        return self.process(*num)
-
-    def fitness_function(self,rule):
-        self.average_fitness = 0
-        with Pool(processes=multi.cpu_count()) as pool:
-            args = [ (i, rule) for i in range(DEFAULT_PREDICT_PATTERN_NUMBER)]
-            pool.map(self.wrap_process,args)
-        #with Pool(processes=multi.cpu_count()) as pool:
-        #    pool.map(self.process, range(DEFAULT_PREDICT_PATTERN_NUMBER))
-        self.average_fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
-        self.average_fitness /= 1000000
-        return max(0,self.average_fitness)
-    '''
-
     def fitness_function(self,rule,priority=None):
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -340,6 +309,10 @@ class GA:
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
         return [e,sigma]
+
+    def multiproces_fitness(self,i):
+        e, sigma = self.fitness_function(self.temp[i],self.priority)
+        return [i,[e,sigma]]
 
     def generateIndividual(self):
         temp = []
@@ -780,34 +753,38 @@ class GA:
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
             time.sleep(1/self.generation)
+            crossing_time = time.time()
             #crossing
-            temp = copy.deepcopy(self.group)
+            self.temp = copy.deepcopy(self.group)
             for i in range(0,self.num,2):
                 if random.random() < self.crossing_rate:
                     if self.decision == DECISION_SPEED:
-                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
+                        a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+1)
                     elif self.decision == DECISION_SELL:
-                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+1)
+                        a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+1)
                     elif self.decision == DECISION_CHARTER:
-                        a,b = self.crossing(temp[i],temp[i+1],self.num_condition_part*2+2)
+                        a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+2)
                     elif self.decision == DECISION_INTEGRATE:
-                        a,b = self.crossing(temp[i],temp[i+1])
+                        a,b = self.crossing(self.temp[i],self.temp[i+1])
                     else:
                         print('selected decision item does not exist')
                         sys.exit()
-                    temp.append(a)
-                    temp.append(b)
+                    self.temp.append(a)
+                    self.temp.append(b)
+            print('crossing',time.time()-crossing_time)
 
             #mutation
-            for individual in temp:
+            mutation_time = time.time()
+            for individual in self.temp:
                 if random.random() < self.alpha:
                     individual = self.mutation(individual)
+            print('mutation',time.time()-mutation_time)
 
             #rule check
             if self.decision == DECISION_INTEGRATE:
-                for k in range(len(temp)):
-                    for rule_index in range(len(temp[k])-1):
-                        rule_for_X = temp[k][rule_index]
+                for k in range(len(self.temp)):
+                    for rule_index in range(len(self.temp[k])-1):
+                        rule_for_X = self.temp[k][rule_index]
                         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
                         b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
                         c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
@@ -815,50 +792,60 @@ class GA:
                         e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])]
                         f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]
                         if a > b:
-                            X = copy.deepcopy(temp[k])
+                            X = copy.deepcopy(self.temp[k])
                             for element in range(4):
                                 rule_for_X[0][element] = X[rule_index][1][element]
                                 rule_for_X[1][element] = X[rule_index][0][element]
                         if c > d:
-                            Y = copy.deepcopy(temp[k])
+                            Y = copy.deepcopy(self.temp[k])
                             for element in range(4):
                                 rule_for_X[2][element] = Y[rule_index][3][element]
                                 rule_for_X[3][element] = Y[rule_index][2][element]
                         if e > f:
-                            Z = copy.deepcopy(temp[k])
+                            Z = copy.deepcopy(self.temp[k])
                             for element in range(4):
                                 rule_for_X[4][element] = Z[rule_index][5][element]
                                 rule_for_X[5][element] = Z[rule_index][4][element]
             else:
-                for k in range(len(temp)):
-                    a = OIL_PRICE_LIST[self.convert2to10_in_list(temp[k][0])]
-                    b = OIL_PRICE_LIST[self.convert2to10_in_list(temp[k][1])]
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(temp[k][2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(temp[k][3])]
-                    e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(temp[k][4])]
-                    f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(temp[k][5])]
+                for k in range(len(self.temp)):
+                    a = OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])]
+                    b = OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]
+                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])]
+                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]
+                    e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])]
+                    f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]
                     if a > b:
-                        X = copy.deepcopy(temp[k])
+                        X = copy.deepcopy(self.temp[k])
                         for element in range(4):
-                            temp[k][0][element] = X[1][element]
-                            temp[k][1][element] = X[0][element]
+                            self.temp[k][0][element] = X[1][element]
+                            self.temp[k][1][element] = X[0][element]
                     if c > d:
-                        Y = copy.deepcopy(temp[k])
+                        Y = copy.deepcopy(self.temp[k])
                         for element in range(4):
-                            temp[k][2][element] = Y[3][element]
-                            temp[k][3][element] = Y[2][element]
+                            self.temp[k][2][element] = Y[3][element]
+                            self.temp[k][3][element] = Y[2][element]
                     if e > f:
-                        Z = copy.deepcopy(temp[k])
+                        Z = copy.deepcopy(self.temp[k])
                         for element in range(4):
-                            temp[k][4][element] = Z[5][element]
-                            temp[k][5][element] = Z[4][element]
+                            self.temp[k][4][element] = Z[5][element]
+                            self.temp[k][5][element] = Z[4][element]
 
             #computation of fitness
-            for one in range(len(temp)):
-                rule = temp[one]
+            multifitness_time = time.time()
+            self.priority = priority
+            with Pool() as pool:
+                p = pool.map(self.multiproces_fitness, range(len(self.temp)))
+                p.sort(key=lambda x:x[0])
+                for i in range(len(p)):
+                    self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
+            print('multifitness',time.time()-multifitness_time)
+            '''
+            fitness_time = time.time()
+            for one in range(len(self.temp)):
+                rule = self.temp[one]
                 rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
-
-
+            print('fitness',time.time()-fitness_time)
+            '''
             #reduce the number of individual
             #num -= 10
 
@@ -867,43 +854,43 @@ class GA:
             if gene > 0:
                 self.group[0] = self.bestgroup[gene-1]
             else:#this does not have meaning, just number adjustment
-                self.group[0] = temp[0]
-                self.depict_average_variance(gene,temp)
+                self.group[0] = self.temp[0]
+                self.depict_average_variance(gene,self.temp)
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
-                temp.sort(key=lambda x:x[-1][0],reverse = True)
+                self.temp.sort(key=lambda x:x[-1][0],reverse = True)
                 elite_number = int(self.num * 0.05)
                 for i in range(1,elite_number+1):
-                    self.group[i] = temp[i]
-                random.shuffle(temp)
+                    self.group[i] = self.temp[i]
+                random.shuffle(self.temp)
                 ark = 0 # the number used to roulette in crossing
                 probability = 0
-                for i in range(len(temp)):
-                    probability = probability + max(0,temp[i][-1][0]) + 0.1
+                for i in range(len(self.temp)):
+                    probability = probability + max(0,self.temp[i][-1][0]) + 0.1
                 roulette = 0
                 for i in range(elite_number+1,self.num):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
-                        roulette = roulette - (max(0,temp[ark][-1][0]) + 0.1)
+                        roulette = roulette - (max(0,self.temp[ark][-1][0]) + 0.1)
                         ark = (ark + 1) % self.num
-                    self.group[i] = temp[ark]
+                    self.group[i] = self.temp[ark]
             elif method == TOURNAMENT:#tournament selection
                 for select in range(self.num-1):
                     tournament = []
                     for _ in range(6):
-                        tournament.append(temp[random.randint(0,2*self.num-1)])
+                        tournament.append(self.temp[random.randint(0,2*self.num-1)])
                     tournament.sort(key=lambda x:x[-1][0],reverse = True)
                     self.group[select] = tournament[0]
             elif method == STEADY_STATE:#steady state ga
-                for i in range(0,len(temp),2):
+                for i in range(0,len(self.temp),2):
                     if i + 1 < self.num:
                         store = []
-                        store.append(temp[i])
-                        store.append(temp[i+1])
-                        if self.num + i < len(temp):
-                            store.append(temp[self.num + i])
-                        if self.num + i + 1 < len(temp):
-                            store.append(temp[self.num + i+1])
+                        store.append(self.temp[i])
+                        store.append(self.temp[i+1])
+                        if self.num + i < len(self.temp):
+                            store.append(self.temp[self.num + i])
+                        if self.num + i + 1 < len(self.temp):
+                            store.append(self.temp[self.num + i+1])
                         store.sort(key=lambda x:x[-1][0],reverse = True)
                         self.group[i] = store[0]
                         self.group[i+1] = store[1]

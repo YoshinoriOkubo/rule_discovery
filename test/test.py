@@ -38,11 +38,12 @@ ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.pre
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SELL)
 ga.execute_GA()
-
+'''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_CHARTER)
 ga.execute_GA()
+'''
 '''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
