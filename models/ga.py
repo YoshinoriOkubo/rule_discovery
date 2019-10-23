@@ -8,9 +8,14 @@ import os
 import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
+from joblib import Parallel, delayed
 from oil_price import Sinario
 from ship import Ship
 from tqdm import tqdm
+from oil_price import Sinario
+from freight_rate_outward import FreightOutward
+from freight_rate_return import FreightReturn
+from exchange_rate import ExchangeRate
 # import own modules #
 sys.path.append('../public')
 sys.path.append('../output')
@@ -823,19 +828,34 @@ class GA:
             #computation of fitness
             multifitness_time = time.time()
             self.priority = priority
+            '''
             with Pool() as pool:
                 p = pool.map(self.multiproces_fitness, range(len(self.temp)))
                 p.sort(key=lambda x:x[0])
                 for i in range(len(p)):
                     self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
+            '''
+            '''
+            num_pool = multi.cpu_count()
+            pool = Pool(num_pool)
+            for i in range(len(self.temp)):
+                res = pool.apply_async(self.multiproces_fitness, (i,))
+            pool.close()
+            pool.join(10)
             print('multifitness',time.time()-multifitness_time)
+            '''
+            '''
+            result = Parallel(n_jobs=-1)([delayed(self.multiproces_fitness)(n) for n in range(len(self.temp))])
+            result.sort(key=lambda x:x[0])
+            for i in range(len(result)):
+                self.temp[i][-1][0], self.temp[i][-1][1] = result[i][1]
             '''
             fitness_time = time.time()
             for one in range(len(self.temp)):
                 rule = self.temp[one]
                 rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
             print('fitness',time.time()-fitness_time)
-            '''
+            
             #reduce the number of individual
             #num -= 10
 
@@ -967,3 +987,25 @@ class GA:
         self.gruop = []
         self.bestgroup = []
         self.averagegroup = []
+
+def main():
+    sinario = Sinario()
+    sinario.generate_sinario()
+    sinario.depict()
+    freight_outward = FreightOutward()
+    freight_outward.generate_sinario()
+    freight_outward.depict()
+    freight_return = FreightReturn(freight_outward.predicted_data)
+    freight_return.generate_sinario()
+    freight_return.depict()
+    exchange_rate = ExchangeRate()
+    exchange_rate.generate_sinario()
+    exchange_rate.depict()
+    depict_real_freight(freight_outward,freight_return)
+    s = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+                TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                DECISION_SELL)
+    s.execute_GA()
+
+if __name__ == "__main__":
+    main()

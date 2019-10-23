@@ -142,8 +142,6 @@ def fitness_function(rule,priority=None):
                     if ship.charter == True:
                         cash_flow += ship.in_charter()
                         ship.end_charter()
-            if year < DEPRECIATION_TIME:
-                cash_flow -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS/DEPRECIATION_TIME
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_rate[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
@@ -154,15 +152,20 @@ def fitness_function(rule,priority=None):
     return [e,sigma]
 
 rule = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1],[0,0,0,0],[0,0]]
-n = 400
+n = GENETIC_ALGORITHM_PARAMETER['individual']
 def process(i):
     fitness_function(rule)
-start = time.time()
-with Pool() as pool:
-    pool.map(process, range(n))
-print(time.time()-start)
+a = []
+for i in range(20):
+    start = time.time()
+    with Pool(4) as pool:
+        p = pool.map(process, range(n))
+        a = p[0]
+    print(time.time()-start)
 
+'''
 start = time.time()
 for i in range(n):
     process(i)
 print(time.time()-start)
+'''
