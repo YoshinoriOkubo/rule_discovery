@@ -830,10 +830,11 @@ class GA:
             self.priority = priority
             '''
             with Pool() as pool:
-                p = pool.map(self.multiproces_fitness, range(len(self.temp)))
-                p.sort(key=lambda x:x[0])
-                for i in range(len(p)):
-                    self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
+                p = pool.imap(self.multiproces_fitness, range(len(self.temp)),10)
+                #for i in range(len(self.temp)):
+                #p.sort(key=lambda x:x[0])
+                #for i in range(len(p)):
+                #    self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
             '''
             '''
             num_pool = multi.cpu_count()
@@ -850,12 +851,13 @@ class GA:
             for i in range(len(result)):
                 self.temp[i][-1][0], self.temp[i][-1][1] = result[i][1]
             '''
+
             fitness_time = time.time()
             for one in range(len(self.temp)):
                 rule = self.temp[one]
                 rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
             print('fitness',time.time()-fitness_time)
-            
+
             #reduce the number of individual
             #num -= 10
 
@@ -1001,11 +1003,31 @@ def main():
     exchange_rate = ExchangeRate()
     exchange_rate.generate_sinario()
     exchange_rate.depict()
+    args = sys.argv
     depict_real_freight(freight_outward,freight_return)
-    s = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
-                TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                DECISION_SELL)
-    s.execute_GA()
+    if args[1] == '1':
+        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                    DECISION_SPEED)
+        ga.execute_GA()
+    elif args[1] == '2':
+        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                    DECISION_SELL)
+        ga.execute_GA()
+    elif args[1] == '3':
+        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                    DECISION_CHARTER)
+        ga.execute_GA()
+    elif args[1] == '4':
+        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                    DECISION_INTEGRATE)
+        ga.execute_GA()
+    else:
+        print('No one selected')
+        print(args)
 
 if __name__ == "__main__":
     main()
