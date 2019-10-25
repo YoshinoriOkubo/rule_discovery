@@ -8,7 +8,6 @@ import os
 import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
-from joblib import Parallel, delayed
 from oil_price import Sinario
 from ship import Ship
 from tqdm import tqdm
@@ -740,7 +739,7 @@ class GA:
                 break
         return flag
 
-    def execute_GA(self,priority=PRIORITY_SELL_CHARTER,method=ROULETTE):
+    def execute_GA(self,multiprocess=None,priority=PRIORITY_SELL_CHARTER,method=ROULETTE):
         first = time.time()
 
         #randomly generating individual group
@@ -828,37 +827,22 @@ class GA:
                             self.temp[k][5][element] = Z[4][element]
 
             #computation of fitness
-            multifitness_time = time.time()
             self.priority = priority
-            '''
-            with Pool() as pool:
-                p = pool.imap(self.multiproces_fitness, range(len(self.temp)),10)
-                #for i in range(len(self.temp)):
-                #p.sort(key=lambda x:x[0])
-                #for i in range(len(p)):
-                #    self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
-            '''
-            '''
-            num_pool = multi.cpu_count()
-            pool = Pool(num_pool)
-            for i in range(len(self.temp)):
-                res = pool.apply_async(self.multiproces_fitness, (i,))
-            pool.close()
-            pool.join(10)
-            print('multifitness',time.time()-multifitness_time)
-            '''
-            '''
-            result = Parallel(n_jobs=-1)([delayed(self.multiproces_fitness)(n) for n in range(len(self.temp))])
-            result.sort(key=lambda x:x[0])
-            for i in range(len(result)):
-                self.temp[i][-1][0], self.temp[i][-1][1] = result[i][1]
-            '''
-
-            fitness_time = time.time()
-            for one in range(len(self.temp)):
-                rule = self.temp[one]
-                rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
-            print('fitness',time.time()-fitness_time)
+            if multiprocess is None:
+                fitness_time = time.time()
+                for one in range(len(self.temp)):
+                    rule = self.temp[one]
+                    rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
+                print('fitness',time.time()-fitness_time)
+            else:
+                multifitness_time = time.time()
+                num_pool = multi.cpu_count()
+                with Pool(num_pool) as pool:
+                    p = pool.map(self.multiproces_fitness, range(len(self.temp)))
+                    p.sort(key=lambda x:x[0])
+                    for i in range(len(p)):
+                        self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
+                print('multifitness',time.time()-multifitness_time)
 
             #reduce the number of individual
             #num -= 10
@@ -1005,25 +989,22 @@ def main():
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_SPEED)
-        ga.execute_GA()
     elif args[1] == '2':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_SELL)
-        ga.execute_GA()
     elif args[1] == '3':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_CHARTER)
-        ga.execute_GA()
     elif args[1] == '4':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_INTEGRATE)
-        ga.execute_GA()
     else:
         print('No one selected')
         print(args)
+    ga.execute_GA('multiprocess')
 
 if __name__ == "__main__":
     main()
