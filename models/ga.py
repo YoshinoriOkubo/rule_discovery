@@ -304,6 +304,7 @@ class GA:
                         if ship.charter == True:
                             cash_flow += ship.in_charter()
                             ship.end_charter()
+                    ship.change_speed(self.init_speed)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
@@ -559,8 +560,9 @@ class GA:
         plt.close()
 
     def full_search_method_speed(self):
-        cash = 0
+        cash_list = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            cash = 0
             for year in range(VESSEL_LIFE_TIME):
                 cash_year = 0
                 for month in range(12):
@@ -570,22 +572,24 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                    ship.calculate_idle_rate(current_freight_rate_outward)
                     for speed in VESSEL_SPEED_LIST:
                         search_ship = Ship(self.TEU_size,speed,self.route_distance)
+                        search_ship.calculate_idle_rate(current_freight_rate_outward)
                         cash_flow = search_ship.calculate_income_per_month(current_oil_price,total_freight)
                         list.append([cash_flow,speed])
                     list.sort(key=lambda x:x[0],reverse = True)
                     ship.change_speed(list[0][1])
+                    ship.calculate_idle_rate(current_freight_rate_outward)
                     cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_year *= self.exchange_rate[pattern][year*12+11]['price']
                 cash += cash_year/DISCOUNT
-            cash -= -INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
-        cash /= DEFAULT_PREDICT_PATTERN_NUMBER
-        cash /= HUNDRED_MILLION
-        cash /= INITIAL_NUMBER_OF_SHIPS
-        return cash
+            cash -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
+            cash /= HUNDRED_MILLION
+            cash /= INITIAL_NUMBER_OF_SHIPS
+            cash_list.append(cash)
+        e,sigma = calc_statistics(cash_list)
+        return e
 
     def full_search_method_sell(self):
         list = []
