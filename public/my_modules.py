@@ -5,6 +5,33 @@ import os
 import matplotlib.pyplot as plt
 from constants import *
 
+def load_generated_sinario():
+    all_data = []
+    for i in range(4):
+        if i == 0:
+            history_data_path = '../output/oil_price.csv'
+        elif i == 1:
+            history_data_path = '../output/freight_outward.csv'
+        elif i == 2:
+            history_data_path = '../output/freight_return.csv'
+        elif i == 3:
+            history_data_path = '../output/exchange_rate.csv'
+
+
+        # read data
+        dt   = np.dtype({'names': ('date', 'price'),
+                       'formats': ('S10' , np.float)})
+        data = np.array([], dtype=dt)
+        for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            data = np.append(data,np.genfromtxt(history_data_path,
+                             delimiter=',',
+                             dtype=dt,
+                             usecols=[2*j,2*j+1],
+                             skip_header=0))
+        data = data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        all_data.append(data)
+    return all_data
+
 #load history data of crude oil
 def load_monthly_history_data(from_date=None, to_date=None):
     history_data_path = '../data/crude_oil_monthly_history.csv'
@@ -154,38 +181,76 @@ def calc_statistics(list):
     sigma /= n
     return [e,sigma]
 
-def depict_real_freight(freight_outward,freight_return):
-    distribution = [0,0,0,0,0,0,0,0]
-    range_0 = [200,300,400,500,600,700,800,900,1000]
-    total_freight = []
+def depict_distribution(oil,freight_outward,exchange):
+    distribution = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        total_freight.append([])
-        for x in range(VESSEL_LIFE_TIME * 12):
-            f = 0.5*(freight_outward.predicted_data[pattern][x]['price'] * LOAD_FACTOR_ASIA_TO_EUROPE + freight_return.predicted_data[pattern][x]['price'] * LOAD_FACTOR_EUROPE_TO_ASIA)
-            total_freight[pattern].append(f)
-            for i in range(8):
-                if range_0[i] < f and f < range_0[i+1]:
-                    distribution[i] += 1
-        _x = range(0,VESSEL_LIFE_TIME*12)
-        plt.plot(_x, total_freight[pattern])
-        plt.title('Transition of total freight', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('total freight rate value', fontsize = 16)
-        plt.grid(True)
+        for a in range(VESSEL_LIFE_TIME * 12):
+            f = oil[pattern][a]['price']
+            for i in range(16):
+                if i == 15:
+                    if OIL_PRICE_LIST[i] < f:
+                        distribution[i] += 1
+                else:
+                    if OIL_PRICE_LIST[i] < f and f < OIL_PRICE_LIST[i+1]:
+                        distribution[i] += 1
+    for index in range(len(distribution)):
+        distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
+    left = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    label = OIL_PRICE_LIST
+    plt.title('Oil price distribution')
+    plt.xlabel('oil price')
+    plt.ylabel('Propability')
+    plt.bar(left,distribution,tick_label=label,align='center')
     save_dir = '../output'
-    plt.savefig(os.path.join(save_dir, 'real_freight.png'))
+    plt.savefig(os.path.join(save_dir, 'oil_price_distribution.png'))
     plt.close()
-    #s'''
 
+    distribution = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        for x in range(VESSEL_LIFE_TIME*12):
+            f = freight_outward[pattern][x]['price']
+            for i in range(16):
+                if i ==15:
+                    if FREIGHT_RATE_LIST[i] < f:
+                        distribution[i] += 1
+                else:
+                    if FREIGHT_RATE_LIST[i] < f and f < FREIGHT_RATE_LIST[i+1]:
+                        distribution[i] += 1
+        _x = range(0,VESSEL_LIFE_TIME*12)
     for index in range(len(distribution)):
         distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
     #left = [200,300,400,500,600,700,800,900]
-    left = [0,1,2,3,4,5,6,7]
-    label = ['200','300','400','500','600','700','800','900']
+    left = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    label = FREIGHT_RATE_LIST
     plt.title('Freight distribution')
-    plt.xlabel('real freight')
+    plt.xlabel('freight outward')
     plt.ylabel('Propability')
     plt.bar(left,distribution,tick_label=label,align='center')
     save_dir = '../output'
     plt.savefig(os.path.join(save_dir, 'freight_distribution.png'))
+    plt.close()
+
+    distribution = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        for x in range(VESSEL_LIFE_TIME*12):
+            f = exchange[pattern][x]['price']
+            for i in range(16):
+                if i ==15:
+                    if EXCHANGE_RATE_LIST[i] < f:
+                        distribution[i] += 1
+                else:
+                    if EXCHANGE_RATE_LIST[i] < f and f < EXCHANGE_RATE_LIST[i+1]:
+                        distribution[i] += 1
+        _x = range(0,VESSEL_LIFE_TIME*12)
+    for index in range(len(distribution)):
+        distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
+    #left = [200,300,400,500,600,700,800,900]
+    left = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    label = EXCHANGE_RATE_LIST
+    plt.title('Exchange distribution')
+    plt.xlabel('exchange')
+    plt.ylabel('Propability')
+    plt.bar(left,distribution,tick_label=label,align='center')
+    save_dir = '../output'
+    plt.savefig(os.path.join(save_dir, 'exchange_distribution.png'))
     plt.close()

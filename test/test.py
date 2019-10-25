@@ -14,7 +14,7 @@ from my_modules import *
 from constants  import *
 
 start = time.time()
-
+'''
 sinario = Sinario()
 sinario.generate_sinario()
 sinario.depict()
@@ -29,16 +29,27 @@ exchange_rate.generate_sinario()
 exchange_rate.depict()
 depict_real_freight(freight_outward,freight_return)
 '''
+'''
+generated_sinario = load_generated_sinario()
+oil_price_data = generated_sinario[0]
+print(oil_price_data[-1])
+'''
+#freight_outward_data = generated_sinario[1]
+#freight_return_data = generated_sinario[2]
+#exchange_data = generated_sinario[3]
+
+'''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SPEED)
 ga.execute_GA()
 '''
-
+'''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
             DECISION_SELL)
 ga.execute_GA()
+'''
 '''
 ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
             TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,

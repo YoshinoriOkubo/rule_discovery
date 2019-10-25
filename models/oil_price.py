@@ -116,32 +116,13 @@ class Sinario:
         plt.savefig(os.path.join(save_dir, 'oil_scenario_whole_time.png'))
         plt.close()
 
-        distribution = [0,0,0,0,0,0,0,0,0,0]
-        range_0 = [0,20,30,40,50,60,70,80,90,100,120]
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            for a in range(VESSEL_LIFE_TIME * 12):
-                f = self.predicted_data[pattern][a]['price']
-                for i in range(10):
-                    if range_0[i] < f and f < range_0[i+1]:
-                        distribution[i] += 1
-        for index in range(len(distribution)):
-            distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
-        left = [0,1,2,3,4,5,6,7,8,9]
-        label = ['0','20','30','40','50','60','70','80','90','100']
-        plt.title('Oil price distribution')
-        plt.xlabel('oil price')
-        plt.ylabel('Propability')
-        plt.bar(left,distribution,tick_label=label,align='center')
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'oil_price_distribution.png'))
-        plt.close()
-
     def export_excel(self):
         path = '../output/oil_price.xlsx'
         wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
         for i in range(self.predict_years*12):
             for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                sheet.cell(row = i + 1, column = j + 1).value = self.predicted_data[j][i]['price']
+                sheet.cell(row = i + 1, column = 2*j + 1).value = self.predicted_data[j][i]['date']
+                sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
         wb.save(path)
         wb.close()

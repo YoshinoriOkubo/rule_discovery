@@ -122,6 +122,7 @@ class FreightReturn:
         sheet = wb['Sheet1']
         for i in range(self.predict_years*12):
             for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                sheet.cell(row = i + 1, column = j + 1).value = self.predicted_data[j][i]['price']
+                sheet.cell(row = i + 1, column = 2*j + 1).value = self.predicted_data[j][i]['date']
+                sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
         wb.save(path)
         wb.close()

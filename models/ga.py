@@ -249,11 +249,11 @@ class GA:
                         rule_number, result = 0, [False]
                         if rule is None:
                             while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,total_freight,current_exchange,self.group[rule_number])
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
-                            result = self.adapt_rule(current_oil_price,total_freight,current_exchange,rule)
+                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0]:
                             ship.change_speed(result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
@@ -262,11 +262,11 @@ class GA:
                         rule_number, result = 0, [False]
                         if rule is None:
                             while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,total_freight,current_exchange,self.group[rule_number])
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
-                            result = self.adapt_rule(current_oil_price,total_freight,current_exchange,rule)
+                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0]:
                             cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
@@ -275,11 +275,11 @@ class GA:
                         rule_number, result = 0, [False]
                         if rule is None:
                             while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,total_freight,current_exchange,self.group[rule_number])
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
-                            result = self.adapt_rule(current_oil_price,total_freight,current_exchange,rule)
+                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0] and result[2] > 0:
                             ship.charter_ship(current_oil_price,total_freight,result[2],result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
@@ -287,7 +287,7 @@ class GA:
                             cash_flow += ship.in_charter()
                             ship.end_charter()
                     elif self.decision == DECISION_INTEGRATE:
-                        result = self.adapt_rule(current_oil_price,total_freight,current_exchange,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0][0] == True:
                             ship.change_speed(result[0][1])
                         if priority == PRIORITY_SELL_CHARTER:
@@ -709,9 +709,7 @@ class GA:
             for year in range(VESSEL_LIFE_TIME):
                 for month in range(12):
                     oil_price = self.oil_price_data[pattern][year*12+month]['price']
-                    current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
-                    current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
-                    freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
                     exchange = self.exchange_rate[pattern][year*12+month]['price']
                     if self.decision == DECISION_INTEGRATE:
                         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
@@ -991,37 +989,30 @@ class GA:
         self.averagegroup = []
 
 def main():
-    sinario = Sinario()
-    sinario.generate_sinario()
-    sinario.depict()
-    freight_outward = FreightOutward()
-    freight_outward.generate_sinario()
-    freight_outward.depict()
-    freight_return = FreightReturn(freight_outward.predicted_data)
-    freight_return.generate_sinario()
-    freight_return.depict()
-    exchange_rate = ExchangeRate()
-    exchange_rate.generate_sinario()
-    exchange_rate.depict()
+    generated_sinario = load_generated_sinario()
+    oil_data = generated_sinario[0]
+    freight_outward_data = generated_sinario[1]
+    freight_return_data = generated_sinario[2]
+    exchange_data = generated_sinario[3]
     args = sys.argv
-    depict_real_freight(freight_outward,freight_return)
     if args[1] == '1':
-        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+        depict_distribution(oil_data,freight_outward_data,exchange_data)
+        ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_SPEED)
         ga.execute_GA()
     elif args[1] == '2':
-        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+        ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_SELL)
         ga.execute_GA()
     elif args[1] == '3':
-        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+        ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_CHARTER)
         ga.execute_GA()
     elif args[1] == '4':
-        ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.predicted_data,exchange_rate.predicted_data,
+        ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_INTEGRATE)
         ga.execute_GA()
