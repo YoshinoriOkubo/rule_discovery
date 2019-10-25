@@ -27,7 +27,8 @@ def load_generated_sinario():
                              delimiter=',',
                              dtype=dt,
                              usecols=[2*j,2*j+1],
-                             skip_header=0))
+                             skip_header=0,
+                             encoding='utf-8_sig'))
         data = data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         all_data.append(data)
     return all_data
