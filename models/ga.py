@@ -876,16 +876,17 @@ class GA:
                 elite_number = int(self.num * 0.05)
                 for i in range(1,elite_number+1):
                     self.group[i] = self.temp[i]
+                min_fit = self.temp[-1][-1][0]
                 random.shuffle(self.temp)
                 ark = 0 # the number used to roulette in crossing
                 probability = 0
                 for i in range(len(self.temp)):
-                    probability = probability + max(0,self.temp[i][-1][0]) + 0.1
+                    probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
                 roulette = 0
                 for i in range(elite_number+1,self.num):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
-                        roulette = roulette - (max(0,self.temp[ark][-1][0]) + 0.1)
+                        roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
                         ark = (ark + 1) % self.num
                     self.group[i] = self.temp[ark]
             elif method == TOURNAMENT:#tournament selection
