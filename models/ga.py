@@ -1,16 +1,14 @@
 import random
 import copy
 import time
+from tqdm import tqdm
 import sys
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
-from oil_price import Sinario
 from ship import Ship
-from tqdm import tqdm
 from oil_price import Sinario
 from freight_rate_outward import FreightOutward
 from freight_rate_return import FreightReturn
@@ -23,24 +21,24 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,decision,generation=None,num=None,alpha=None,crossing_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,decision,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
-        self.exchange_rate = exchange_rate # exchange_rate history data
+        self.exchange_rate_data = exchange_rate # exchange_rate history data
         self.TEU_size = TEU_size #size of ship(TEU)
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
         self.decision = decision # decision of action parts. decision is speed change or sell ship
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
-        self.num = num if num else DEFAULT_NUM_OF_INDIVIDUAL  # the number of individual
+        self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
-        self.crossing_rate = crossing_rate if crossing_rate else DEFAULT_CROSSING_RATE
+        self.crossover_rate = crossover_rate if crossover_rate else DEFAULT_CROSSOVER_RATE
         self.priority = []
-        self.group = [] # group that has individual
+        self.population = [] # population that has individual
         self.temp = [] #temporary group that has individuals
-        self.bestgroup = [] # group that has the best individuals in each generation
-        self.averagegroup = [] # the average value of fitness in each generation
+        self.bestpopulation = [] # group that has the best individuals in each generation
+        self.averagepopulation = [] # the average value of fitness in each generation
         self.num_condition_part = DEFAULT_NUM_OF_CONDITION
         self.compare_rule = []
         if self.decision == DECISION_INTEGRATE:
@@ -241,14 +239,14 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     ship.calculate_idle_rate(current_freight_rate_outward)
-                    current_exchange = self.exchange_rate[pattern][year*12+month]['price']
+                    current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     #change by argment
                     if self.decision == DECISION_SPEED:
                         #sets_of_group
                         rule_number, result = 0, [False]
                         if rule is None:
-                            while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
+                            while rule_number < len(self.population) and result[0] == False:
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
@@ -260,8 +258,8 @@ class GA:
                         #sets_of_group
                         rule_number, result = 0, [False]
                         if rule is None:
-                            while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
+                            while rule_number < len(self.population) and result[0] == False:
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
@@ -273,8 +271,8 @@ class GA:
                         #sets_of_group
                         rule_number, result = 0, [False]
                         if rule is None:
-                            while rule_number < len(self.group) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.group[rule_number])
+                            while rule_number < len(self.population) and result[0] == False:
+                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
                                 rule_number += 1
                         #one rule
                         else:
@@ -305,9 +303,9 @@ class GA:
                             ship.end_charter()
                     ship.change_speed(self.init_speed)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                cash_flow *= self.exchange_rate[pattern][year*12+11]['price']
+                cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
-            fitness -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
+            fitness -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[pattern][0]['price']
             fitness /= HUNDRED_MILLION
             fitness /= INITIAL_NUMBER_OF_SHIPS
             Record.append(fitness)
@@ -368,12 +366,12 @@ class GA:
         return temp
 
     def depict_fitness(self):
-        x = range(0,len(self.bestgroup))
+        x = range(0,len(self.bestpopulation))
         y = []
         z = []
-        for i in range(len(self.bestgroup)):
-            y.append(self.bestgroup[i][-1][0])
-            z.append(self.averagegroup[i])
+        for i in range(len(self.bestpopulation)):
+            y.append(self.bestpopulation[i][-1][0])
+            z.append(self.averagepopulation[i])
         plt.plot(x, y, marker='o',label='best')
         #if y[3] != z[3]:
         plt.plot(x, z, marker='x',label='average')
@@ -398,13 +396,13 @@ class GA:
     def depict_average_variance(self,gene=None,list=None):
         x = []
         y = []
-        for i in range(self.num):
+        for i in range(self.population_size):
             if gene == 0:
                 x.append(list[i][-1][0])
                 y.append(list[i][-1][1])
             else:
-                x.append(self.group[i][-1][0])
-                y.append(self.group[i][-1][1])
+                x.append(self.population[i][-1][0])
+                y.append(self.population[i][-1][1])
         plt.scatter(x,y)
         x_min = min(x)
         x_min = x_min*0.9 if x_min>0 else x_min*1.1
@@ -448,8 +446,8 @@ class GA:
         wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
         if self.decision == DECISION_INTEGRATE:
-            for i in range(0,self.num*4,4):
-                individual = self.group[int(i/4)]
+            for i in range(0,self.population_size*4,4):
+                individual = self.population[int(i/4)]
                 sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(int(i/4)+1)
                 for rule_index in range(len(RULE_SET)):
                     rule_for_X = individual[rule_index]
@@ -475,8 +473,8 @@ class GA:
                 sheet.cell(row = i + 1 + len(RULE_SET), column = 2).value = individual[-1][0]
                 sheet.cell(row = i + 1 + len(RULE_SET), column = 3).value = individual[-1][1]
         else:
-            for i in range(0,self.num):
-                individual = self.group[i]
+            for i in range(0,self.population_size):
+                individual = self.population[i]
                 sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
                 for j in range(self.num_condition_part*2):
                     if j == 0 or j == 1:
@@ -507,29 +505,29 @@ class GA:
         fitness_no_rule = self.fitness_function(self.compare_rule)[0]
         if self.decision == DECISION_INTEGRATE:
             name = 'integrate'
-            fitness_best = self.bestgroup[-1][-1][0]
+            fitness_best = self.bestpopulation[-1][-1][0]
             fitness_full_search = 0
         else:
             if self.decision == DECISION_SPEED:
                 name = 'speed'
-                fitness_best = self.bestgroup[-1][-1][0]
+                fitness_best = self.bestpopulation[-1][-1][0]
                 fitness_full_search = self.full_search_method_speed()
             elif self.decision == DECISION_SELL:
                 name = 'sell'
                 fitness_best = 0
-                for i in range(self.num):
-                    if self.group[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.group[i]):
-                            fitness_best = self.group[i][-1][0]
+                for i in range(self.population_size):
+                    if self.population[i][-2][0] != ACTION_STAY:
+                        if self.check_rule_is_adapted(self.population[i]):
+                            fitness_best = self.population[i][-1][0]
                             break
                 fitness_full_search = self.full_search_method_sell()
             elif self.decision == DECISION_CHARTER:
                 name = 'charter'
                 fitness_best = 0
-                for i in range(self.num):
-                    if self.group[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.group[i]):
-                            fitness_best = self.group[i][-1][0]
+                for i in range(self.population_size):
+                    if self.population[i][-2][0] != ACTION_STAY:
+                        if self.check_rule_is_adapted(self.population[i]):
+                            fitness_best = self.population[i][-1][0]
                             break
                 fitness_full_search =  self.full_search_method_charter()
             else:
@@ -587,9 +585,9 @@ class GA:
                     ship.calculate_idle_rate(current_freight_rate_outward)
                     cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                cash_year *= self.exchange_rate[pattern][year*12+11]['price']
+                cash_year *= self.exchange_rate_data[pattern][year*12+11]['price']
                 cash += cash_year/DISCOUNT
-            cash -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price']
+            cash -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[pattern][0]['price']
             cash /= HUNDRED_MILLION
             cash /= INITIAL_NUMBER_OF_SHIPS
             cash_list.append(cash)
@@ -602,7 +600,7 @@ class GA:
             fitness_list = []
             for i in range(VESSEL_LIFE_TIME*12+1):
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
-                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[pattern][0]['price'],0,i,ship])
+                fitness_list.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[pattern][0]['price'],0,i,ship])
             for time in range(VESSEL_LIFE_TIME*12):
                 current_oil_price = self.oil_price_data[pattern][time]['price']
                 current_freight_rate_outward = self.freight_rate_outward_data[pattern][time]['price']
@@ -620,7 +618,7 @@ class GA:
                     for index in range(VESSEL_LIFE_TIME*12+1):
                         cash_year = fitness_list[index][1]
                         DISCOUNT = (1 + DISCOUNT_RATE) ** ((time+1)/12)
-                        cash_year *= self.exchange_rate[pattern][time]['price']
+                        cash_year *= self.exchange_rate_data[pattern][time]['price']
                         fitness_list[index][0] += cash_year/DISCOUNT
                         fitness_list[index][1] = 0
             fitness_list.sort(key=lambda x:x[0],reverse = True)
@@ -633,7 +631,7 @@ class GA:
     def full_search_method_charter(self):
         fitness = []
         for period in [0,1,2,3]:
-            fitness.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate[0][0]['price']*DEFAULT_PREDICT_PATTERN_NUMBER,period])
+            fitness.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[0][0]['price']*DEFAULT_PREDICT_PATTERN_NUMBER,period])
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 #charter_list = [] # check whether or not do charter in each time with this
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
@@ -648,13 +646,13 @@ class GA:
                     time_reverse_0 = 180 - time
                     year_cash_0 = int(time_reverse_0/12) + 1
                     DISCOUNT_cash_0 = (1 + DISCOUNT_RATE) ** year_cash_0
-                    exchange_cash_0 = self.exchange_rate[pattern][year_cash_0*12-1]['price']
+                    exchange_cash_0 = self.exchange_rate_data[pattern][year_cash_0*12-1]['price']
                     cash_0 = ship.calculate_income_per_month(oil_price,freight)*exchange_cash_0/DISCOUNT_cash_0
                     charter_0 = 0
                     for a in range(time_reverse_0,180):
                         year_charter_0 = int(a/12) + 1
                         DISCOUNT_charter_0 = (1 + DISCOUNT_RATE) ** year_charter_0
-                        exchange_charter_0 = self.exchange_rate[pattern][year_charter_0*12-1]['price']
+                        exchange_charter_0 = self.exchange_rate_data[pattern][year_charter_0*12-1]['price']
                         ship.idle_rate = 0
                         charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
@@ -672,13 +670,13 @@ class GA:
                     time_reverse_x = 180 - x
                     year_cash_x = int(time_reverse_x/12) + 1
                     DISCOUNT_cash_x = (1 + DISCOUNT_RATE) ** year_cash_x
-                    exchange_cash_x = self.exchange_rate[pattern][year_cash_x*12-1]['price']
+                    exchange_cash_x = self.exchange_rate_data[pattern][year_cash_x*12-1]['price']
                     cash_x = ship.calculate_income_per_month(oil_price_fx,freight_fx)*exchange_cash_x/DISCOUNT_cash_x
                     charter_x = 0
                     for a in range(time_reverse_x,time_reverse_x+CHARTER_PERIOD[period]):
                         year_charter_x = int(a/12) + 1
                         DISCOUNT_charter_x = (1 + DISCOUNT_RATE) ** year_charter_x
-                        exchange_charter_x = self.exchange_rate[pattern][year_charter_x*12-1]['price']
+                        exchange_charter_x = self.exchange_rate_data[pattern][year_charter_x*12-1]['price']
                         ship.idle_rate = 0
                         charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT_charter_x
                     if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
@@ -719,7 +717,7 @@ class GA:
                 for month in range(12):
                     oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
-                    exchange = self.exchange_rate[pattern][year*12+month]['price']
+                    exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     if self.decision == DECISION_INTEGRATE:
                         a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
                         b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
@@ -745,23 +743,43 @@ class GA:
                 break
         return flag
 
+    def exchange_rule(self):
+        if self.decision == DECISION_INTEGRATE:
+            for k in range(len(self.temp)):
+                for rule_index in range(len(self.temp[k])-1):
+                    rule_for_X = self.temp[k][rule_index]
+                    if OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])] > OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]:
+                        rule_for_X[0],rule_for_X[1] = rule_for_X[1],rule_for_X[0]
+                    if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]:
+                        rule_for_X[2],rule_for_X[3] = rule_for_X[3],rule_for_X[2]
+                    if EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]:
+                        rule_for_X[4],rule_for_X[5] = rule_for_X[5],rule_for_X[4]
+        else:
+            for k in range(len(self.temp)):
+                if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
+                    self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
+                if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
+                    self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
+                if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
+                    self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
+
     def execute_GA(self,multiprocess=None,priority=PRIORITY_SELL_CHARTER,method=ROULETTE):
         first = time.time()
 
         #randomly generating individual group
-        for i in range(self.num):
-            self.group.append(self.generateIndividual())
+        for i in range(self.population_size):
+            self.population.append(self.generateIndividual())
         self.export_excel(0)
-        self.depict_average_variance(0,self.group)
+        self.depict_average_variance(0,self.population)
 
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
             time.sleep(1/self.generation)
             crossing_time = time.time()
             #crossing
-            self.temp = copy.deepcopy(self.group)
-            for i in range(0,self.num,2):
-                if random.random() < self.crossing_rate:
+            self.temp = copy.deepcopy(self.population)
+            for i in range(0,self.population_size,2):
+                if random.random() < self.crossover_rate:
                     if self.decision == DECISION_SPEED:
                         a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+1)
                     elif self.decision == DECISION_SELL:
@@ -785,24 +803,7 @@ class GA:
             print('mutation',time.time()-mutation_time)
 
             #rule check
-            if self.decision == DECISION_INTEGRATE:
-                for k in range(len(self.temp)):
-                    for rule_index in range(len(self.temp[k])-1):
-                        rule_for_X = self.temp[k][rule_index]
-                        if OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])] > OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]:
-                            rule_for_X[0],rule_for_X[1] = rule_for_X[1],rule_for_X[0]
-                        if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]:
-                            rule_for_X[2],rule_for_X[3] = rule_for_X[3],rule_for_X[2]
-                        if EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]:
-                            rule_for_X[4],rule_for_X[5] = rule_for_X[5],rule_for_X[4]
-            else:
-                for k in range(len(self.temp)):
-                    if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
-                        self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
-                    if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
-                        self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
-                    if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
-                        self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
+            self.exchange_rule()
 
             #computation of fitness
             self.priority = priority
@@ -828,16 +829,16 @@ class GA:
             #selection
             #store last generation's best individual unchanged
             if gene > 0:
-                self.group[0] = self.bestgroup[gene-1]
+                self.population[0] = self.bestpopulation[gene-1]
             else:#this does not have meaning, just number adjustment
-                self.group[0] = self.temp[0]
+                self.population[0] = self.temp[0]
                 #self.depict_average_variance(gene,self.temp)
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
                 self.temp.sort(key=lambda x:x[-1][0],reverse = True)
-                elite_number = int(self.num * 0.05)
+                elite_number = int(self.population_size * 0.05)
                 for i in range(1,elite_number+1):
-                    self.group[i] = self.temp[i]
+                    self.population[i] = self.temp[i]
                 min_fit = self.temp[-1][-1][0]
                 random.shuffle(self.temp)
                 ark = 0 # the number used to roulette in crossing
@@ -845,51 +846,51 @@ class GA:
                 for i in range(len(self.temp)):
                     probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
                 roulette = 0
-                for i in range(elite_number+1,self.num):
+                for i in range(elite_number+1,self.population_size):
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
                         roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
-                        ark = (ark + 1) % self.num
-                    self.group[i] = self.temp[ark]
+                        ark = (ark + 1) % self.population_size
+                    self.population[i] = self.temp[ark]
             elif method == TOURNAMENT:#tournament selection
-                for select in range(self.num-1):
+                for select in range(self.population_size-1):
                     tournament = []
                     for _ in range(6):
-                        tournament.append(self.temp[random.randint(0,2*self.num-1)])
+                        tournament.append(self.temp[random.randint(0,2*self.population_size-1)])
                     tournament.sort(key=lambda x:x[-1][0],reverse = True)
-                    self.group[select] = tournament[0]
+                    self.population[select] = tournament[0]
             elif method == STEADY_STATE:#steady state ga
                 for i in range(0,len(self.temp),2):
-                    if i + 1 < self.num:
+                    if i + 1 < self.population_size:
                         store = []
                         store.append(self.temp[i])
                         store.append(self.temp[i+1])
-                        if self.num + i < len(self.temp):
-                            store.append(self.temp[self.num + i])
-                        if self.num + i + 1 < len(self.temp):
-                            store.append(self.temp[self.num + i+1])
+                        if self.population_size + i < len(self.temp):
+                            store.append(self.temp[self.population_size + i])
+                        if self.population_size + i + 1 < len(self.temp):
+                            store.append(self.temp[self.population_size + i+1])
                         store.sort(key=lambda x:x[-1][0],reverse = True)
-                        self.group[i] = store[0]
-                        self.group[i+1] = store[1]
+                        self.population[i] = store[0]
+                        self.population[i+1] = store[1]
             else:
                 print('Selected method does not exist')
                 sys.exit()
-            self.group.sort(key=lambda x:x[-1][0],reverse = True)
-            self.bestgroup.append(self.group[0])
-            random.shuffle(self.group)
+            self.population.sort(key=lambda x:x[-1][0],reverse = True)
+            self.bestpopulation.append(self.population[0])
+            random.shuffle(self.population)
             total = 0
-            for e in range(self.num):
-                total += self.group[e][-1][0]
-            self.averagegroup.append(total/self.num)
-            #if gene > 10 and self.check_convergence(self.bestgroup,10):
+            for e in range(self.population_size):
+                total += self.population[e][-1][0]
+            self.averagepopulation.append(total/self.population_size)
+            #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
         #print result
-        self.group.sort(key=lambda x:x[-1][0],reverse = True)
-        for i in range(0,self.num):
+        self.population.sort(key=lambda x:x[-1][0],reverse = True)
+        for i in range(0,self.population_size):
             if i == 0:
-                print('best rule', self.group[i])
-            thisone = self.group[i]
+                print('best rule', self.population[i])
+            thisone = self.population[i]
             if self.decision == DECISION_INTEGRATE:
                 for rule_index in range(len(RULE_SET)):
                     rule_for_X = thisone[rule_index]
@@ -952,8 +953,8 @@ class GA:
 
         #initialize attribute
         self.gruop = []
-        self.bestgroup = []
-        self.averagegroup = []
+        self.bestpopulation = []
+        self.averagepopulation = []
 
 def main():
     generated_sinario = load_generated_sinario()
@@ -978,7 +979,8 @@ def main():
     elif args[1] == '4':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    DECISION_INTEGRATE)
+                    DECISION_INTEGRATE,crossover_rate=0.70)
+        print(ga.crossover_rate)
     else:
         print('No one selected')
         print(args)
