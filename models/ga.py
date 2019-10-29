@@ -365,6 +365,34 @@ class GA:
         temp[-1][0],temp[-1][1] = self.fitness_function(temp)
         return temp
 
+    def exchange_rule(self):
+        if self.decision == DECISION_INTEGRATE:
+            for k in range(len(self.temp)):
+                for rule_index in range(len(self.temp[k])-1):
+                    rule_for_X = self.temp[k][rule_index]
+                    if OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])] > OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]:
+                        rule_for_X[0],rule_for_X[1] = rule_for_X[1],rule_for_X[0]
+                    if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]:
+                        rule_for_X[2],rule_for_X[3] = rule_for_X[3],rule_for_X[2]
+                    if EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]:
+                        rule_for_X[4],rule_for_X[5] = rule_for_X[5],rule_for_X[4]
+        else:
+            for k in range(len(self.temp)):
+                if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
+                    self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
+                if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
+                    self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
+                if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
+                    self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
+
+    def change_population_size(self,time):
+        if time < self.generation / 3.0:
+            self.population_size = random.randint(DEFAULT_POPULATION_SIZE,int(DEFAULT_POPULATION_SIZE*4/3))
+        elif time < self.generation * 2 /3.0:
+            self.population_size = random.randint(int(DEFAULT_POPULATION_SIZE*2/3),DEFAULT_POPULATION_SIZE)
+        else:
+            self.population_size = random.randint(int(DEFAULT_POPULATION_SIZE*1/3),int(DEFAULT_POPULATION_SIZE*2/3))
+
     def depict_fitness(self):
         x = range(0,len(self.bestpopulation))
         y = []
@@ -743,26 +771,6 @@ class GA:
                 break
         return flag
 
-    def exchange_rule(self):
-        if self.decision == DECISION_INTEGRATE:
-            for k in range(len(self.temp)):
-                for rule_index in range(len(self.temp[k])-1):
-                    rule_for_X = self.temp[k][rule_index]
-                    if OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])] > OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]:
-                        rule_for_X[0],rule_for_X[1] = rule_for_X[1],rule_for_X[0]
-                    if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]:
-                        rule_for_X[2],rule_for_X[3] = rule_for_X[3],rule_for_X[2]
-                    if EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]:
-                        rule_for_X[4],rule_for_X[5] = rule_for_X[5],rule_for_X[4]
-        else:
-            for k in range(len(self.temp)):
-                if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
-                    self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
-                if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
-                    self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
-                if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
-                    self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
-
     def execute_GA(self,multiprocess=None,priority=PRIORITY_SELL_CHARTER,method=ROULETTE):
         first = time.time()
 
@@ -775,6 +783,10 @@ class GA:
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
             time.sleep(1/self.generation)
+
+            #change population size according to generation
+            self.change_population_size(gene)
+
             crossing_time = time.time()
             #crossing
             self.temp = copy.deepcopy(self.population)
@@ -822,9 +834,6 @@ class GA:
                     for i in range(len(p)):
                         self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
                 print('multifitness',time.time()-multifitness_time)
-
-            #reduce the number of individual
-            #num -= 10
 
             #selection
             #store last generation's best individual unchanged
@@ -944,8 +953,7 @@ class GA:
                 print('rule error')
                 sys.exit()
         print('finish')
-        exe = time.time() - first
-        print('Spent time is {0}'.format(exe))
+        print('Spent time is {0}'.format(time.time() - first))
         self.depict_fitness()
         self.depict_average_variance()
         self.export_excel()
@@ -979,8 +987,7 @@ def main():
     elif args[1] == '4':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    DECISION_INTEGRATE,crossover_rate=0.70)
-        print(ga.crossover_rate)
+                    DECISION_INTEGRATE)
     else:
         print('No one selected')
         print(args)
