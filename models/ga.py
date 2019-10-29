@@ -364,6 +364,7 @@ class GA:
             print('selected decision item does not exist')
             sys.exit()
         temp.append([0,0])
+        temp[-1][0],temp[-1][1] = self.fitness_function(temp)
         return temp
 
     def depict_fitness(self):
@@ -407,8 +408,10 @@ class GA:
         plt.scatter(x,y)
         x_min = min(x)
         x_min = x_min*0.9 if x_min>0 else x_min*1.1
-        plt.xlim(x_min,max(x)*1.1)
-        plt.ylim(0,max(y)*1.1)
+        #plt.xlim(x_min,max(x)*1.1)
+        #plt.ylim(0,max(y)*1.1)
+        plt.xlim(-1,1)
+        plt.ylim(0,2)
         plt.title("Rule Performance")
         plt.xlabel("Expectation")
         plt.ylabel("Variance")
@@ -428,7 +431,7 @@ class GA:
             plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
         plt.close()
 
-    def export_excel(self):
+    def export_excel(self,initial=None):
         rule_type = ''
         if self.decision == DECISION_SPEED:
             rule_type = 'speed'
@@ -438,13 +441,16 @@ class GA:
             rule_type = 'charter'
         elif self.decision == DECISION_INTEGRATE:
             rule_type = 'integrate'
-        path = '../output/ship_rule_{0}.xlsx'.format(rule_type)
+        if initial is None:
+            path = '../output/ship_rule_{0}.xlsx'.format(rule_type)
+        else:
+            path = '../output/ship_rule_{0}_initial.xlsx'.format(rule_type)
         wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
         if self.decision == DECISION_INTEGRATE:
             for i in range(0,self.num*4,4):
                 individual = self.group[int(i/4)]
-                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
+                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(int(i/4)+1)
                 for rule_index in range(len(RULE_SET)):
                     rule_for_X = individual[rule_index]
                     for j in range(self.num_condition_part*2):
@@ -455,11 +461,11 @@ class GA:
                         else:
                             sheet.cell(row = i + 1 + rule_index, column = j + 2).value = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[j])]
                     if RULE_SET[rule_index] == DECISION_SPEED:
-                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = (VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_SELL:
-                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = (SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])]
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                     elif RULE_SET[rule_index] == DECISION_CHARTER:
@@ -480,11 +486,11 @@ class GA:
                     else:
                         sheet.cell(row = i + 1, column = j + 2).value = EXCHANGE_RATE_LIST[self.convert2to10_in_list(individual[j])]
                 if self.decision == DECISION_SPEED:
-                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = (VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])]
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 elif self.decision == DECISION_SELL:
-                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = (SELL_NUMBER[self.convert2to10_in_list(individual[-2])]
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 elif self.decision == DECISION_CHARTER:
@@ -745,6 +751,8 @@ class GA:
         #randomly generating individual group
         for i in range(self.num):
             self.group.append(self.generateIndividual())
+        self.export_excel(0)
+        self.depict_average_variance(0,self.group)
 
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
@@ -781,50 +789,20 @@ class GA:
                 for k in range(len(self.temp)):
                     for rule_index in range(len(self.temp[k])-1):
                         rule_for_X = self.temp[k][rule_index]
-                        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
-                        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
-                        c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
-                        d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
-                        e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])]
-                        f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]
-                        if a > b:
-                            X = copy.deepcopy(self.temp[k])
-                            for element in range(4):
-                                rule_for_X[0][element] = X[rule_index][1][element]
-                                rule_for_X[1][element] = X[rule_index][0][element]
-                        if c > d:
-                            Y = copy.deepcopy(self.temp[k])
-                            for element in range(4):
-                                rule_for_X[2][element] = Y[rule_index][3][element]
-                                rule_for_X[3][element] = Y[rule_index][2][element]
-                        if e > f:
-                            Z = copy.deepcopy(self.temp[k])
-                            for element in range(4):
-                                rule_for_X[4][element] = Z[rule_index][5][element]
-                                rule_for_X[5][element] = Z[rule_index][4][element]
+                        if OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])] > OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]:
+                            rule_for_X[0],rule_for_X[1] = rule_for_X[1],rule_for_X[0]
+                        if FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]:
+                            rule_for_X[2],rule_for_X[3] = rule_for_X[3],rule_for_X[2]
+                        if EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]:
+                            rule_for_X[4],rule_for_X[5] = rule_for_X[5],rule_for_X[4]
             else:
                 for k in range(len(self.temp)):
-                    a = OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])]
-                    b = OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]
-                    e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])]
-                    f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]
-                    if a > b:
-                        X = copy.deepcopy(self.temp[k])
-                        for element in range(4):
-                            self.temp[k][0][element] = X[1][element]
-                            self.temp[k][1][element] = X[0][element]
-                    if c > d:
-                        Y = copy.deepcopy(self.temp[k])
-                        for element in range(4):
-                            self.temp[k][2][element] = Y[3][element]
-                            self.temp[k][3][element] = Y[2][element]
-                    if e > f:
-                        Z = copy.deepcopy(self.temp[k])
-                        for element in range(4):
-                            self.temp[k][4][element] = Z[5][element]
-                            self.temp[k][5][element] = Z[4][element]
+                    if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
+                        self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
+                    if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
+                        self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
+                    if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
+                        self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
 
             #computation of fitness
             self.priority = priority
@@ -853,7 +831,7 @@ class GA:
                 self.group[0] = self.bestgroup[gene-1]
             else:#this does not have meaning, just number adjustment
                 self.group[0] = self.temp[0]
-                self.depict_average_variance(gene,self.temp)
+                #self.depict_average_variance(gene,self.temp)
             if method == ROULETTE:#roulette selection and elite storing
                 #store the best 5% individual
                 self.temp.sort(key=lambda x:x[-1][0],reverse = True)
@@ -946,7 +924,7 @@ class GA:
                 e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[4])]
                 f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[5])]
                 if self.decision == DECISION_SPEED:
-                    g = (VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])]
+                    g = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 elif self.decision == DECISION_SELL:
@@ -961,9 +939,9 @@ class GA:
                     print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5} -> {6}'.format(a,b,c,d,e,f,g))
                     print('Expectation = {}'.format(thisone[-1][0]))
                     print('Variance = {}'.format(thisone[-1][1]))
-                if a > b or c > d or e > f:
-                    print('rule error')
-                    sys.exit()
+            if a > b or c > d or e > f:
+                print('rule error')
+                sys.exit()
         print('finish')
         exe = time.time() - first
         print('Spent time is {0}'.format(exe))
@@ -1004,7 +982,7 @@ def main():
     else:
         print('No one selected')
         print(args)
-    ga.execute_GA('multiprocess')
+    ga.execute_GA()
 
 if __name__ == "__main__":
     main()
