@@ -12,6 +12,25 @@ class Ship:
         self.charter_flag = False
         self.charter_list = []
         self.idle_rate = 0
+        self.agelist = [0]*self.exist_number
+
+    def add_age(self):
+        self.agelist = [n+1 for n in self.agelist]
+        old_flag = False
+        old_number = 0
+        for e in self.agelist:
+            if e >= 180:
+                old_flag = True
+                old_number += 1
+        self.agelist.sort(reverse = True)
+        cash = 0
+        if old_flag:
+            cash = FINAL_VALUE * old_number
+            for i in range(old_number):
+                self.agelist.pop(0)
+        self.agelist.sort()
+        self.exist_number -= old_number
+        return cash
 
     def calculate_idle_rate(self,freight_outward):
         gap = 0.485597471 + freight_outward * -0.000325635
@@ -44,13 +63,23 @@ class Ship:
         else:
             number = self.exist_number
             self.exist_number = 0
-        return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria) * number
+        cash = 0
+        for i in range(number):
+            if self.agelist[i] < 180:
+                cash += INITIAL_COST_OF_SHIPBUIDING*(1 - self.agelist[i]/180)*(freight_now/freight_criteria)
+            else:
+                cash += FINAL_VALUE
+        for i in range(number):
+            self.agelist.pop(0)
+        return cash
 
     def buy_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
         self.exist_number += number
-        return -INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria) * (1 + INDIRECT_COST) * number
+        for i in range(number):
+            self.agelist.append(60)
+        return -INITIAL_COST_OF_SHIPBUIDING*(1 - 60/180)*(freight_now/freight_criteria) * (1 + INDIRECT_COST) * number
 
 
     def charter_ship(self,oil_price,freight,number,period,direct):
