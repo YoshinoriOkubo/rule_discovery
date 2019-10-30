@@ -9,7 +9,7 @@ class Ship:
         self.speed = speed# km/h
         self.route = route
         self.exist_number = INITIAL_NUMBER_OF_SHIPS
-        self.charter = False
+        self.charter_flag = False
         self.charter_list = []
         self.idle_rate = 0
 
@@ -46,17 +46,26 @@ class Ship:
             self.exist_number = 0
         return INITIAL_COST_OF_SHIPBUIDING*(1 - time/180)*(freight_now/freight_criteria) * number
 
-    def charter_ship(self,oil_price,freight,number,period):
-        if self.exist_number > 0:
-            self.charter = True
-            cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM / self.exist_number
-            if self.exist_number < number:
-                number = self.exist_number
-            self.exist_number -= number
+    def charter_ship(self,oil_price,freight,number,period,direct):
+        if direct == DECISION_CHARTER_OUT:
+            if self.exist_number > 0:
+                self.charter_flag = True
+                cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM / self.exist_number
+                if self.exist_number < number:
+                    number = self.exist_number
+                self.exist_number -= number
+                cash *= number
+                self.charter_list.append([cash,number,period,direct])
+        '''
+        elif direct == DECISION_CHARTER_IN:
+            self.charter_flag = True
+            cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM * INDIRECT_COST / self.exist_number
+            self.exist_number += number
             cash *= number
-            self.charter_list.append([cash,number,period])
+            self.charter_list.append([cash,number,period,direct])
+        '''
 
-    def in_charter(self):
+    def charter(self):
         cash = 0
         for i in range(len(self.charter_list)):
             cash += self.charter_list[i][0]
@@ -64,11 +73,23 @@ class Ship:
         return cash
 
     def end_charter(self):
-        if self.charter_list[0][2] == 0:
-            self.exist_number += self.charter_list[0][1]
-            self.charter_list.pop(0)
+        end_index = []
+        for i in range(len(self.charter_list)):
+            if self.charter_list[i][2] == 0:
+                if self.charter_list[i][3] == DECISION_CHARTER_OUT:
+                    self.exist_number += self.charter_list[i][1]
+                '''
+                elif self.charter_list[i][3] == DECISION_CHARTER_IN:
+                    self.exist_number -= self.charter_list[i][1]
+                '''
+                end_index.append(i)
+        if len(end_index) == 1:
+            self.charter_list.pop(end_index[0])
+        elif len(end_index) == 2:
+            self.charter_list.pop(end_index[1])
+            self.charter_list.pop(end_index[0])
         if self.charter_list == []:
-            self.charter = False
+            self.charter_flag = False
 
     def change_speed(self,speed):
         self.speed = speed

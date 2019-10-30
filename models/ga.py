@@ -50,7 +50,7 @@ class GA:
                     self.compare_rule[rule_index].append([1,1,0,1]) #19knot
                 elif RULE_SET[rule_index] == DECISION_SELL:
                     self.compare_rule[rule_index].append(ACTION_STAY)
-                elif RULE_SET[rule_index] == DECISION_CHARTER:
+                elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
                     self.compare_rule[rule_index].append([0,0])#charter period
                     self.compare_rule[rule_index].append(ACTION_STAY)
         else:
@@ -60,7 +60,7 @@ class GA:
                 self.compare_rule.append([1,1,0,1]) #19knot
             elif self.decision == DECISION_SELL:
                 self.compare_rule.append(ACTION_STAY)
-            elif self.decision == DECISION_CHARTER:
+            elif self.decision == DECISION_CHARTER_OUT:
                 self.compare_rule.append([0,0])#charter period
                 self.compare_rule.append(ACTION_STAY)
         #self.compare_rule.append(0) #average alone
@@ -102,10 +102,10 @@ class GA:
                             elif RULE_SET[rule_index] == DECISION_SELL:
                                 result[rule_index][0] = True
                                 result[rule_index].append(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                            elif RULE_SET[rule_index] == DECISION_CHARTER and rule_for_X[-1][0] != ACTION_STAY:
+                            elif RULE_SET[rule_index] == DECISION_CHARTER_OUT and rule_for_X[-1][0] != ACTION_STAY:
                                 result[rule_index][0] = True
                                 result[rule_index].append(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
-                                result[rule_index].append(CHARTER_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                                result[rule_index].append(CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
             return result
         else:
             a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
@@ -121,8 +121,8 @@ class GA:
                             return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
                         elif self.decision == DECISION_SELL:
                             return [True,SELL_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                        elif self.decision == DECISION_CHARTER:
-                            return [True,CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])],CHARTER_NUMBER[self.convert2to10_in_list(rule[-2])]]
+                        elif self.decision == DECISION_CHARTER_OUT:
+                            return [True,CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule[-2])]]
                         else:
                             print('selected decision item does not exist')
                             sys.exit()
@@ -145,7 +145,7 @@ class GA:
                         num_block = self.num_condition_part*2 + 1
                     elif RULE_SET[rule_index] == DECISION_SELL:
                         num_block = self.num_condition_part*2 + 1
-                    elif RULE_SET[rule_index] == DECISION_CHARTER:
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
                         num_block = self.num_condition_part*2 + 2
                     crossing_block = random.randint(0,num_block-1)
                     for x in range(num_block):
@@ -206,7 +206,7 @@ class GA:
                         mutation_block = random.randint(0,len(rule_for_X)-1)
                     elif RULE_SET[rule_index] == DECISION_SELL:
                         mutation_block = random.randint(0,len(rule_for_X)-1)
-                    elif RULE_SET[rule_index] == DECISION_CHARTER:
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
                         mutation_block = random.randint(0,len(rule_for_X)-1)
                     length = len(rule_for_X[mutation_block]) - 1
                     point = random.randint(0,length)
@@ -216,7 +216,7 @@ class GA:
                 mutation_block = random.randint(0,len(individual)-2)
             elif self.decision == DECISION_SELL:
                 mutation_block = random.randint(0,len(individual)-2)
-            elif self.decision == DECISION_CHARTER:
+            elif self.decision == DECISION_CHARTER_OUT:
                 mutation_block = random.randint(0,len(individual)-2)
             length = len(individual[mutation_block]) - 1
             if length < 1:
@@ -267,7 +267,7 @@ class GA:
                         if result[0]:
                             cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                    elif self.decision == DECISION_CHARTER:
+                    elif self.decision == DECISION_CHARTER_OUT:
                         #sets_of_group
                         rule_number, result = 0, [False]
                         if rule is None:
@@ -278,10 +278,10 @@ class GA:
                         else:
                             result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0] and result[2] > 0:
-                            ship.charter_ship(current_oil_price,total_freight,result[2],result[1])
+                            ship.charter_ship(current_oil_price,total_freight,result[2],result[1],DECISION_CHARTER_OUT)
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                        if ship.charter == True:
-                            cash_flow += ship.in_charter()
+                        if ship.charter_flag == True:
+                            cash_flow += ship.charter()
                             ship.end_charter()
                     elif self.decision == DECISION_INTEGRATE:
                         result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
@@ -291,15 +291,15 @@ class GA:
                             if result[1][0] == True:
                                 cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                             if result[2][0] == True:
-                                ship.charter_ship(current_oil_price,total_freight,result[2][2],result[2][1])
+                                ship.charter_ship(current_oil_price,total_freight,result[2][2],result[2][1],DECISION_CHARTER_OUT)
                         elif priority == PRIORITY_CHARTER_SELL:
                             if result[2][0] == True:
-                                ship.charter_ship(current_oil_price,total_freight,result[2][2],result[2][1])
+                                ship.charter_ship(current_oil_price,total_freight,result[2][2],result[2][1],DECISION_CHARTER_OUT)
                             if result[1][0] == True:
                                 cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
-                        if ship.charter == True:
-                            cash_flow += ship.in_charter()
+                        if ship.charter_flag == True:
+                            cash_flow += ship.charter()
                             ship.end_charter()
                     ship.change_speed(self.init_speed)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -328,7 +328,7 @@ class GA:
                 temp.append([])
                 for a in range(4):
                     temp[condition].append(random.randint(0,1))
-        elif self.decision == DECISION_CHARTER:
+        elif self.decision == DECISION_CHARTER_OUT:
             for condition in range(self.num_condition_part*2):
                 temp.append([])
                 for a in range(4):
@@ -414,7 +414,7 @@ class GA:
             name = 'speed'
         elif self.decision == DECISION_SELL:
             name = 'sell'
-        elif self.decision == DECISION_CHARTER:
+        elif self.decision == DECISION_CHARTER_OUT:
             name = 'charter'
         elif self.decision == DECISION_INTEGRATE:
             name = 'integrate'
@@ -447,7 +447,7 @@ class GA:
             name = 'speed'
         elif self.decision == DECISION_SELL:
             name = 'sell'
-        elif self.decision == DECISION_CHARTER:
+        elif self.decision == DECISION_CHARTER_OUT:
             name = 'charter'
         elif self.decision == DECISION_INTEGRATE:
             name = 'integrate'
@@ -463,7 +463,7 @@ class GA:
             rule_type = 'speed'
         elif self.decision == DECISION_SELL:
             rule_type = 'sell'
-        elif self.decision == DECISION_CHARTER:
+        elif self.decision == DECISION_CHARTER_OUT:
             rule_type = 'charter'
         elif self.decision == DECISION_INTEGRATE:
             rule_type = 'integrate'
@@ -494,8 +494,8 @@ class GA:
                         sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER:
-                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                 sheet.cell(row = i + 1 + len(RULE_SET), column = 2).value = individual[-1][0]
@@ -519,8 +519,8 @@ class GA:
                     sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER:
-                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_NUMBER[self.convert2to10_in_list(individual[-2])])
+                elif self.decision == DECISION_CHARTER_OUT:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 sheet.cell(row = i + 1, column = self.num_condition_part*2 + 1 + 2).value = individual[-1][0]
@@ -549,7 +549,7 @@ class GA:
                             fitness_best = self.population[i][-1][0]
                             break
                 fitness_full_search = self.full_search_method_sell()
-            elif self.decision == DECISION_CHARTER:
+            elif self.decision == DECISION_CHARTER_OUT:
                 name = 'charter'
                 fitness_best = 0
                 for i in range(self.population_size):
@@ -796,7 +796,7 @@ class GA:
                         a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+1)
                     elif self.decision == DECISION_SELL:
                         a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+1)
-                    elif self.decision == DECISION_CHARTER:
+                    elif self.decision == DECISION_CHARTER_OUT:
                         a,b = self.crossing(self.temp[i],self.temp[i+1],self.num_condition_part*2+2)
                     elif self.decision == DECISION_INTEGRATE:
                         a,b = self.crossing(self.temp[i],self.temp[i+1])
@@ -836,6 +836,8 @@ class GA:
                 print('multifitness',time.time()-multifitness_time)
 
             #selection
+            #change size of self.population
+            self.population = [0] * self.population_size
             #store last generation's best individual unchanged
             if gene > 0:
                 self.population[0] = self.bestpopulation[gene-1]
@@ -859,7 +861,7 @@ class GA:
                     roulette = random.randint(0,int(probability))
                     while roulette > 0:
                         roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
-                        ark = (ark + 1) % self.population_size
+                        ark = (ark + 1) % len(self.temp)
                     self.population[i] = self.temp[ark]
             elif method == TOURNAMENT:#tournament selection
                 for select in range(self.population_size-1):
@@ -917,8 +919,8 @@ class GA:
                         g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER:
-                        g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
+                        g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     if i < NUM_DISPLAY:
@@ -941,8 +943,8 @@ class GA:
                     g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER:
-                    g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_NUMBER[self.convert2to10_in_list(thisone[-2])])
+                elif self.decision == DECISION_CHARTER_OUT:
+                    g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
@@ -983,7 +985,7 @@ def main():
     elif args[1] == '3':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    DECISION_CHARTER)
+                    DECISION_CHARTER_OUT)
     elif args[1] == '4':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
