@@ -8,14 +8,24 @@ class Ship:
         self.size = size
         self.speed = speed# km/h
         self.route = route
-        self.exist_number = INITIAL_NUMBER_OF_SHIPS
+        self.exist_number = INITIAL_NUMBER_OF_SHIPS # ships own
+        self.total_number = self.exist_number # ships own and ships charter in
         self.charter_flag = False
         self.charter_list = []
         self.idle_rate = 0
         self.agelist = [0]*self.exist_number
+        self.charter_out_agelist = []
+
+    def check(self,name):
+        if self.exist_number == len(self.agelist):
+            pass
+        else:
+            print(name)
+            sys.exit()
 
     def add_age(self):
         self.agelist = [n+1 for n in self.agelist]
+        self.charter_out_agelist = [n+1 for n in self.charter_out_agelist]
         old_flag = False
         old_number = 0
         for e in self.agelist:
@@ -30,6 +40,8 @@ class Ship:
                 self.agelist.pop(0)
         self.agelist.sort()
         self.exist_number -= old_number
+        self.total_number -= old_number
+        self.check('add_age')
         return cash
 
     def calculate_idle_rate(self,freight_outward):
@@ -48,21 +60,20 @@ class Ship:
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
-            idle_rate = self.idle_rate - (100 - self.exist_number)/100
+            idle_rate = self.idle_rate - (100 - self.total_number)/100
             if idle_rate < 0:
                 idle_rate = 0
-            return (idle_rate*(-cost_fixed_in_one_trip)+(1-idle_rate)*profit_in_one_trip)*number_of_trips * self.exist_number
+            return (idle_rate*(-cost_fixed_in_one_trip)+(1-idle_rate)*profit_in_one_trip)*number_of_trips * self.total_number
         else:
-            return -cost_fixed_in_one_trip * number_of_trips * self.exist_number
+            return -cost_fixed_in_one_trip * number_of_trips * self.total_number
 
     def sell_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
-        if self.exist_number > number:
-            self.exist_number -= number
-        else:
+        if self.exist_number < number:
             number = self.exist_number
-            self.exist_number = 0
+        self.exist_number -= number
+        self.total_number -= number
         cash = 0
         for i in range(number):
             if self.agelist[i] < 180:
@@ -71,35 +82,45 @@ class Ship:
                 cash += FINAL_VALUE
         for i in range(number):
             self.agelist.pop(0)
+        self.check('sell_ship')
         return cash
+
 
     def buy_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
         self.exist_number += number
+        self.total_number += number
         for i in range(number):
             self.agelist.append(60)
+        self.check('buy_ship')
         return -INITIAL_COST_OF_SHIPBUIDING*(1 - 60/180)*(freight_now/freight_criteria) * (1 + INDIRECT_COST) * number
 
 
-    def charter_ship(self,oil_price,freight,number,period,direct):
+    def charter_ship(self,oil_price,freight,number,period,direction):
         p = CHARTER_PERIOD.index(period)
-        if direct == DECISION_CHARTER_OUT:
+        if direction == DECISION_CHARTER_OUT:
             if self.exist_number > 0:
+                cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.total_number
                 self.charter_flag = True
                 if self.exist_number < number:
                     number = self.exist_number
                 self.exist_number -= number
-                cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.exist_number
+                self.total_number -= number
                 cash *= number
-                self.charter_list.append([cash,number,period,direct])
-        elif direct == DECISION_CHARTER_IN:
-            self.exist_number += number
-            if self.exist_number > 0:
+                self.charter_list.append([cash,number,period,direction])
+                for i in range(number):
+                    self.charter_out_agelist.append(self.agelist.pop(0))
+        elif direction == DECISION_CHARTER_IN:
+            self.total_number += number
+            if self.total_number > 0:
                 self.charter_flag = True
-                cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.exist_number
+                self.total_number -= number
+                cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
+                self.total_number += number
                 cash *= number
-                self.charter_list.append([cash,number,period,direct])
+                self.charter_list.append([cash,number,period,direction])
+        self.check('charter_ship')
 
 
     def charter(self):
@@ -107,6 +128,7 @@ class Ship:
         for i in range(len(self.charter_list)):
             cash += self.charter_list[i][0]
             self.charter_list[i][2] -= 1
+        self.check('charter')
         return cash
 
     def end_charter(self):
@@ -115,8 +137,11 @@ class Ship:
             if self.charter_list[i][2] == 0:
                 if self.charter_list[i][3] == DECISION_CHARTER_OUT:
                     self.exist_number += self.charter_list[i][1]
+                    self.total_number += self.charter_list[i][1]
+                    for j in range(self.charter_list[i][1]):
+                        self.agelist.append(self.charter_out_agelist.pop(0))
                 elif self.charter_list[i][3] == DECISION_CHARTER_IN:
-                    self.exist_number -= self.charter_list[i][1]
+                    self.total_number -= self.charter_list[i][1]
                 end_index.append(i)
         if len(end_index) == 1:
             self.charter_list.pop(end_index[0])
@@ -125,6 +150,7 @@ class Ship:
             self.charter_list.pop(end_index[0])
         if self.charter_list == []:
             self.charter_flag = False
+        self.check('end_charter')
 
     def change_speed(self,speed):
         self.speed = speed
