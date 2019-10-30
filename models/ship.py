@@ -24,7 +24,7 @@ class Ship:
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + 1
         number_of_trips = 30 / time_spent_to_one_trip
-        income_in_one_trip = self.size * freight #1600doller/TEU http://www.jpmac.or.jp/relation/trend_graph/26_1_1.pdf
+        income_in_one_trip = self.size * freight
         cost_unfixed_in_one_trip = (self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed())
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
@@ -50,20 +50,20 @@ class Ship:
         if direct == DECISION_CHARTER_OUT:
             if self.exist_number > 0:
                 self.charter_flag = True
-                cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM / self.exist_number
                 if self.exist_number < number:
                     number = self.exist_number
                 self.exist_number -= number
+                cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM / self.exist_number
                 cash *= number
                 self.charter_list.append([cash,number,period,direct])
-        '''
         elif direct == DECISION_CHARTER_IN:
-            self.charter_flag = True
-            cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM * INDIRECT_COST / self.exist_number
             self.exist_number += number
-            cash *= number
-            self.charter_list.append([cash,number,period,direct])
-        '''
+            if self.exist_number > 0:
+                self.charter_flag = True
+                cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM * (1 + INDIRECT_COST) / self.exist_number
+                cash *= number
+                self.charter_list.append([cash,number,period,direct])
+
 
     def charter(self):
         cash = 0
@@ -78,10 +78,8 @@ class Ship:
             if self.charter_list[i][2] == 0:
                 if self.charter_list[i][3] == DECISION_CHARTER_OUT:
                     self.exist_number += self.charter_list[i][1]
-                '''
                 elif self.charter_list[i][3] == DECISION_CHARTER_IN:
                     self.exist_number -= self.charter_list[i][1]
-                '''
                 end_index.append(i)
         if len(end_index) == 1:
             self.charter_list.pop(end_index[0])
