@@ -653,7 +653,7 @@ class GA:
                         DISCOUNT_charter_0 = (1 + DISCOUNT_RATE) ** year_charter_0
                         exchange_charter_0 = self.exchange_rate_data[pattern][year_charter_0*12-1]['price']
                         ship.idle_rate = 0
-                        charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM*exchange_charter_0/DISCOUNT_charter_0
+                        charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM[period]*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
                         store.append([cash_0 + store[time-1][0],[1],time])
                     else:
@@ -675,7 +675,7 @@ class GA:
                         DISCOUNT_charter_x = (1 + DISCOUNT_RATE) ** year_charter_x
                         exchange_charter_x = self.exchange_rate_data[pattern][year_charter_x*12-1]['price']
                         ship.idle_rate = 0
-                        charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT_charter_x
+                        charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM[period]/DISCOUNT_charter_x
                     if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash_x + store[-1][0],[1],x])
                     else:
@@ -935,12 +935,16 @@ def main():
     elif args[1] == '3':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    DECISION_CHARTER_OUT)
+                    DECISION_BUY)
     elif args[1] == '4':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    DECISION_CHARTER_IN)
+                    DECISION_CHARTER_OUT)
     elif args[1] == '5':
+        ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
+                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                    DECISION_CHARTER_IN)
+    elif args[1] == '6':
         ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     DECISION_INTEGRATE)

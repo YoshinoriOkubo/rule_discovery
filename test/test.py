@@ -13,7 +13,23 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-start = time.time()
+generated_sinario = load_generated_sinario()
+oil_data = generated_sinario[0]
+freight_outward_data = generated_sinario[1]
+freight_return_data = generated_sinario[2]
+exchange_data = generated_sinario[3]
+ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
+            TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+            DECISION_CHARTER_IN)
+rule = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0], [0, 0, 0, 0], [0.5869416810331666, 0.29862223356524636]]
+e,sigma = ga.fitness_function(rule)
+print(e)
+rule = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 1], [0, 0, 0, 1], [0.5869416810331666, 0.29862223356524636]]
+e,sigma = ga.fitness_function(rule)
+print(e)
+
+
+#start = time.time()
 '''
 sinario = Sinario()
 sinario.generate_sinario()
@@ -62,4 +78,4 @@ ga = GA(sinario.predicted_data,freight_outward.predicted_data,freight_return.pre
             DECISION_INTEGRATE)
 ga.execute_GA()
 '''
-print(time.time()-start)
+#print(time.time()-start)
