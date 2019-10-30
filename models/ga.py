@@ -194,10 +194,6 @@ class GA:
         return [temp1,temp2]
 
     def mutation(self,individual):
-        #for x in range(len(individual)-1):
-        #    length = len(individual[x]) - 1
-        #    point = random.randint(0,length)
-        #    individual[x][point] = (individual[x][point] + 1) % 2
         if self.decision == DECISION_INTEGRATE:
             for rule_index in range(len(individual)-1):
                 if random.random() < 1/(len(individual)-1):
@@ -242,41 +238,17 @@ class GA:
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     #change by argment
                     if self.decision == DECISION_SPEED:
-                        #sets_of_group
-                        rule_number, result = 0, [False]
-                        if rule is None:
-                            while rule_number < len(self.population) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
-                                rule_number += 1
-                        #one rule
-                        else:
-                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0]:
                             ship.change_speed(result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     elif self.decision == DECISION_SELL:
-                        #sets_of_group
-                        rule_number, result = 0, [False]
-                        if rule is None:
-                            while rule_number < len(self.population) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
-                                rule_number += 1
-                        #one rule
-                        else:
-                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0]:
                             cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1])
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
                     elif self.decision == DECISION_CHARTER_OUT:
-                        #sets_of_group
-                        rule_number, result = 0, [False]
-                        if rule is None:
-                            while rule_number < len(self.population) and result[0] == False:
-                                result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,self.population[rule_number])
-                                rule_number += 1
-                        #one rule
-                        else:
-                            result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
                         if result[0] and result[2] > 0:
                             ship.charter_ship(current_oil_price,total_freight,result[2],result[1],DECISION_CHARTER_OUT)
                         cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
@@ -401,7 +373,6 @@ class GA:
             y.append(self.bestpopulation[i][-1][0])
             z.append(self.averagepopulation[i])
         plt.plot(x, y, marker='o',label='best')
-        #if y[3] != z[3]:
         plt.plot(x, z, marker='x',label='average')
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
@@ -434,8 +405,6 @@ class GA:
         plt.scatter(x,y)
         x_min = min(x)
         x_min = x_min*0.9 if x_min>0 else x_min*1.1
-        #plt.xlim(x_min,max(x)*1.1)
-        #plt.ylim(0,max(y)*1.1)
         plt.xlim(-1,1)
         plt.ylim(0,2)
         plt.title("Rule Performance")
@@ -561,9 +530,6 @@ class GA:
             else:
                 print('selected decision item does not exist')
                 sys.exit()
-        #for sets of rules extracted by the algorithm
-        #fitness_set_of_rule = self.fitness_function(None)
-        #print('fitness sets of rule',fitness_set_of_rule)
         print('no rule         ',fitness_no_rule)
         print('best rule       ',fitness_best)
         print('full search rule',fitness_full_search)
@@ -661,7 +627,6 @@ class GA:
         for period in [0,1,2,3]:
             fitness.append([-INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[0][0]['price']*DEFAULT_PREDICT_PATTERN_NUMBER,period])
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                #charter_list = [] # check whether or not do charter in each time with this
                 ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
                 store = []
                 store.append([0,[],0])
@@ -685,10 +650,8 @@ class GA:
                         charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
                         store.append([cash_0 + store[time-1][0],[1],time])
-                        #charter_list.append(['STAY',VESSEL_LIFE_TIME*12-time])
                     else:
                         store.append([charter_0,[0],time])
-                        #charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-time])
                 for x in range(CHARTER_PERIOD[period],VESSEL_LIFE_TIME*12+1):
                     oil_price_fx = self.oil_price_data[pattern][-x]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
@@ -709,29 +672,8 @@ class GA:
                         charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM/DISCOUNT_charter_x
                     if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash_x + store[-1][0],[1],x])
-                        #charter_list.append(['STAY',VESSEL_LIFE_TIME*12-x])
                     else:
                         store.append([charter_x + store[-CHARTER_PERIOD[period]][0],[0],x])
-                        #charter_list.append(['CHARTER',VESSEL_LIFE_TIME*12-x])
-                '''
-                charter_list.reverse()
-                path = '../output/full_rule_charter.xlsx'
-                w = openpyxl.load_workbook(path)
-                sheet = w['Sheet{}'.format(period+1)]
-                for i in range(VESSEL_LIFE_TIME*12):
-                    sheet.cell(row = i + 1, column = pattern + 1).value = charter_list[i][0]
-                w.save(path)
-                w.close()
-                '''
-                '''
-                store.reverse()
-                a = 0
-                for year in range(0,VESSEL_LIFE_TIME):
-                    cash_of_year = store[year*12][0] - store[year*12 + 12][0]
-                    DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
-                    a += cash_of_year/DISCOUNT
-                fitness[period][0] += a/HUNDRED_MILLION
-                '''
                 fitness[period][0] += store[-1][0]
             fitness[period][0] /= HUNDRED_MILLION
             fitness[period][0] /= INITIAL_NUMBER_OF_SHIPS
