@@ -189,14 +189,6 @@ class GA:
             if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
                 self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
 
-    def change_population_size(self,time):
-        if time < self.generation / 3.0:
-            self.population_size = random.randint(DEFAULT_POPULATION_SIZE,int(DEFAULT_POPULATION_SIZE*4/3))
-        elif time < self.generation * 2 /3.0:
-            self.population_size = random.randint(int(DEFAULT_POPULATION_SIZE*2/3),DEFAULT_POPULATION_SIZE)
-        else:
-            self.population_size = random.randint(int(DEFAULT_POPULATION_SIZE*1/3),int(DEFAULT_POPULATION_SIZE*2/3))
-
     def depict_fitness(self):
         x = range(0,len(self.bestpopulation))
         y = []
@@ -342,9 +334,6 @@ class GA:
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
             time.sleep(1/self.generation)
-
-            #change population size according to generation
-            #self.change_population_size(gene)
 
             #crossover
             self.temp = copy.deepcopy(self.population)
