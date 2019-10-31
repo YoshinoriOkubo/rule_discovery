@@ -131,64 +131,28 @@ class GA:
                             sys.exit()
             return [False]
 
-    def crossing(self,a,b,num_block=None):
+    def crossing(self,a,b):
         temp1 = []
         temp2 = []
-        if num_block == None:
-            if self.decision == DECISION_INTEGRATE:
-                for rule_index in range(len(a)-1):
-                    temp1.append([])
-                    temp2.append([])
-                    if RULE_SET[rule_index] == DECISION_SPEED:
-                        num_block = DEFAULT_NUM_OF_CONDITION*2 + 1
-                    elif RULE_SET[rule_index] == DECISION_SELL:
-                        num_block = DEFAULT_NUM_OF_CONDITION*2 + 1
-                    elif RULE_SET[rule_index] == DECISION_BUY:
-                        num_block = DEFAULT_NUM_OF_CONDITION*2 + 1
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT or RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                        num_block = DEFAULT_NUM_OF_CONDITION*2 + 2
-                    crossing_block = random.randint(0,num_block-1)
-                    for x in range(num_block):
-                        if x == crossing_block:
-                            temp1[rule_index].append([])
-                            temp2[rule_index].append([])
-                            length = len(a[rule_index][x]) - 1
-                            crossing_point = random.randint(0,length)
-                            for i in range(0,crossing_point):
-                                temp1[rule_index][x].append(a[rule_index][x][i])
-                                temp2[rule_index][x].append(b[rule_index][x][i])
-                            for i in range(crossing_point,len(a[rule_index][x])):
-                                temp1[rule_index][x].append(b[rule_index][x][i])
-                                temp2[rule_index][x].append(a[rule_index][x][i])
-                        else:
-                            temp1[rule_index].append(a[rule_index][x])
-                            temp2[rule_index].append(b[rule_index][x])
-                    for x in range(num_block,len(a[rule_index])):
-                        temp1[rule_index].append(a[rule_index][x])
-                        temp2[rule_index].append(b[rule_index][x])
+        crossing_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        for x in range(DEFAULT_NUM_OF_CONDITION*2):
+            if x == crossing_block:
+                temp1.append([])
+                temp2.append([])
+                length = len(a[x]) - 1
+                crossing_point = random.randint(1,length-2)
+                for i in range(0,crossing_point):
+                    temp1[x].append(a[x][i])
+                    temp2[x].append(b[x][i])
+                for i in range(crossing_point,len(a[x])):
+                    temp1[x].append(b[x][i])
+                    temp2[x].append(a[x][i])
             else:
-                print('function crossing needs one more argment')
-                sys.exit()
-        else:
-            crossing_block = random.randint(0,num_block-1)
-            for x in range(num_block):
-                if x == crossing_block:
-                    temp1.append([])
-                    temp2.append([])
-                    length = len(a[x]) - 1
-                    crossing_point = random.randint(0,length)
-                    for i in range(0,crossing_point):
-                        temp1[x].append(a[x][i])
-                        temp2[x].append(b[x][i])
-                    for i in range(crossing_point,len(a[x])):
-                        temp1[x].append(b[x][i])
-                        temp2[x].append(a[x][i])
-                else:
-                    temp1.append(a[x])
-                    temp2.append(b[x])
-            for x in range(num_block,len(a)-1):
                 temp1.append(a[x])
                 temp2.append(b[x])
+        for x in range(DEFAULT_NUM_OF_CONDITION*2,len(a)-1):
+            temp1.append(a[x])
+            temp2.append(b[x])
         temp1.append([0,0])
         temp2.append([0,0])
         return [temp1,temp2]
@@ -539,8 +503,8 @@ class GA:
         #randomly generating individual group
         for i in range(self.population_size):
             self.population.append(self.generateIndividual())
-        self.export_excel(0)
-        self.depict_average_variance(0,self.population,self.actionlist)
+        #self.export_excel(0)
+        #self.depict_average_variance(0,self.population,self.actionlist)
 
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
@@ -554,17 +518,7 @@ class GA:
             self.temp = copy.deepcopy(self.population)
             for i in range(0,self.population_size,2):
                 if random.random() < self.crossover_rate:
-                    if self.decision == DECISION_SPEED:
-                        a,b = self.crossing(self.temp[i],self.temp[i+1],DEFAULT_NUM_OF_CONDITION*2+1)
-                    elif self.decision == DECISION_SELL or self.decision == DECISION_BUY:
-                        a,b = self.crossing(self.temp[i],self.temp[i+1],DEFAULT_NUM_OF_CONDITION*2+1)
-                    elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                        a,b = self.crossing(self.temp[i],self.temp[i+1],DEFAULT_NUM_OF_CONDITION*2+2)
-                    elif self.decision == DECISION_INTEGRATE:
-                        a,b = self.crossing(self.temp[i],self.temp[i+1])
-                    else:
-                        print('selected decision item does not exist')
-                        sys.exit()
+                    a,b = self.crossing(self.temp[i],self.temp[i+1])
                 else:
                     a,b = copy.deepcopy(self.temp[i]),copy.deepcopy(self.temp[i+1])
                 self.temp.append(a)
