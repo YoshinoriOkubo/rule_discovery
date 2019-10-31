@@ -222,7 +222,6 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                    ship.calculate_idle_rate(current_freight_rate_outward)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     #change by argment
                     if self.decision == DECISION_SPEED:
@@ -491,8 +490,12 @@ class GA:
                         sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT or RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                                                                                                                if self.check_rule_is_adapted(rule_for_X)
+                                                                                                                else 'NOT ADAPTED')
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_IN:
+                        sheet.cell(row = i + 1 + rule_index, column = self.num_condition_part*2 + 2).value = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                                                                                                 if self.check_rule_is_adapted(rule_for_X)
                                                                                                                 else 'NOT ADAPTED')
                 sheet.cell(row = i + 1 + len(RULE_SET), column = 2).value = individual[-1][0]
@@ -520,8 +523,12 @@ class GA:
                     sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
+                elif self.decision == DECISION_CHARTER_OUT:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
+                                                                                                if self.check_rule_is_adapted(individual)
+                                                                                                else 'NOT ADAPTED')
+                elif self.decision == DECISION_CHARTER_IN:
+                    sheet.cell(row = i + 1, column = self.num_condition_part*2 + 2).value = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
                                                                                                 if self.check_rule_is_adapted(individual)
                                                                                                 else 'NOT ADAPTED')
                 sheet.cell(row = i + 1, column = self.num_condition_part*2 + 1 + 2).value = individual[-1][0]
@@ -621,12 +628,10 @@ class GA:
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     for speed in VESSEL_SPEED_LIST:
                         search_ship = Ship(self.TEU_size,speed,self.route_distance)
-                        search_ship.calculate_idle_rate(current_freight_rate_outward)
                         cash_flow = search_ship.calculate_income_per_month(current_oil_price,total_freight)
                         list.append([cash_flow,speed])
                     list.sort(key=lambda x:x[0],reverse = True)
                     ship.change_speed(list[0][1])
-                    ship.calculate_idle_rate(current_freight_rate_outward)
                     cash_year += ship.calculate_income_per_month(current_oil_price,total_freight)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_year *= self.exchange_rate_data[pattern][year*12+11]['price']
@@ -651,7 +656,6 @@ class GA:
                 current_freight_rate_return = self.freight_rate_return_data[pattern][time]['price']
                 total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 for index in range(VESSEL_LIFE_TIME*12+1):
-                    fitness_list[index][-1].calculate_idle_rate(current_freight_rate_outward)
                     if index < time:
                         pass
                     elif index == time:
@@ -686,7 +690,6 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-time]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-time]['price']
                     freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                    ship.calculate_idle_rate(current_freight_rate_outward)
                     time_reverse_0 = 180 - time
                     year_cash_0 = int(time_reverse_0/12) + 1
                     DISCOUNT_cash_0 = (1 + DISCOUNT_RATE) ** year_cash_0
@@ -697,7 +700,6 @@ class GA:
                         year_charter_0 = int(a/12) + 1
                         DISCOUNT_charter_0 = (1 + DISCOUNT_RATE) ** year_charter_0
                         exchange_charter_0 = self.exchange_rate_data[pattern][year_charter_0*12-1]['price']
-                        ship.idle_rate = 0
                         charter_0 += ship.calculate_income_per_month(oil_price,freight)*RISK_PREMIUM[period]*exchange_charter_0/DISCOUNT_charter_0
                     if cash_0 + store[time-1][0] > charter_0:
                         store.append([cash_0 + store[time-1][0],[1],time])
@@ -708,7 +710,6 @@ class GA:
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][-x]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][-x]['price']
                     freight_fx = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                    ship.calculate_idle_rate(current_freight_rate_outward)
                     time_reverse_x = 180 - x
                     year_cash_x = int(time_reverse_x/12) + 1
                     DISCOUNT_cash_x = (1 + DISCOUNT_RATE) ** year_cash_x
@@ -719,7 +720,6 @@ class GA:
                         year_charter_x = int(a/12) + 1
                         DISCOUNT_charter_x = (1 + DISCOUNT_RATE) ** year_charter_x
                         exchange_charter_x = self.exchange_rate_data[pattern][year_charter_x*12-1]['price']
-                        ship.idle_rate = 0
                         charter_x += ship.calculate_income_per_month(oil_price_fx,freight_fx)*RISK_PREMIUM[period]/DISCOUNT_charter_x
                     if cash_x + store[-1][0] > charter_x + store[-CHARTER_PERIOD[period]][0]:
                         store.append([cash_x + store[-1][0],[1],x])
@@ -918,8 +918,12 @@ class GA:
                         g = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT or RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                        g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
+                        g = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
+                                if self.check_rule_is_adapted(rule_for_X)
+                                else 'NOT ADAPTED')
+                    elif RULE_SET[rule_index] == DECISION_CHARTER_IN:
+                        g = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
                                 if self.check_rule_is_adapted(rule_for_X)
                                 else 'NOT ADAPTED')
                     if i < NUM_DISPLAY:
@@ -946,8 +950,12 @@ class GA:
                     g = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                    g = ('{0}month charter, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
+                elif self.decision == DECISION_CHARTER_OUT:
+                    g = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
+                            if self.check_rule_is_adapted(thisone)
+                            else 'NOT ADAPTED')
+                elif self.decision == DECISION_CHARTER_IN:
+                    g = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
                             if self.check_rule_is_adapted(thisone)
                             else 'NOT ADAPTED')
                 if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
