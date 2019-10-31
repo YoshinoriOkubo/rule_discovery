@@ -40,8 +40,13 @@ class GA:
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
         self.compare_rule = []
-        for i in range(DEFAULT_NUM_OF_CONDITION*2):
+        for condition in range(DEFAULT_NUM_OF_CONDITION*2):
             self.compare_rule.append([0,0,0,0])
+        for action in range(DEFAULT_NUM_OF_ACTION):
+            if action == 1:
+                self.compare_rule.append(1)
+            else:
+                self.compare_rule.append(0)
         self.compare_rule.append([0,0])# average profit and varianve
 
     def convert2to10_in_list(self,list):
@@ -77,7 +82,17 @@ class GA:
                     return result
         return [False]
 
-    
+    def check_rule_is_adapted(self,rule):
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            for year in range(VESSEL_LIFE_TIME):
+                for month in range(12):
+                    oil_price = self.oil_price_data[pattern][year*12+month]['price']
+                    freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
+                    exchange = self.exchange_rate_data[pattern][year*12+month]['price']
+                    result = self.adapt_rule(oil_price,freight,exchange,rule)
+                    if result[0]:
+                        return True
+        return False
 
     def crossover(self,a,b):
         temp1 = []
@@ -309,64 +324,20 @@ class GA:
 
     def compare_rules(self):
         fitness_no_rule = self.fitness_function(self.compare_rule)[0]
-        if self.decision == DECISION_INTEGRATE:
-            name = 'integrate'
-            fitness_best = self.bestpopulation[-1][-1][0]
-            fitness_full_search = 0
-        else:
-            if self.decision == DECISION_SPEED:
-                name = 'speed'
-                fitness_best = self.bestpopulation[-1][-1][0]
-                fitness_full_search = self.full_search_method_speed()
-            elif self.decision == DECISION_SELL:
-                name = 'sell'
-                fitness_best = 0
-                for i in range(self.population_size):
-                    if self.population[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.population[i]):
-                            fitness_best = self.population[i][-1][0]
-                            break
-                fitness_full_search = self.full_search_method_sell()
-            elif self.decision == DECISION_BUY:
-                name = 'buy'
-                fitness_best = 0
-                for i in range(self.population_size):
-                    if self.population[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.population[i]):
-                            fitness_best = self.population[i][-1][0]
-                            break
-                fitness_full_search = 0
-            elif self.decision == DECISION_CHARTER_OUT:
-                name = 'charter_out'
-                fitness_best = 0
-                for i in range(self.population_size):
-                    if self.population[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.population[i]):
-                            fitness_best = self.population[i][-1][0]
-                            break
-                fitness_full_search = self.full_search_method_charter()
-            elif self.decision == DECISION_CHARTER_IN:
-                name = 'charter_out'
-                fitness_best = 10
-                for i in range(self.population_size):
-                    if self.population[i][-2][0] != ACTION_STAY:
-                        if self.check_rule_is_adapted(self.population[i]):
-                            fitness_best = self.population[i][-1][0]
-                            break
-                fitness_full_search = 0
-            else:
-                print('selected decision item does not exist')
-                sys.exit()
+        fitness_best = 0
+        for i in range(self.population_size):
+            if self.check_rule_is_adapted(self.population[i]):
+                fitness_best = self.population[i][-1][0]
+                break
         print('no rule         ',fitness_no_rule)
         print('best rule       ',fitness_best)
-        print('full search rule',fitness_full_search)
-        left = [1,2,3]
-        height = [fitness_no_rule,fitness_best,fitness_full_search]
-        label = ['no rule','best rule','full search']
+        left = [1,2]
+        height = [fitness_no_rule,fitness_best]
+        label = ['no rule','best rule']
         plt.title('Comparison among three decision rule')
         plt.ylabel('fitness')
-        min_fit = min(fitness_no_rule,min(fitness_best,fitness_full_search))
-        max_fit = max(fitness_no_rule,max(fitness_best,fitness_full_search))
+        min_fit = min(fitness_no_rule,fitness_best)
+        max_fit = max(fitness_no_rule,fitness_best)
         if max_fit < 0:
             plt.ylim(min_fit*1.1,max_fit*0.9)
         else:
@@ -374,13 +345,13 @@ class GA:
                 plt.ylim(min_fit*1.1,max_fit*1.1)
             else:
                 plt.ylim(min_fit*0.9,max_fit*1.1)
-        colorlist = ['b','b','b']
+        colorlist = ['b','b']
         for i in range(len(height)):
             if height[i] < 0:
                 colorlist[i] = 'r'
         plt.bar(left,height,color=colorlist,tick_label=label,align='center')
         save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
+        plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format('')))
         plt.close()
 
     def check_convergence(self,target,criteria):
@@ -538,7 +509,7 @@ class GA:
         #self.depict_fitness()
         #self.depict_average_variance()
         #self.export_excel()
-        #self.compare_rules()
+        self.compare_rules()
 
         #initialize attribute
         self.gruop = []
