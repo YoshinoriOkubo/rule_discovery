@@ -322,38 +322,6 @@ class GA:
         wb.close()
         print('saving changes')
 
-    def compare_rules(self):
-        fitness_no_rule = self.fitness_function(self.compare_rule)[0]
-        fitness_best = 0
-        for i in range(self.population_size):
-            if self.check_rule_is_adapted(self.population[i]):
-                fitness_best = self.population[i][-1][0]
-                break
-        print('no rule         ',fitness_no_rule)
-        print('best rule       ',fitness_best)
-        left = [1,2]
-        height = [fitness_no_rule,fitness_best]
-        label = ['no rule','best rule']
-        plt.title('Comparison among three decision rule')
-        plt.ylabel('fitness')
-        min_fit = min(fitness_no_rule,fitness_best)
-        max_fit = max(fitness_no_rule,fitness_best)
-        if max_fit < 0:
-            plt.ylim(min_fit*1.1,max_fit*0.9)
-        else:
-            if min_fit < 0:
-                plt.ylim(min_fit*1.1,max_fit*1.1)
-            else:
-                plt.ylim(min_fit*0.9,max_fit*1.1)
-        colorlist = ['b','b']
-        for i in range(len(height)):
-            if height[i] < 0:
-                colorlist[i] = 'r'
-        plt.bar(left,height,color=colorlist,tick_label=label,align='center')
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format('')))
-        plt.close()
-
     def check_convergence(self,target,criteria):
         flag = True
         for index in range(1,criteria+1):
@@ -509,7 +477,6 @@ class GA:
         #self.depict_fitness()
         #self.depict_average_variance()
         #self.export_excel()
-        self.compare_rules()
 
         #initialize attribute
         self.gruop = []
@@ -526,7 +493,7 @@ def main():
     args = sys.argv
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    [0,0,0,0,0])
+                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5])])
     print('execute_GA')
     ga.execute_GA()
 
