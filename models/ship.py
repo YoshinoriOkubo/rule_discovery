@@ -90,8 +90,8 @@ class Ship:
         return -INITIAL_COST_OF_SHIPBUIDING*(1 - 60/180)*(freight_now/freight_criteria) * (1 + INDIRECT_COST) * number
 
 
-    def charter_ship(self,oil_price,freight,number,period,direction):
-        p = CHARTER_PERIOD.index(period)
+    def charter_ship(self,oil_price,freight,number,direction):
+        p = CHARTER_PERIOD.index(3)
         if direction == DECISION_CHARTER_OUT:
             if self.exist_number > 0:
                 cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.total_number
@@ -101,7 +101,7 @@ class Ship:
                 self.exist_number -= number
                 self.total_number -= number
                 cash *= number
-                self.charter_list.append([cash,number,period,direction])
+                self.charter_list.append([cash,number,p,direction])
                 for i in range(number):
                     self.charter_out_agelist.append(self.agelist.pop(0))
         elif direction == DECISION_CHARTER_IN:
@@ -112,7 +112,7 @@ class Ship:
                 cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
                 self.total_number += number
                 cash *= number
-                self.charter_list.append([cash,number,period,direction])
+                self.charter_list.append([cash,number,p,direction])
 
 
     def charter(self):
@@ -134,11 +134,16 @@ class Ship:
                 elif self.charter_list[i][3] == DECISION_CHARTER_IN:
                     self.total_number -= self.charter_list[i][1]
                 end_index.append(i)
-        if len(end_index) == 1:
+        if len(end_index) == 0:
+            pass
+        elif len(end_index) == 1:
             self.charter_list.pop(end_index[0])
         elif len(end_index) == 2:
             self.charter_list.pop(end_index[1])
             self.charter_list.pop(end_index[0])
+        else:
+            print('error')
+            sys.exit()
         if self.charter_list == []:
             self.charter_flag = False
 

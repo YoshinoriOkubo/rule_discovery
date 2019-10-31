@@ -77,20 +77,22 @@ class GA:
                     return result
         return [False]
 
+    
+
     def crossover(self,a,b):
         temp1 = []
         temp2 = []
         crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         for x in range(DEFAULT_NUM_OF_CONDITION*2):
-            if x == crossing_block:
+            if x == crossover_block:
                 temp1.append([])
                 temp2.append([])
                 length = len(a[x]) - 1
                 crossover_point = random.randint(1,length-2)
-                for i in range(0,crossing_point):
+                for i in range(0,crossover_point):
                     temp1[x].append(a[x][i])
                     temp2[x].append(b[x][i])
-                for i in range(crossing_point,len(a[x])):
+                for i in range(crossover_point,len(a[x])):
                     temp1[x].append(b[x][i])
                     temp2[x].append(a[x][i])
             else:
@@ -151,14 +153,14 @@ class GA:
         e, sigma = self.fitness_function(self.temp[i])
         return [i,[e,sigma]]
 
-    def generateIndividual(self,actionlist):
+    def generateIndividual(self):
         temp = []
         for condition in range(DEFAULT_NUM_OF_CONDITION*2):
             temp.append([])
             for a in range(4):
                 temp[condition].append(random.randint(0,1))
-        for action in range(self.num_action_part):
-            temp.append(actionlist[action])
+        for action in range(DEFAULT_NUM_OF_ACTION):
+            temp.append(self.actionlist[action])
         temp.append([0,0])
         temp[-1][0],temp[-1][1] = self.fitness_function(temp)
         return temp
@@ -381,30 +383,6 @@ class GA:
         plt.savefig(os.path.join(save_dir, 'comparison_{}.png'.format(name)))
         plt.close()
 
-    def check_rule_is_adapted(self,rule):
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            for year in range(VESSEL_LIFE_TIME):
-                for month in range(12):
-                    oil_price = self.oil_price_data[pattern][year*12+month]['price']
-                    freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
-                    exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    if self.decision == DECISION_INTEGRATE:
-                        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
-                        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
-                        if a == b or ( a <= oil_price and oil_price <= b):
-                            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
-                            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
-                            if c == d or ( c <= freight and freight <= d):
-                                e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[4])]
-                                f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[5])]
-                                if e == f or ( e <= exchange and exchange <= f):
-                                    return True
-                    else:
-                        result = self.adapt_rule(oil_price,freight,exchange,rule)
-                        if result[0]:
-                            return True
-        return False
-
     def check_convergence(self,target,criteria):
         flag = True
         for index in range(1,criteria+1):
@@ -527,84 +505,40 @@ class GA:
 
         #print result
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
-        for i in range(0,self.population_size):
+        for i in range(0,NUM_DISPLAY):
             if i == 0:
                 print('best rule', self.population[i])
             thisone = self.population[i]
-            if self.decision == DECISION_INTEGRATE:
-                for rule_index in range(len(RULE_SET)):
-                    rule_for_X = thisone[rule_index]
-                    a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
-                    b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
-                    e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])]
-                    f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]
-                    if RULE_SET[rule_index] == DECISION_SPEED:
-                        g = (VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])]
-                                if self.check_rule_is_adapted(rule_for_X)
-                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_SELL:
-                        g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                if self.check_rule_is_adapted(rule_for_X)
-                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_BUY:
-                        g = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                if self.check_rule_is_adapted(rule_for_X)
-                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
-                        g = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                if self.check_rule_is_adapted(rule_for_X)
-                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                        g = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                if self.check_rule_is_adapted(rule_for_X)
-                                else 'NOT ADAPTED')
-                    if i < NUM_DISPLAY:
-                        print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5} -> {6}'.format(a,b,c,d,e,f,g))
-                if i < NUM_DISPLAY:
-                    print('Expectation = {}'.format(thisone[-1][0]))
-                    print('Variance = {}'.format(thisone[-1][1]))
-            else:
-                a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
-                b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
-                c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
-                d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
-                e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[4])]
-                f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[5])]
-                if self.decision == DECISION_SPEED:
-                    g = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(thisone[-2])])
-                            if self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
-                elif self.decision == DECISION_SELL:
-                    g = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(thisone[-2])])
-                            if self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
-                elif self.decision == DECISION_BUY:
-                    g = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(thisone[-2])])
-                            if self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_OUT:
-                    g = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
-                            if self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_IN:
-                    g = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(thisone[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(thisone[-2])])
-                            if self.check_rule_is_adapted(thisone)
-                            else 'NOT ADAPTED')
-                if i < NUM_DISPLAY and self.check_rule_is_adapted(thisone):
-                    print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5} -> {6}'.format(a,b,c,d,e,f,g))
-                    print('Expectation = {}'.format(thisone[-1][0]))
-                    print('Variance = {}'.format(thisone[-1][1]))
+            a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
+            b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
+            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
+            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
+            e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[4])]
+            f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[5])]
+            speed = VESSEL_SPEED_LIST[self.actionlist[0]]
+            purchase = PURCHASE_NUMBER[self.actionlist[1]]
+            sell = SELL_NUMBER[self.actionlist[2]]
+            charter_in = CHARTER_IN_NUMBER[self.actionlist[3]]
+            charter_out = CHARTER_OUT_NUMBER[self.actionlist[4]]
+            print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5}'.format(a,b,c,d,e,f))
+            print('speed {}'.format(speed))
+            print('purchase {} ships'.format(purchase))
+            print('sell {} ships'.format(sell))
+            print('charter_in {}'.format(charter_in))
+            print('charter_out {}'.format(charter_out))
+            print('Expectation = {}'.format(thisone[-1][0]))
+            print('Variance = {}'.format(thisone[-1][1]))
+            if self.check_rule_is_adapted(thisone):
+                print('ADPTED')
             if a > b or c > d or e > f:
                 print('rule error')
                 sys.exit()
         print('finish')
         print('Spent time is {0}'.format(time.time() - first))
-        self.depict_fitness()
-        self.depict_average_variance()
-        self.export_excel()
-        self.compare_rules()
+        #self.depict_fitness()
+        #self.depict_average_variance()
+        #self.export_excel()
+        #self.compare_rules()
 
         #initialize attribute
         self.gruop = []
@@ -612,6 +546,7 @@ class GA:
         self.averagepopulation = []
 
 def main():
+    print('load_scenario')
     generated_sinario = load_generated_sinario()
     oil_data = generated_sinario[0]
     freight_outward_data = generated_sinario[1]
@@ -621,6 +556,7 @@ def main():
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     [0,0,0,0,0])
+    print('execute_GA')
     ga.execute_GA()
 
 if __name__ == "__main__":
