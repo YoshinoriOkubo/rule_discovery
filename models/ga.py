@@ -52,8 +52,6 @@ class GA:
             result += list[i] * 2 ** (x)
         if len(list) == 4:
             return GRAY_CODE_4[result]
-        elif len(list) == 2:
-            return GRAY_CODE_2[result]
         elif len(list) == 1:
             return result
         else:
@@ -69,17 +67,14 @@ class GA:
                 e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[4])]
                 f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[5])]
                 if e == f or (e <= exchange and exchange <= f):
-                    if self.decision == DECISION_SPEED:
-                        return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
-                    elif self.decision == DECISION_SELL:
-                        return [True,SELL_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                    elif self.decision == DECISION_BUY:
-                        return [True,BUY_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                    elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                        return [True,CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                    else:
-                        print('selected decision item does not exist')
-                        sys.exit()
+                    result = [True]
+                    result.append([])
+                    result[1].append(VESSEL_SPEED_LIST[self.actionlist[0]])
+                    result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
+                    result[1].append(SELL_NUMBER[self.actionlist[2]])
+                    result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
+                    result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
+                    return result
         return [False]
 
     def crossover(self,a,b):
