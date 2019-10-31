@@ -128,34 +128,13 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    #change by argment
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
-                    if self.decision == DECISION_SPEED:
-                        if result[0]:
-                            ship.change_speed(result[1])
-                    elif self.decision == DECISION_SELL:
-                        if result[0]:
-                            cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1])
-                    elif self.decision == DECISION_BUY:
-                        if result[0]:
-                            cash_flow += ship.buy_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1])
-                    elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                        if result[0] and result[2] > 0:
-                            ship.charter_ship(current_oil_price,total_freight,result[2],result[1],self.decision)
-                        if ship.charter_flag == True:
-                            cash_flow += ship.charter()
-                            ship.end_charter()
-                    elif self.decision == DECISION_INTEGRATE:
-                        if result[0][0] == True:
-                            ship.change_speed(result[0][1])
-                        if result[1][0] == True:
-                            cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        if result[2][0] == True:
-                            cash_flow += ship.buy_ship(self.freight_rate_outward_data[pattern],year*12+month,result[2][1])
-                        if result[3][0] == True and result[3][2] > 0:
-                            ship.charter_ship(current_oil_price,total_freight,result[3][2],result[3][1],DECISION_CHARTER_OUT)
-                        if result[4][0] == True and result[4][2] > 0:
-                            ship.charter_ship(current_oil_price,total_freight,result[4][2],result[4][1],DECISION_CHARTER_IN)
+                    if result[0]:
+                        ship.change_speed(result[1][0])
+                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
+                        cash_flow += ship.buy_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
+                        ship.charter_ship(current_oil_price,total_freight,result[1][3],DECISION_CHARTER_OUT)
+                        ship.charter_ship(current_oil_price,total_freight,result[1][4],DECISION_CHARTER_IN)
                         if ship.charter_flag == True:
                             cash_flow += ship.charter()
                             ship.end_charter()
@@ -174,7 +153,7 @@ class GA:
         return [e,sigma]
 
     def multiproces_fitness(self,i):
-        e, sigma = self.fitness_function(self.temp[i],self.priority)
+        e, sigma = self.fitness_function(self.temp[i])
         return [i,[e,sigma]]
 
     def generateIndividual(self,actionlist):
@@ -474,12 +453,11 @@ class GA:
             self.exchange_rule()
 
             #computation of fitness
-            self.priority = priority
             if multiprocess is None:
                 fitness_time = time.time()
                 for one in range(len(self.temp)):
                     rule = self.temp[one]
-                    rule[-1][0], rule[-1][1] = self.fitness_function(rule,priority)
+                    rule[-1][0], rule[-1][1] = self.fitness_function(rule)
                 print('fitness',time.time()-fitness_time)
             else:
                 multifitness_time = time.time()
@@ -490,6 +468,7 @@ class GA:
                     for i in range(len(p)):
                         self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
                 print('multifitness',time.time()-multifitness_time)
+
             #selection
             #change size of self.population
             self.population = [0] * self.population_size
