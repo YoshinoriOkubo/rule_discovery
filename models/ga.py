@@ -40,28 +40,8 @@ class GA:
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
         self.compare_rule = []
-        if self.decision == DECISION_INTEGRATE:
-            for rule_index in range(len(RULE_SET)):
-                self.compare_rule.append([])
-                for i in range(DEFAULT_NUM_OF_CONDITION*2):
-                    self.compare_rule[rule_index].append([0,0,0,0])
-                if RULE_SET[rule_index] == DECISION_SPEED:
-                    self.compare_rule[rule_index].append([1,1,0,1]) #19knot
-                elif RULE_SET[rule_index] == DECISION_SELL or RULE_SET[rule_index] == DECISION_BUY:
-                    self.compare_rule[rule_index].append(ACTION_STAY)
-                elif RULE_SET[rule_index] == DECISION_CHARTER_OUT or RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                    self.compare_rule[rule_index].append([0,0])#charter period
-                    self.compare_rule[rule_index].append(ACTION_STAY)
-        else:
-            for i in range(DEFAULT_NUM_OF_CONDITION*2):
-                self.compare_rule.append([0,0,0,0])
-            if self.decision == DECISION_SPEED:
-                self.compare_rule.append([1,1,0,1]) #19knot
-            elif self.decision == DECISION_SELL or self.decision == DECISION_BUY:
-                self.compare_rule.append(ACTION_STAY)# ships number
-            elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                self.compare_rule.append([0,0])#charter period
-                self.compare_rule.append(ACTION_STAY)#ships number
+        for i in range(DEFAULT_NUM_OF_CONDITION*2):
+            self.compare_rule.append([0,0,0,0])
         self.compare_rule.append([0,0])# average profit and varianve
 
     def convert2to10_in_list(self,list):
@@ -80,67 +60,38 @@ class GA:
             return None
 
     def adapt_rule(self,oil_price,freight,exchange,rule):
-        if self.decision == DECISION_INTEGRATE:
-            result = []
-            for rule_index in range(len(rule)-1):
-                rule_for_X = rule[rule_index]
-                result.append([False])
-                a = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[0])]
-                b = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[1])]
-                if a == b or ( a <= oil_price and oil_price <= b):
-                    c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[2])]
-                    d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[3])]
-                    if c == d or ( c <= freight and freight <= d):
-                        e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[4])]
-                        f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[5])]
-                        if e == f or (e <= exchange and exchange <= f):
-                            if RULE_SET[rule_index] == DECISION_SPEED:
-                                result[rule_index][0] = True
-                                result[rule_index].append(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])])
-                            elif RULE_SET[rule_index] == DECISION_SELL:
-                                result[rule_index][0] = True
-                                result[rule_index].append(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                            elif RULE_SET[rule_index] == DECISION_BUY:
-                                result[rule_index][0] = True
-                                result[rule_index].append(BUY_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                            elif (RULE_SET[rule_index] == DECISION_CHARTER_OUT or RULE_SET[rule_index] == DECISION_CHARTER_IN) and rule_for_X[-1][0] != ACTION_STAY:
-                                result[rule_index][0] = True
-                                result[rule_index].append(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])])
-                                result[rule_index].append(CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-            return result
-        else:
-            a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
-            b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
-            if a == b or ( a <= oil_price and oil_price <= b):
-                c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
-                d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
-                if c == d or ( c <= freight and freight <= d):
-                    e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[4])]
-                    f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[5])]
-                    if e == f or (e <= exchange and exchange <= f):
-                        if self.decision == DECISION_SPEED:
-                            return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
-                        elif self.decision == DECISION_SELL:
-                            return [True,SELL_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                        elif self.decision == DECISION_BUY:
-                            return [True,BUY_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                        elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
-                            return [True,CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule[-2])]]
-                        else:
-                            print('selected decision item does not exist')
-                            sys.exit()
-            return [False]
+        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
+        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
+        if a == b or ( a <= oil_price and oil_price <= b):
+            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
+            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
+            if c == d or ( c <= freight and freight <= d):
+                e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[4])]
+                f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[5])]
+                if e == f or (e <= exchange and exchange <= f):
+                    if self.decision == DECISION_SPEED:
+                        return [True,VESSEL_SPEED_LIST[self.convert2to10_in_list(rule[-2])]]
+                    elif self.decision == DECISION_SELL:
+                        return [True,SELL_NUMBER[self.convert2to10_in_list(rule[-2])]]
+                    elif self.decision == DECISION_BUY:
+                        return [True,BUY_NUMBER[self.convert2to10_in_list(rule[-2])]]
+                    elif self.decision == DECISION_CHARTER_OUT or self.decision == DECISION_CHARTER_IN:
+                        return [True,CHARTER_PERIOD[self.convert2to10_in_list(rule[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule[-2])]]
+                    else:
+                        print('selected decision item does not exist')
+                        sys.exit()
+        return [False]
 
-    def crossing(self,a,b):
+    def crossover(self,a,b):
         temp1 = []
         temp2 = []
-        crossing_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         for x in range(DEFAULT_NUM_OF_CONDITION*2):
             if x == crossing_block:
                 temp1.append([])
                 temp2.append([])
                 length = len(a[x]) - 1
-                crossing_point = random.randint(1,length-2)
+                crossover_point = random.randint(1,length-2)
                 for i in range(0,crossing_point):
                     temp1[x].append(a[x][i])
                     temp2[x].append(b[x][i])
@@ -158,19 +109,10 @@ class GA:
         return [temp1,temp2]
 
     def mutation(self,individual):
-        if self.decision == DECISION_INTEGRATE:
-            for rule_index in range(len(individual)-1):
-                if random.random() < 1/(len(individual)-1):
-                    rule_for_X = individual[rule_index]
-                    mutation_block = random.randint(0,len(rule_for_X)-1)
-                    length = len(rule_for_X[mutation_block]) - 1
-                    point = random.randint(0,length)
-                    rule_for_X[mutation_block][point] = (rule_for_X[mutation_block][point] + 1) % 2
-        else:
-            mutation_block = random.randint(0,len(individual)-2)
-            length = len(individual[mutation_block]) - 1
-            point = random.randint(0,length)
-            individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
+        mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        length = len(individual[mutation_block]) - 1
+        point = random.randint(0,length)
+        individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
 
     def fitness_function(self,rule,priority=None):
@@ -513,24 +455,20 @@ class GA:
             #change population size according to generation
             #self.change_population_size(gene)
 
-            crossing_time = time.time()
-            #crossing
+            #crossover
             self.temp = copy.deepcopy(self.population)
-            for i in range(0,self.population_size,2):
+            for selected in range(0,self.population_size,2):
                 if random.random() < self.crossover_rate:
-                    a,b = self.crossing(self.temp[i],self.temp[i+1])
+                    a,b = self.crossover(self.temp[selected],self.temp[selected+1])
                 else:
-                    a,b = copy.deepcopy(self.temp[i]),copy.deepcopy(self.temp[i+1])
+                    a,b = copy.deepcopy(self.temp[selected]),copy.deepcopy(self.temp[selected+1])
                 self.temp.append(a)
                 self.temp.append(b)
-            print('crossing',time.time()-crossing_time)
 
             #mutation
-            mutation_time = time.time()
             for individual in self.temp:
                 if random.random() < self.alpha:
                     individual = self.mutation(individual)
-            print('mutation',time.time()-mutation_time)
 
             #rule check
             self.exchange_rule()
