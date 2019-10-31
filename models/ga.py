@@ -21,7 +21,7 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,actionlist,choice_number,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
@@ -30,6 +30,7 @@ class GA:
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
         self.actionlist = actionlist # decision of action parts.
+        self.choice_number = choice_number
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
@@ -49,28 +50,15 @@ class GA:
                 self.compare_rule.append(0)
         self.compare_rule.append([0,0])# average profit and varianve
 
-    def convert2to10_in_list(self,list):
-        result = 0
-        length = len(list)
-        for i in range(len(list)):
-            x = length - 1 - i
-            result += list[i] * 2 ** (x)
-        if len(list) == 4:
-            return GRAY_CODE_4[result]
-        elif len(list) == 1:
-            return result
-        else:
-            return None
-
     def adapt_rule(self,oil_price,freight,exchange,rule):
-        a = OIL_PRICE_LIST[self.convert2to10_in_list(rule[0])]
-        b = OIL_PRICE_LIST[self.convert2to10_in_list(rule[1])]
+        a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
+        b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
         if a == b or ( a <= oil_price and oil_price <= b):
-            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[2])]
-            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule[3])]
+            c = FREIGHT_RATE_LIST[convert2to10_in_list(rule[2])]
+            d = FREIGHT_RATE_LIST[convert2to10_in_list(rule[3])]
             if c == d or ( c <= freight and freight <= d):
-                e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[4])]
-                f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule[5])]
+                e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
+                f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
                 if e == f or (e <= exchange and exchange <= f):
                     result = [True]
                     result.append([])
@@ -182,11 +170,11 @@ class GA:
 
     def exchange_rule(self):
         for k in range(len(self.temp)):
-            if OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[self.convert2to10_in_list(self.temp[k][1])]:
+            if OIL_PRICE_LIST[convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[convert2to10_in_list(self.temp[k][1])]:
                 self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
-            if FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[self.convert2to10_in_list(self.temp[k][3])]:
+            if FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[k][3])]:
                 self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
-            if EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[self.convert2to10_in_list(self.temp[k][5])]:
+            if EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][5])]:
                 self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
 
     def depict_fitness(self):
@@ -234,82 +222,27 @@ class GA:
             plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
         plt.close()
 
-    def export_excel(self,initial=None):
-        rule_type = ''
-        if initial is None:
-            path = '../output/ship_rule_{0}.xlsx'.format(rule_type)
-        else:
-            path = '../output/ship_rule_{0}_initial.xlsx'.format(rule_type)
+    def export_excel(self,list):
+        path = '../output/ship_rule.xlsx'
         wb = openpyxl.load_workbook(path)
         sheet = wb['Sheet1']
-        if self.decision == DECISION_INTEGRATE:
-            for i in range(0,self.population_size*6,6):
-                individual = self.population[int(i/6)]
-                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(int(i/6)+1)
-                for rule_index in range(len(RULE_SET)):
-                    rule_for_X = individual[rule_index]
-                    for j in range(DEFAULT_NUM_OF_CONDITION*2):
-                        if j == 0 or j == 1:
-                            sheet.cell(row = i + 1 + rule_index, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(rule_for_X[j])]
-                        elif j == 2 or j == 3:
-                            sheet.cell(row = i + 1 + rule_index, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(rule_for_X[j])]
-                        else:
-                            sheet.cell(row = i + 1 + rule_index, column = j + 2).value = EXCHANGE_RATE_LIST[self.convert2to10_in_list(rule_for_X[j])]
-                    if RULE_SET[rule_index] == DECISION_SPEED:
-                        sheet.cell(row = i + 1 + rule_index, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(rule_for_X[-1])])
-                                                                                                                if self.check_rule_is_adapted(rule_for_X)
-                                                                                                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_SELL:
-                        sheet.cell(row = i + 1 + rule_index, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                                                                                                if self.check_rule_is_adapted(rule_for_X)
-                                                                                                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_BUY:
-                        sheet.cell(row = i + 1 + rule_index, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                                                                                                if self.check_rule_is_adapted(rule_for_X)
-                                                                                                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_OUT:
-                        sheet.cell(row = i + 1 + rule_index, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                                                                                                if self.check_rule_is_adapted(rule_for_X)
-                                                                                                                else 'NOT ADAPTED')
-                    elif RULE_SET[rule_index] == DECISION_CHARTER_IN:
-                        sheet.cell(row = i + 1 + rule_index, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(rule_for_X[-2])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(rule_for_X[-1])])
-                                                                                                                if self.check_rule_is_adapted(rule_for_X)
-                                                                                                                else 'NOT ADAPTED')
-                sheet.cell(row = i + 1 + len(RULE_SET), column = 2).value = individual[-1][0]
-                sheet.cell(row = i + 1 + len(RULE_SET), column = 3).value = individual[-1][1]
+        individual = list[0]
+        row = self.choice_number + 1
+        for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
+            if col_cond == 0 or col_cond == 1:
+                sheet.cell(row = row, column = col_cond + 1).value = OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])]
+            elif col_cond == 2 or col_cond == 3:
+                sheet.cell(row = row, column = col_cond + 1).value = FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])]
+            else:
+                sheet.cell(row = row, column = col_cond + 1).value = EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])]
+        for col_act in range(DEFAULT_NUM_OF_ACTION):
+            sheet.cell(row = row, column = col_act + DEFAULT_NUM_OF_CONDITION*2 + 1).value = self.actionlist[col_act]
+        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 1).value = individual[-1][0]
+        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 2).value = individual[-1][1]
+        if self.check_rule_is_adapted(individual):
+            sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 3).value = 0
         else:
-            for i in range(0,self.population_size):
-                individual = self.population[i]
-                sheet.cell(row = i + 1, column = 1).value = 'rule{}'.format(i+1)
-                for j in range(DEFAULT_NUM_OF_CONDITION*2):
-                    if j == 0 or j == 1:
-                        sheet.cell(row = i + 1, column = j + 2).value = OIL_PRICE_LIST[self.convert2to10_in_list(individual[j])]
-                    elif j == 2 or j == 3:
-                        sheet.cell(row = i + 1, column = j + 2).value = FREIGHT_RATE_LIST[self.convert2to10_in_list(individual[j])]
-                    else:
-                        sheet.cell(row = i + 1, column = j + 2).value = EXCHANGE_RATE_LIST[self.convert2to10_in_list(individual[j])]
-                if self.decision == DECISION_SPEED:
-                    sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('change speed to {}'.format(VESSEL_SPEED_LIST[self.convert2to10_in_list(individual[-2])])
-                                                                                                if self.check_rule_is_adapted(individual)
-                                                                                                else 'NOT ADAPTED')
-                elif self.decision == DECISION_SELL:
-                    sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('sell {} ships'.format(SELL_NUMBER[self.convert2to10_in_list(individual[-2])])
-                                                                                                if self.check_rule_is_adapted(individual)
-                                                                                                else 'NOT ADAPTED')
-                elif self.decision == DECISION_BUY:
-                    sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('buy {} ships'.format(BUY_NUMBER[self.convert2to10_in_list(individual[-2])])
-                                                                                                if self.check_rule_is_adapted(individual)
-                                                                                                else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_OUT:
-                    sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('{0}month charter out, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
-                                                                                                if self.check_rule_is_adapted(individual)
-                                                                                                else 'NOT ADAPTED')
-                elif self.decision == DECISION_CHARTER_IN:
-                    sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2).value = ('{0}month charter in, {1} ships'.format(CHARTER_PERIOD[self.convert2to10_in_list(individual[-3])],CHARTER_SHIPS_NUMBER[self.convert2to10_in_list(individual[-2])])
-                                                                                                if self.check_rule_is_adapted(individual)
-                                                                                                else 'NOT ADAPTED')
-                sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 1 + 2).value = individual[-1][0]
-                sheet.cell(row = i + 1, column = DEFAULT_NUM_OF_CONDITION*2 + 2 + 2).value = individual[-1][1]
+            sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 3).value = 1
         wb.save(path)
         wb.close()
         print('saving changes')
@@ -328,7 +261,6 @@ class GA:
         #randomly generating individual group
         for i in range(self.population_size):
             self.population.append(self.generateIndividual())
-        #self.export_excel(0)
         #self.depict_average_variance(0,self.population,self.actionlist)
 
         #genetic algorithm
@@ -432,17 +364,18 @@ class GA:
             #    break
 
         #print result
+        '''
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
         for i in range(0,NUM_DISPLAY):
             if i == 0:
                 print('best rule', self.population[i])
             thisone = self.population[i]
-            a = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[0])]
-            b = OIL_PRICE_LIST[self.convert2to10_in_list(thisone[1])]
-            c = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[2])]
-            d = FREIGHT_RATE_LIST[self.convert2to10_in_list(thisone[3])]
-            e = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[4])]
-            f = EXCHANGE_RATE_LIST[self.convert2to10_in_list(thisone[5])]
+            a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
+            b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
+            c = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[2])]
+            d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
+            e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
+            f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
             speed = VESSEL_SPEED_LIST[self.actionlist[0]]
             purchase = PURCHASE_NUMBER[self.actionlist[1]]
             sell = SELL_NUMBER[self.actionlist[2]]
@@ -465,12 +398,12 @@ class GA:
         print('Spent time is {0}'.format(time.time() - first))
         #self.depict_fitness()
         #self.depict_average_variance()
-        #self.export_excel()
-
+        '''
         #initialize attribute
         self.gruop = []
         self.bestpopulation = []
         self.averagepopulation = []
+        return self.population[0]
 
 def main():
     print('load_scenario')
@@ -482,7 +415,7 @@ def main():
     args = sys.argv
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5])])
+                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5])],int(args[6]))
     print('execute_GA')
     ga.execute_GA()
 
