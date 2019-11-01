@@ -365,20 +365,3 @@ class GA:
         self.bestpopulation = []
         self.averagepopulation = []
         return self.population[0]
-
-def main():
-    print('load_scenario')
-    generated_sinario = load_generated_sinario()
-    oil_data = generated_sinario[0]
-    freight_outward_data = generated_sinario[1]
-    freight_return_data = generated_sinario[2]
-    exchange_data = generated_sinario[3]
-    args = sys.argv
-    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
-                    TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5]),int(args[6])],int(args[7]))
-    print('execute_GA')
-    ga.execute_GA()
-
-if __name__ == "__main__":
-    main()

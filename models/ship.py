@@ -20,6 +20,13 @@ class Ship:
         self.ship_order_list = []
         self.order_number = 0
 
+    def check(self):
+        flag = len(self.agelist) == self.exist_number
+        if flag:
+            pass
+        else:
+            sys.exit()
+
     def add_age(self):
         self.agelist = [n+1 for n in self.agelist]
         self.charter_out_agelist = [n+1 for n in self.charter_out_agelist]
@@ -81,6 +88,8 @@ class Ship:
         return cash
 
     def buy_new_ship(self,freight_data,time,number):
+        if self.exist_number + number > self.max_ship_number:
+            number = self.max_ship_number - self.exist_number
         if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
             self.ship_order_list.append([number,ORDER_TIME])
             self.order_number += number
@@ -89,7 +98,7 @@ class Ship:
             return 0
 
     def ship_under_construct(self):
-        if self.ship_order_list != []:
+        if len(self.ship_order_list) > 0:
             for i in range(len(self.ship_order_list)):
                 self.ship_order_list[i][1] -= 1
             if self.ship_order_list[0][1] == 0:
@@ -104,7 +113,7 @@ class Ship:
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
         if self.exist_number + number > self.max_ship_number:
-            number = self.exist_number - self.max_ship_number
+            number = self.max_ship_number - self.exist_number
         self.exist_number += number
         self.total_number += number
         for i in range(number):
@@ -130,6 +139,8 @@ class Ship:
             self.total_number += number
             if self.total_number > 0:
                 self.charter_flag = True
+                if number + self.total_number > self.max_ship_number:
+                    number = self.max_ship_number - self.total_number
                 self.total_number -= number
                 cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
                 self.total_number += number
