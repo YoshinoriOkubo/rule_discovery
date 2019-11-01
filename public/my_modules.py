@@ -31,8 +31,10 @@ def export_population(list):
                 sheet.cell(row = row, column = col_cond + 1).value = OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])]
             elif col_cond == 2 or col_cond == 3:
                 sheet.cell(row = row, column = col_cond + 1).value = FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])]
-            else:
+            elif col_cond == 4 or col_cond == 5:
                 sheet.cell(row = row, column = col_cond + 1).value = EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])]
+            else:
+                sheet.cell(row = row, column = col_cond + 1).value = OWN_SHIP_LIST[convert2to10_in_list(individual[col_cond])]
         for col_act in range(DEFAULT_NUM_OF_ACTION):
             sheet.cell(row = row, column = col_act + DEFAULT_NUM_OF_CONDITION*2 + 1).value = individual[DEFAULT_NUM_OF_CONDITION*2+col_act]
         sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 1).value = individual[-1][0]

@@ -23,7 +23,7 @@ for speed in range(4):
                     subprocess.call(cmd.split(),cwd = "../models")
 print(time.time()-start)
 '''
-
+'''
 def process(oil_data,freight_outward_data,freight_return_data,exchange_data,actionlist,action_number):
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
@@ -55,3 +55,13 @@ def main():
     print(time.time()-start)
 if __name__ == "__main__":
     main()
+'''
+generated_sinario = load_generated_sinario()
+oil_data = generated_sinario[0]
+freight_outward_data = generated_sinario[1]
+freight_return_data = generated_sinario[2]
+exchange_data = generated_sinario[3]
+ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
+                TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
+                [2,2,1,1,1],0)
+print(ga.execute_GA())

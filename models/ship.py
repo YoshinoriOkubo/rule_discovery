@@ -77,8 +77,10 @@ class Ship:
             self.agelist.pop(0)
         return cash
 
+    def buy_new_ship(self,freight_data,time,number):
+        pass
 
-    def buy_ship(self,freight_data,time,number):
+    def buy_secondhand_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
         if self.exist_number + number > self.max_ship_number:
@@ -91,7 +93,7 @@ class Ship:
 
 
     def charter_ship(self,oil_price,freight,number,direction):
-        p = CHARTER_PERIOD.index(3)
+        p = CHARTER_PERIOD.index(12)
         if direction == DECISION_CHARTER_OUT:
             if self.exist_number > 0:
                 cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.total_number

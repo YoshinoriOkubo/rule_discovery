@@ -40,17 +40,8 @@ class GA:
         self.temp = [] #temporary group that has individuals
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
-        self.compare_rule = []
-        for condition in range(DEFAULT_NUM_OF_CONDITION*2):
-            self.compare_rule.append([0,0,0,0])
-        for action in range(DEFAULT_NUM_OF_ACTION):
-            if action == 1:
-                self.compare_rule.append(1)
-            else:
-                self.compare_rule.append(0)
-        self.compare_rule.append([0,0])# average profit and varianve
 
-    def adapt_rule(self,oil_price,freight,exchange,rule):
+    def adapt_rule(self,oil_price,freight,exchange,own_ship,rule):
         a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
         b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
         if a == b or ( a <= oil_price and oil_price <= b):
@@ -60,14 +51,18 @@ class GA:
                 e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
                 f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
                 if e == f or (e <= exchange and exchange <= f):
-                    result = [True]
-                    result.append([])
-                    result[1].append(VESSEL_SPEED_LIST[self.actionlist[0]])
-                    result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                    result[1].append(SELL_NUMBER[self.actionlist[2]])
-                    result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
-                    result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
-                    return result
+                    g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
+                    h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
+                    if g == h or (g <= own_ship and own_ship <= h):
+                        result = [True]
+                        result.append([])
+                        result[1].append(VESSEL_SPEED_LIST[self.actionlist[0]])
+                        result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
+                        result[1].append(PURCHASE_NUMBER[self.actionlist[2]])
+                        result[1].append(SELL_NUMBER[self.actionlist[3]])
+                        result[1].append(CHARTER_IN_NUMBER[self.actionlist[4]])
+                        result[1].append(CHARTER_OUT_NUMBER[self.actionlist[5]])
+                        return result
         return [False]
 
     def check_rule_is_adapted(self,rule):
@@ -77,7 +72,7 @@ class GA:
                     oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
                     exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    result = self.adapt_rule(oil_price,freight,exchange,rule)
+                    result = self.adapt_rule(oil_price,freight,exchange,INITIAL_NUMBER_OF_SHIPS,rule)
                     if result[0]:
                         return True
         return False
@@ -128,11 +123,12 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,rule)
+                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number,rule)
                     if result[0]:
                         ship.change_speed(result[1][0])
                         cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        cash_flow += ship.buy_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
+                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
+                        cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
                         ship.charter_ship(current_oil_price,total_freight,result[1][3],DECISION_CHARTER_OUT)
                         ship.charter_ship(current_oil_price,total_freight,result[1][4],DECISION_CHARTER_IN)
                         if ship.charter_flag == True:
@@ -176,6 +172,8 @@ class GA:
                 self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
             if EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][5])]:
                 self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
+            if OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][6])] > OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][7])]:
+                self.temp[k][6],self.temp[k][7] = self.temp[k][7],self.temp[k][6]
 
     def depict_fitness(self):
         x = range(0,len(self.bestpopulation))
@@ -193,7 +191,7 @@ class GA:
         plt.grid(True)
         plt.legend(loc = 'lower right')
         save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'fitness_{}.png'.format(name)))
+        plt.savefig(os.path.join(save_dir, 'fitness.png'))
         plt.close()
 
     def depict_average_variance(self,gene=None,list=None):
@@ -400,6 +398,7 @@ class GA:
         #self.depict_average_variance()
         '''
         #initialize attribute
+        self.depict_fitness()
         self.gruop = []
         self.bestpopulation = []
         self.averagepopulation = []
@@ -415,7 +414,7 @@ def main():
     args = sys.argv
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5])],int(args[6]))
+                    [int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5]),int(args[6])],int(args[7]))
     print('execute_GA')
     ga.execute_GA()
 
