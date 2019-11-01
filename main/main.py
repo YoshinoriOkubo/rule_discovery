@@ -37,11 +37,12 @@ def main():
     start = time.time()
     all_actionlist = []
     for speed in range(4):
-        for purchase in range(4):
-            for sell in range(4):
-                for charter_in in range(4):
-                    for charter_out in range(4):
-                        all_actionlist.append([speed,purchase,sell,charter_in,charter_out])
+        for purchase_new in range(4):
+            for purchase_secondhand in range(4):
+                for sell in range(4):
+                    for charter_in in range(4):
+                        for charter_out in range(4):
+                            all_actionlist.append([speed,purchase_new,purchase_secondhand,sell,charter_in,charter_out])
     generated_sinario = load_generated_sinario()
     oil_data = generated_sinario[0]
     freight_outward_data = generated_sinario[1]
@@ -56,6 +57,7 @@ def main():
 if __name__ == "__main__":
     main()
 '''
+start = time.time()
 generated_sinario = load_generated_sinario()
 oil_data = generated_sinario[0]
 freight_outward_data = generated_sinario[1]
@@ -63,5 +65,6 @@ freight_return_data = generated_sinario[2]
 exchange_data = generated_sinario[3]
 ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                 TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                [2,2,1,1,1],0)
+                [2,2,1,1,1,1],0)
 print(ga.execute_GA())
+print(time.time()-start)

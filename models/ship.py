@@ -17,6 +17,8 @@ class Ship:
         self.charter_out_agelist = []
         self.max_ship_number = int(INITIAL_NUMBER_OF_SHIPS * 1.5)
         self.min_ship_number = 0 #int(INITIAL_NUMBER_OF_SHIPS * 0.5)
+        self.ship_order_list = []
+        self.order_number = 0
 
     def add_age(self):
         self.agelist = [n+1 for n in self.agelist]
@@ -36,6 +38,7 @@ class Ship:
         self.agelist.sort()
         self.exist_number -= old_number
         self.total_number -= old_number
+        self.ship_under_construct()
         return cash
 
     def calculate_idle_rate(self,freight):
@@ -78,7 +81,24 @@ class Ship:
         return cash
 
     def buy_new_ship(self,freight_data,time,number):
-        pass
+        if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
+            self.ship_order_list.append([number,ORDER_TIME])
+            self.order_number += number
+            return - INITIAL_COST_OF_SHIPBUIDING * number
+        else:
+            return 0
+
+    def ship_under_construct(self):
+        if self.ship_order_list != []:
+            for i in range(len(self.ship_order_list)):
+                self.ship_order_list[i][1] -= 1
+            if self.ship_order_list[0][1] == 0:
+                self.exist_number += self.ship_order_list[0][0]
+                self.total_number += self.ship_order_list[0][0]
+                self.order_number -= self.ship_order_list[0][0]
+                for number in range(self.ship_order_list[0][0]):
+                    self.agelist.append(0)
+                self.ship_order_list.pop(0)
 
     def buy_secondhand_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']

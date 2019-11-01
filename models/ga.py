@@ -1,7 +1,6 @@
 import random
 import copy
 import time
-from tqdm import tqdm
 import sys
 import matplotlib.pyplot as plt
 import os
@@ -123,14 +122,14 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number,rule)
+                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
                     if result[0]:
                         ship.change_speed(result[1][0])
-                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
+                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                         cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
-                        ship.charter_ship(current_oil_price,total_freight,result[1][3],DECISION_CHARTER_OUT)
+                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][3])
                         ship.charter_ship(current_oil_price,total_freight,result[1][4],DECISION_CHARTER_IN)
+                        ship.charter_ship(current_oil_price,total_freight,result[1][5],DECISION_CHARTER_OUT)
                         if ship.charter_flag == True:
                             cash_flow += ship.charter()
                             ship.end_charter()
@@ -249,7 +248,7 @@ class GA:
                 break
         return flag
 
-    def execute_GA(self,,method=ROULETTE):
+    def execute_GA(self,method=ROULETTE):
         first = time.time()
 
         #randomly generating individual group
@@ -258,8 +257,7 @@ class GA:
         #self.depict_average_variance(0,self.population,self.actionlist)
 
         #genetic algorithm
-        for gene in tqdm(range(self.generation)):
-            time.sleep(1/self.generation)
+        for gene in range(self.generation):
 
             #crossover
             self.temp = copy.deepcopy(self.population)

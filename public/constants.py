@@ -5,6 +5,7 @@ ROUTE_DISTANCE = 24000#km
 INITIAL_COST_OF_SHIPBUIDING = 99.9 * 1000000#$ refer = https://link.springer.com/content/pdf/10.1007%2Fs00773-014-0262-5.pdf
 FINAL_VALUE = 3.0 * 1000000
 NON_FUELED_COST  = 18.418 * 1000000 # $/year
+ORDER_TIME = 24
 
 
 "Profit calculation parameter"
@@ -19,7 +20,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.34
 INITIAL_NUMBER_OF_SHIPS = 100
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern':10, 'generation':40, 'population_size':50}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern':1, 'generation':4, 'population_size':50}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
