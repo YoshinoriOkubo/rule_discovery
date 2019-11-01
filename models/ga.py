@@ -148,10 +148,6 @@ class GA:
         e, sigma = calc_statistics(Record)
         return [e,sigma]
 
-    def multiproces_fitness(self,i):
-        e, sigma = self.fitness_function(self.temp[i])
-        return [i,[e,sigma]]
-
     def generateIndividual(self):
         temp = []
         for condition in range(DEFAULT_NUM_OF_CONDITION*2):
@@ -253,7 +249,7 @@ class GA:
                 break
         return flag
 
-    def execute_GA(self,multiprocess=None,method=ROULETTE):
+    def execute_GA(self,,method=ROULETTE):
         first = time.time()
 
         #randomly generating individual group
@@ -284,21 +280,9 @@ class GA:
             self.exchange_rule()
 
             #computation of fitness
-            if multiprocess is None:
-                fitness_time = time.time()
-                for one in range(len(self.temp)):
-                    rule = self.temp[one]
-                    rule[-1][0], rule[-1][1] = self.fitness_function(rule)
-                print('fitness',time.time()-fitness_time)
-            else:
-                multifitness_time = time.time()
-                num_pool = multi.cpu_count()
-                with Pool(num_pool) as pool:
-                    p = pool.map(self.multiproces_fitness, range(len(self.temp)))
-                    p.sort(key=lambda x:x[0])
-                    for i in range(len(p)):
-                        self.temp[i][-1][0], self.temp[i][-1][1] = p[i][1]
-                print('multifitness',time.time()-multifitness_time)
+            for one in range(len(self.temp)):
+                rule = self.temp[one]
+                rule[-1][0], rule[-1][1] = self.fitness_function(rule)
 
             #selection
             #change size of self.population
@@ -328,26 +312,6 @@ class GA:
                         roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
                         ark = (ark + 1) % len(self.temp)
                     self.population[i] = self.temp[ark]
-            elif method == TOURNAMENT:#tournament selection
-                for select in range(self.population_size-1):
-                    tournament = []
-                    for _ in range(6):
-                        tournament.append(self.temp[random.randint(0,2*self.population_size-1)])
-                    tournament.sort(key=lambda x:x[-1][0],reverse = True)
-                    self.population[select] = tournament[0]
-            elif method == STEADY_STATE:#steady state ga
-                for i in range(0,len(self.temp),2):
-                    if i + 1 < self.population_size:
-                        store = []
-                        store.append(self.temp[i])
-                        store.append(self.temp[i+1])
-                        if self.population_size + i < len(self.temp):
-                            store.append(self.temp[self.population_size + i])
-                        if self.population_size + i + 1 < len(self.temp):
-                            store.append(self.temp[self.population_size + i+1])
-                        store.sort(key=lambda x:x[-1][0],reverse = True)
-                        self.population[i] = store[0]
-                        self.population[i+1] = store[1]
             else:
                 print('Selected method does not exist')
                 sys.exit()
