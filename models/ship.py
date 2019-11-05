@@ -82,7 +82,7 @@ class Ship:
         freight_criteria = freight_data[0]['price']
         freight_now = freight_data[time]['price']
         if self.exist_number + number > self.max_ship_number:
-            number = self.exist_number - self.max_ship_number
+            number = self.max_ship_number - self.exist_number
         self.exist_number += number
         self.total_number += number
         for i in range(number):
