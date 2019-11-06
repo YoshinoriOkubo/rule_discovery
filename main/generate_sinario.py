@@ -1,4 +1,3 @@
-import numpy as np
 import sys
 sys.path.append('../models')
 from oil_price import Sinario
@@ -17,15 +16,15 @@ start = time.time()
 
 sinario = Sinario()
 sinario.generate_sinario()
-sinario.depict()
 freight_outward = FreightOutward()
 freight_outward.generate_sinario()
-freight_outward.depict()
 freight_return = FreightReturn(freight_outward.predicted_data)
 freight_return.generate_sinario()
-freight_return.depict()
 exchange_rate = ExchangeRate()
 exchange_rate.generate_sinario()
-exchange_rate.depict()
+
+depict_scenario(sinario,freight_outward,freight_return,exchange)
+depict_whole_scenario(sinario,freight_outward,exchange)
+depict_distribution(sinario,freight_outward,exchange)
 
 print(time.time()-start)

@@ -2,9 +2,7 @@ import numpy as np
 import sys
 import math
 import datetime
-import matplotlib.pyplot as plt
 import os
-#import openpyxl
 
 # import own modules #
 sys.path.append('../public')
@@ -94,24 +92,5 @@ class FreightReturn:
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 for time in range(len(self.history_data[pattern])):
                     self.predicted_data[pattern][time]['price'] = 625.7839568 + 0.128162493 * self.history_data[pattern][time]['price']
-        export_csv(self.predicted_data,'freight_outward')
+        export_scenario_csv(self.predicted_data,'freight_outward')
         return
-
-    def depict(self):
-        x = range(self.predict_years*12)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(self.predict_years*12):
-                y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
-        plt.title('Transition of freight rate return', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('freight rate return', fontsize = 16)
-        #plt.tick_params(labelsize=14)
-        #plt.legend(loc = 'lower right')
-        plt.grid(True)
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
-        plt.close()
-        #plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
-        #plt.show()

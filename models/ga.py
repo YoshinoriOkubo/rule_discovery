@@ -4,7 +4,6 @@ import time
 import sys
 import matplotlib.pyplot as plt
 import os
-#import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
 from ship import Ship

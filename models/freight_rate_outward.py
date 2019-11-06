@@ -2,10 +2,8 @@ import numpy as np
 import sys
 import math
 import datetime
-import matplotlib.pyplot as plt
 import os
 import random
-#import openpyxl
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -86,43 +84,5 @@ class FreightOutward:
 
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
-        export_csv(self.predicted_data,'freight_return')
+        export_scenario_csv(self.predicted_data,'freight_return')
         return
-
-    def depict(self):
-        x = range(self.predict_years*12)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(self.predict_years*12):
-                y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
-        plt.title('Transition of freight rate outward', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('freight rate return', fontsize = 16)
-        #plt.tick_params(labelsize=14)
-        #plt.legend(loc = 'lower right')
-        plt.grid(True)
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
-        plt.close()
-        #save_dir = '../image'
-        #plt.savefig(os.path.join(save_dir, 'freight_rate_outward.png'))
-        #plt.show()
-
-        num = len(self.history_data)
-        x = range(VESSEL_LIFE_TIME*12+num)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(180+num):
-                if i < num:
-                    y.append(self.history_data[i][1])
-                else:
-                    y.append(self.predicted_data[pattern][i-num]['price'])
-            plt.plot(x, y)
-        plt.title('Transition of freight rate', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('freight rate', fontsize = 16)
-        plt.grid(True)
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'freight_scenario_whole_time.png'))
-        plt.close()
