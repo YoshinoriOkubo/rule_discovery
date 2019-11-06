@@ -14,6 +14,7 @@ from ga import GA
 def single_processing():#single processing
     start = time.time()
     number = 0
+    population_list = []
     for speed in range(4):
         for purchase in range(4):
             for sell in range(4):
@@ -74,9 +75,8 @@ def one_rule_example():
     print(time.time()-start)
 
 def main():
-    #single_processing()
     multi_processing()
-    one_rule_example()
+    #one_rule_example()
 
 if __name__ == "__main__":
     main()#multiprocessing

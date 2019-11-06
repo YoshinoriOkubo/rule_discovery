@@ -19,6 +19,20 @@ def convert2to10_in_list(list):
     else:
         return None
 
+def export_csv(list,name):
+    path = '../output/{}.csv'.format(name)
+    with open(path, 'w') as f:
+        pass
+    with open(path, 'a') as f:
+        writer = csv.writer(f)
+        for time in range(VESSEL_LIFE_TIME*12):
+            row = []
+            for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+                row.append(list[pattern][time]['date'])
+                row.append(list[pattern][time]['price'])
+            print(row)
+            writer.writerow(row)
+
 def export_rules_csv(list):
     with open('../output/ship_rule.csv', 'w') as f:
         writer = csv.writer(f)
@@ -65,8 +79,8 @@ def load_generated_sinario():
                              delimiter=',',
                              dtype=dt,
                              usecols=[2*j,2*j+1],
-                             skip_header=0,))
-                             #encoding='utf-8_sig'))
+                             skip_header=0,
+                             encoding='utf-8_sig'))
         data = data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         all_data.append(data)
     return all_data

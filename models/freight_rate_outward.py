@@ -86,7 +86,7 @@ class FreightOutward:
 
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
-        self.export_excel()
+        export_csv(self.predicted_data,'freight_return')
         return
 
     def depict(self):
@@ -126,16 +126,3 @@ class FreightOutward:
         save_dir = '../output'
         plt.savefig(os.path.join(save_dir, 'freight_scenario_whole_time.png'))
         plt.close()
-
-    '''
-    def export_excel(self):
-        path = '../output/freight_outward.xlsx'
-        wb = openpyxl.load_workbook(path)
-        sheet = wb['Sheet1']
-        for i in range(self.predict_years*12):
-            for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                sheet.cell(row = i + 1, column = 2*j + 1).value = self.predicted_data[j][i]['date']
-                sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
-        wb.save(path)
-        wb.close()
-    '''

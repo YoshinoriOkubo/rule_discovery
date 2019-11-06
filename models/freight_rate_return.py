@@ -94,7 +94,7 @@ class FreightReturn:
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 for time in range(len(self.history_data[pattern])):
                     self.predicted_data[pattern][time]['price'] = 625.7839568 + 0.128162493 * self.history_data[pattern][time]['price']
-        self.export_excel()
+        export_csv(self.predicted_data,'freight_outward')
         return
 
     def depict(self):
@@ -115,15 +115,3 @@ class FreightReturn:
         plt.close()
         #plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
         #plt.show()
-    '''
-    def export_excel(self):
-        path = '../output/freight_return.xlsx'
-        wb = openpyxl.load_workbook(path)
-        sheet = wb['Sheet1']
-        for i in range(self.predict_years*12):
-            for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                sheet.cell(row = i + 1, column = 2*j + 1).value = self.predicted_data[j][i]['date']
-                sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
-        wb.save(path)
-        wb.close()
-    '''
