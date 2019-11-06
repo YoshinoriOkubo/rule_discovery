@@ -108,7 +108,7 @@ class GA:
         individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
 
-    def fitness_function(self,rule,priority=None):
+    def fitness_function(self,rule):
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
