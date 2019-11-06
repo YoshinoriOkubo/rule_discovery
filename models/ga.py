@@ -334,7 +334,6 @@ class GA:
         #self.depict_average_variance()
         '''
         #initialize attribute
-        self.depict_fitness()
         self.gruop = []
         self.bestpopulation = []
         self.averagepopulation = []

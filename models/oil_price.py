@@ -73,5 +73,4 @@ class Sinario:
                 current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
-        export_scenario_csv(self.predicted_data,'oil_price')
         return

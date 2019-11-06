@@ -75,8 +75,8 @@ def one_rule_example():
     print(time.time()-start)
 
 def main():
-    multi_processing()
-    #one_rule_example()
+    #multi_processing()
+    one_rule_example()
 
 if __name__ == "__main__":
     main()#multiprocessing

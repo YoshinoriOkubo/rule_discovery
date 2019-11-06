@@ -92,5 +92,4 @@ class FreightReturn:
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 for time in range(len(self.history_data[pattern])):
                     self.predicted_data[pattern][time]['price'] = 625.7839568 + 0.128162493 * self.history_data[pattern][time]['price']
-        export_scenario_csv(self.predicted_data,'freight_outward')
         return

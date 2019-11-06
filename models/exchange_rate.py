@@ -84,5 +84,4 @@ class ExchangeRate:
 
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
-        export_scenario_csv(self.predicted_data,'exchange_rate')
         return
