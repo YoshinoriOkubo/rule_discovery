@@ -2,7 +2,7 @@ import calendar as cal
 import numpy as np
 import datetime
 import os
-import openpyxl
+import csv
 import matplotlib.pyplot as plt
 from constants import *
 
@@ -19,30 +19,29 @@ def convert2to10_in_list(list):
     else:
         return None
 
-def export_population(list):
-    path = '../output/ship_rule.xlsx'
-    wb = openpyxl.load_workbook(path)
-    sheet = wb['Sheet1']
-    for index in range(len(list)):
-        individual = list[index]
-        row = index + 2
-        for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
-            if col_cond == 0 or col_cond == 1:
-                sheet.cell(row = row, column = col_cond + 1).value = OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])]
-            elif col_cond == 2 or col_cond == 3:
-                sheet.cell(row = row, column = col_cond + 1).value = FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])]
-            elif col_cond == 4 or col_cond == 5:
-                sheet.cell(row = row, column = col_cond + 1).value = EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])]
-            else:
-                sheet.cell(row = row, column = col_cond + 1).value = OWN_SHIP_LIST[convert2to10_in_list(individual[col_cond])]
-        for col_act in range(DEFAULT_NUM_OF_ACTION):
-            sheet.cell(row = row, column = col_act + DEFAULT_NUM_OF_CONDITION*2 + 1).value = individual[DEFAULT_NUM_OF_CONDITION*2+col_act]
-        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 1).value = individual[-1][0]
-        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 2).value = individual[-1][1]
-    wb.save(path)
-    wb.close()
-    print('saving changes')
-
+def export_rules_csv(list):
+    with open('../output/ship_rule.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','expectation','variance'])
+    with open('../output/ship_rule.csv', 'a') as f:
+        writer = csv.writer(f)
+        for index in range(len(list)):
+            row = []
+            individual = list[index]
+            for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
+                if col_cond == 0 or col_cond == 1:
+                    row.append(OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])])
+                elif col_cond == 2 or col_cond == 3:
+                    row.append(FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])])
+                elif col_cond == 4 or col_cond == 5:
+                    row.append(EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])])
+                else:
+                    row.append(OWN_SHIP_LIST[convert2to10_in_list(individual[col_cond])])
+            for col_act in range(DEFAULT_NUM_OF_ACTION):
+                row.append(individual[DEFAULT_NUM_OF_CONDITION*2+col_act])
+            row.append(individual[-1][0])
+            row.append(individual[-1][1])
+            writer.writerow(row)
 
 def load_generated_sinario():
     all_data = []
@@ -66,8 +65,8 @@ def load_generated_sinario():
                              delimiter=',',
                              dtype=dt,
                              usecols=[2*j,2*j+1],
-                             skip_header=0,
-                             encoding='utf-8_sig'))
+                             skip_header=0,))
+                             #encoding='utf-8_sig'))
         data = data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         all_data.append(data)
     return all_data

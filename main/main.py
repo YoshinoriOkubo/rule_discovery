@@ -57,6 +57,7 @@ def main():
 if __name__ == "__main__":
     main()
 '''
+print(multi.cpu_count())
 start = time.time()
 generated_sinario = load_generated_sinario()
 oil_data = generated_sinario[0]
@@ -66,5 +67,8 @@ exchange_data = generated_sinario[3]
 ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                 TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                 [2,2,1,1,1,1],0)
-print(ga.execute_GA())
+p = []
+p.append(ga.execute_GA())
+export_rules_csv(p)
+print(p)
 print(time.time()-start)

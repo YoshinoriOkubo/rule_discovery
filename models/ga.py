@@ -4,7 +4,7 @@ import time
 import sys
 import matplotlib.pyplot as plt
 import os
-import openpyxl
+#import openpyxl
 from multiprocessing import Pool
 import multiprocessing as multi
 from ship import Ship
@@ -214,31 +214,6 @@ class GA:
         else:
             plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
         plt.close()
-
-    def export_excel(self,list):
-        path = '../output/ship_rule.xlsx'
-        wb = openpyxl.load_workbook(path)
-        sheet = wb['Sheet1']
-        individual = list[0]
-        row = self.choice_number + 1
-        for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
-            if col_cond == 0 or col_cond == 1:
-                sheet.cell(row = row, column = col_cond + 1).value = OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])]
-            elif col_cond == 2 or col_cond == 3:
-                sheet.cell(row = row, column = col_cond + 1).value = FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])]
-            else:
-                sheet.cell(row = row, column = col_cond + 1).value = EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])]
-        for col_act in range(DEFAULT_NUM_OF_ACTION):
-            sheet.cell(row = row, column = col_act + DEFAULT_NUM_OF_CONDITION*2 + 1).value = self.actionlist[col_act]
-        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 1).value = individual[-1][0]
-        sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 2).value = individual[-1][1]
-        if self.check_rule_is_adapted(individual):
-            sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 3).value = 0
-        else:
-            sheet.cell(row = row, column = DEFAULT_NUM_OF_CONDITION*2 + DEFAULT_NUM_OF_ACTION + 3).value = 1
-        wb.save(path)
-        wb.close()
-        print('saving changes')
 
     def check_convergence(self,target,criteria):
         flag = True

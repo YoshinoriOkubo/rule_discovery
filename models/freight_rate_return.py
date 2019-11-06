@@ -4,7 +4,7 @@ import math
 import datetime
 import matplotlib.pyplot as plt
 import os
-import openpyxl
+#import openpyxl
 
 # import own modules #
 sys.path.append('../public')
@@ -115,7 +115,7 @@ class FreightReturn:
         plt.close()
         #plt.savefig(os.path.join(save_dir, 'freight_rate_return.png'))
         #plt.show()
-
+    '''
     def export_excel(self):
         path = '../output/freight_return.xlsx'
         wb = openpyxl.load_workbook(path)
@@ -126,3 +126,4 @@ class FreightReturn:
                 sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
         wb.save(path)
         wb.close()
+    '''
