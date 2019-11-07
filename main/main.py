@@ -76,7 +76,7 @@ def one_rule_example():
     print(time.time()-start)
 
 def main():
-    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
     #multi_processing()
     one_rule_example()
     slack.notify(text="program end!!!!!!!!!")
