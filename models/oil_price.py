@@ -2,9 +2,7 @@ import numpy as np
 import sys
 import math
 import datetime
-import matplotlib.pyplot as plt
 import os
-import openpyxl
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -75,54 +73,4 @@ class Sinario:
                 current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
-        self.export_excel()
         return
-
-    def depict(self):
-        x = range(self.predict_years*12)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(self.predict_years*12):
-                y.append(self.predicted_data[pattern][i]['price'])
-            plt.plot(x, y)#,label='pattern {}'.format(pattern+1))
-        plt.title('Transition of oil price', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('oil price', fontsize = 16)
-        #plt.tick_params(labelsize=14)
-        #plt.legend(loc = 'lower right')
-        plt.grid(True)
-        plt.ylim(0, 160)
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'oil_price.png'))
-        plt.close()
-
-        num = len(self.history_data)
-        x = range(VESSEL_LIFE_TIME*12+num)
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            y = []
-            for i in range(180+num):
-                if i < num:
-                    y.append(self.history_data[i][1])
-                else:
-                    y.append(self.predicted_data[pattern][i-num]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
-        plt.title('Transition of oil price', fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel('oil price', fontsize = 16)
-        plt.grid(True)
-        plt.xlim(0,600)
-        plt.ylim(0, 160)
-        save_dir = '../output'
-        plt.savefig(os.path.join(save_dir, 'oil_scenario_whole_time.png'))
-        plt.close()
-
-    def export_excel(self):
-        path = '../output/oil_price.xlsx'
-        wb = openpyxl.load_workbook(path)
-        sheet = wb['Sheet1']
-        for i in range(self.predict_years*12):
-            for j in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-                sheet.cell(row = i + 1, column = 2*j + 1).value = self.predicted_data[j][i]['date']
-                sheet.cell(row = i + 1, column = 2*j + 2).value = self.predicted_data[j][i]['price']
-        wb.save(path)
-        wb.close()
