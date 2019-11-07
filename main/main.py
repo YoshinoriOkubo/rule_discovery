@@ -4,6 +4,7 @@ import sys
 from multiprocessing import Pool
 import multiprocessing as multi
 import matplotlib
+import slackweb
 matplotlib.use('Agg')
 # import own modules #
 sys.path.append('../public')
@@ -42,7 +43,7 @@ def multi_processing():
     freight_return_data = generated_sinario[2]
     exchange_data = generated_sinario[3]
     num_pool = multi.cpu_count()
-    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i],i+1] for i in range(4)]
+    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i],i+1] for i in range(16)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         export_rules_csv(p)
@@ -70,13 +71,15 @@ def one_rule_example():
                     [2,2,1,1,1,1],0)
     p = []
     p.append(ga.execute_GA())
-    export_rules_csv(p)
+    #export_rules_csv(p)
     print(p)
     print(time.time()-start)
 
 def main():
+    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
     #multi_processing()
     one_rule_example()
+    slack.notify(text="program end!!!!!!!!!")
 
 if __name__ == "__main__":
     main()#multiprocessing
