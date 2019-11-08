@@ -32,43 +32,41 @@ def wrapper_process(args):
     return process(*args)
 
 def single_processing():
-    start = time.time()
     all_actionlist = make_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
     rule = []
     for action_number in range(len(all_actionlist)):
         rule.append(process(oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[action_number]))
-    #export_rules_csv(rule)
-    print(time.time()-start)
+    export_rules_csv(rule)
 
 def multi_processing():
-    start = time.time()
     all_actionlist = make_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
     num_pool = multi.cpu_count()
     tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i]] for i in range(4)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
-        #export_rules_csv(p)
-    print(time.time()-start)
+        export_rules_csv(p)
 
-def one_rule_example():
-    start = time.time()
+def one_rule_example(actionlist):
     oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
-                    [2,2,1,1,1,1])
+                    actionlist)
     p = []
     p.append(ga.execute_GA())
     print(p)
-    print(time.time()-start)
+
+def send_messege():
+    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    slack.notify(text="program end!!!!!!!!!")
 
 def main():
-    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    start = time.time()
     #single_processing()
-    multi_processing()
-    #one_rule_example()
-    slack.notify(text="program end!!!!!!!!!")
+    #multi_processing()
+    one_rule_example([0,0,1,3,1,2])
+    print(time.time()-start)
 
 if __name__ == "__main__":
     main()
