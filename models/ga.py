@@ -19,7 +19,7 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,actionlist,choice_number,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
@@ -28,12 +28,10 @@ class GA:
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
         self.actionlist = actionlist # decision of action parts.
-        self.choice_number = choice_number
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
         self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
         self.crossover_rate = crossover_rate if crossover_rate else DEFAULT_CROSSOVER_RATE
-        self.priority = []
         self.population = [] # population that has individual
         self.temp = [] #temporary group that has individuals
         self.bestpopulation = [] # group that has the best individuals in each generation
@@ -330,13 +328,9 @@ class GA:
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
-        print('finish')
-        print('Spent time is {0}'.format(time.time() - first))
+        #print('finish')
+        #print('Spent time is {0}'.format(time.time() - first))
         #self.depict_fitness()
         #self.depict_average_variance()
-        self.print_result()
-        #initialize attribute
-        self.gruop = []
-        self.bestpopulation = []
-        self.averagepopulation = []
+        #self.print_result()
         return self.population[0]
