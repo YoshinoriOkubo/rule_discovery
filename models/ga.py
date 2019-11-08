@@ -83,7 +83,6 @@ class GA:
             temp.append(self.actionlist[action])
         temp.append([0,0])
         temp[-1][0],temp[-1][1] = self.fitness_function(temp)
-        print(temp)
         return temp
 
     def crossover(self,a,b):
@@ -332,4 +331,5 @@ class GA:
         self.depict_fitness()
         #self.depict_average_variance()
         #self.print_result()
+        self.population.sort(key=lambda x:x[-1][0],reverse = True)
         return self.population[0]
