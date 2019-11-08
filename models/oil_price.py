@@ -11,7 +11,7 @@ from constants  import *
 class Sinario:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_history_data()
+            self.history_data = load_monthly_history_data(OIL_TYPE)
         else:
             self.history_data = history_data
         # initialize parameters

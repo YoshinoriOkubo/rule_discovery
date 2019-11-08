@@ -12,7 +12,7 @@ from constants  import *
 class FreightOutward:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_freight_rate_data(CCFI)
+            self.history_data = load_monthly_history_data(FREIGHT_TYPE,CCFI)
         else:
             self.history_data = history_data
         # initialize parameters
