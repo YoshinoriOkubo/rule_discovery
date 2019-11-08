@@ -49,7 +49,7 @@ class ExchangeRate:
         return
 
     def calc_freight_rate(self, current_freight_rate):
-        return self.u * current_freight_rate if prob(self.p) else self.d * current_freight_rate
+        return self.u * current_freight_rate if random.randint(0,1) < self.p else self.d * current_freight_rate
 
     # generate predicted sinario
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):

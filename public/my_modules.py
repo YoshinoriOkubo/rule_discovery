@@ -133,12 +133,6 @@ def add_year(start_date, year_num=1):
         current_date = add_month(current_date, 12)
     return current_date
 
-def prob(prob_value):
-    N = 10000
-    nonzero_num = np.count_nonzero(np.random.binomial(1, prob_value, N))
-    threshold   = N * prob_value
-    return (nonzero_num > threshold)
-
 def calc_statistics(list):
     n = len(list)
     e = 0
