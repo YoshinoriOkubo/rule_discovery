@@ -222,6 +222,39 @@ class GA:
                 break
         return flag
 
+    def print_result(self):
+        self.population.sort(key=lambda x:x[-1][0],reverse = True)
+        for i in range(0,NUM_DISPLAY):
+            if i == 0:
+                print('best rule', self.population[i])
+            thisone = self.population[i]
+            a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
+            b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
+            c = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[2])]
+            d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
+            e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
+            f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
+            speed = VESSEL_SPEED_LIST[self.actionlist[0]]
+            purchase_new = PURCHASE_NUMBER[self.actionlist[1]]
+            purchase_secondhand = PURCHASE_NUMBER[self.actionlist[2]]
+            sell = SELL_NUMBER[self.actionlist[3]]
+            charter_in = CHARTER_IN_NUMBER[self.actionlist[4]]
+            charter_out = CHARTER_OUT_NUMBER[self.actionlist[5]]
+            print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5}'.format(a,b,c,d,e,f))
+            print('speed {}'.format(speed))
+            print('purchase {} new ships'.format(purchase_new))
+            print('purchase {} secondhand ships'.format(purchase_secondhand))
+            print('sell {} ships'.format(sell))
+            print('charter_in {}'.format(charter_in))
+            print('charter_out {}'.format(charter_out))
+            print('Expectation = {}'.format(thisone[-1][0]))
+            print('Variance = {}'.format(thisone[-1][1]))
+            if self.check_rule_is_adapted(thisone):
+                print('ADPTED')
+            if a > b or c > d or e > f:
+                print('rule error')
+                sys.exit()
+
     def execute_GA(self,method=ROULETTE):
         first = time.time()
 
@@ -297,42 +330,11 @@ class GA:
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
-        #print result
-        '''
-        self.population.sort(key=lambda x:x[-1][0],reverse = True)
-        for i in range(0,NUM_DISPLAY):
-            if i == 0:
-                print('best rule', self.population[i])
-            thisone = self.population[i]
-            a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
-            b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
-            c = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[2])]
-            d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
-            e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
-            f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
-            speed = VESSEL_SPEED_LIST[self.actionlist[0]]
-            purchase = PURCHASE_NUMBER[self.actionlist[1]]
-            sell = SELL_NUMBER[self.actionlist[2]]
-            charter_in = CHARTER_IN_NUMBER[self.actionlist[3]]
-            charter_out = CHARTER_OUT_NUMBER[self.actionlist[4]]
-            print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5}'.format(a,b,c,d,e,f))
-            print('speed {}'.format(speed))
-            print('purchase {} ships'.format(purchase))
-            print('sell {} ships'.format(sell))
-            print('charter_in {}'.format(charter_in))
-            print('charter_out {}'.format(charter_out))
-            print('Expectation = {}'.format(thisone[-1][0]))
-            print('Variance = {}'.format(thisone[-1][1]))
-            if self.check_rule_is_adapted(thisone):
-                print('ADPTED')
-            if a > b or c > d or e > f:
-                print('rule error')
-                sys.exit()
         print('finish')
         print('Spent time is {0}'.format(time.time() - first))
         #self.depict_fitness()
         #self.depict_average_variance()
-        '''
+        self.print_result()
         #initialize attribute
         self.gruop = []
         self.bestpopulation = []
