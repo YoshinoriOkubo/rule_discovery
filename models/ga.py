@@ -73,6 +73,19 @@ class GA:
                         return True
         return False
 
+    def generateIndividual(self):
+        temp = []
+        for condition in range(DEFAULT_NUM_OF_CONDITION*2):
+            temp.append([])
+            for a in range(4):
+                temp[condition].append(random.randint(0,1))
+        for action in range(DEFAULT_NUM_OF_ACTION):
+            temp.append(self.actionlist[action])
+        temp.append([0,0])
+        temp[-1][0],temp[-1][1] = self.fitness_function(temp)
+        print(temp)
+        return temp
+
     def crossover(self,a,b):
         temp1 = []
         temp2 = []
@@ -105,33 +118,6 @@ class GA:
         point = random.randint(0,length)
         individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
-
-    def selection(self,gene):
-        #store last generation's best individual unchanged
-        if gene > 0:
-            self.population[0] = self.bestpopulation[gene-1]
-        else:#this does not have meaning, just number adjustment
-            self.population[0] = self.temp[0]
-            #self.depict_average_variance(gene,self.temp)
-        #roulette selection and elite storing
-        #store the best 5% individual
-        self.temp.sort(key=lambda x:x[-1][0],reverse = True)
-        elite_number = int(self.population_size * 0.05)
-        for i in range(1,elite_number+1):
-            self.population[i] = self.temp[i]
-        min_fit = self.temp[-1][-1][0]
-        random.shuffle(self.temp)
-        ark = 0 # the number used to roulette in crossing
-        probability = 0
-        for i in range(len(self.temp)):
-            probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
-        roulette = 0
-        for i in range(elite_number+1,self.population_size):
-            roulette = random.randint(0,int(probability))
-            while roulette > 0:
-                roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
-                ark = (ark + 1) % len(self.temp)
-            self.population[i] = self.temp[ark]
 
     def fitness_function(self,rule):
         Record = []
@@ -171,17 +157,28 @@ class GA:
         e, sigma = calc_statistics(Record)
         return [e,sigma]
 
-    def generateIndividual(self):
-        temp = []
-        for condition in range(DEFAULT_NUM_OF_CONDITION*2):
-            temp.append([])
-            for a in range(4):
-                temp[condition].append(random.randint(0,1))
-        for action in range(DEFAULT_NUM_OF_ACTION):
-            temp.append(self.actionlist[action])
-        temp.append([0,0])
-        temp[-1][0],temp[-1][1] = self.fitness_function(temp)
-        return temp
+    def selection(self):
+        #store last generation's best individual unchanged
+        self.population.sort(key=lambda x:x[-1][0],reverse = True)
+        #roulette selection and elite storing
+        #store the best 5% individual
+        self.temp.sort(key=lambda x:x[-1][0],reverse = True)
+        elite_number = int(self.population_size * 0.05)
+        for i in range(1,elite_number+1):
+            self.population[i] = self.temp[i]
+        min_fit = self.temp[-1][-1][0]
+        random.shuffle(self.temp)
+        ark = 0 # the number used to roulette in crossing
+        probability = 0
+        for i in range(len(self.temp)):
+            probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
+        roulette = 0
+        for i in range(elite_number+1,self.population_size):
+            roulette = random.randint(0,int(probability))
+            while roulette > 0:
+                roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
+                ark = (ark + 1) % len(self.temp)
+            self.population[i] = self.temp[ark]
 
     def exchange_rule(self):
         for k in range(len(self.temp)):
@@ -215,6 +212,7 @@ class GA:
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
         plt.ylabel('fitness value', fontsize = 16)
+        plt.ylim(-2,2)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
@@ -299,9 +297,9 @@ class GA:
 
         #genetic algorithm
         for gene in range(self.generation):
-
             #crossover
             self.temp = copy.deepcopy(self.population)
+            random.shuffle(self.temp)
             for selected in range(0,self.population_size,2):
                 if random.random() < self.crossover_rate:
                     a,b = self.crossover(self.temp[selected],self.temp[selected+1])
@@ -324,14 +322,14 @@ class GA:
                 rule[-1][0], rule[-1][1] = self.fitness_function(rule)
 
             #selection
-            self.selection(gene)
+            self.selection()
             self.store_best_and_average()
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
         #print('finish')
         #print('Spent time is {0}'.format(time.time() - first))
-        #self.depict_fitness()
+        self.depict_fitness()
         #self.depict_average_variance()
         #self.print_result()
         return self.population[0]
