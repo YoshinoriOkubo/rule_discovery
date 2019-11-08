@@ -106,6 +106,33 @@ class GA:
         individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
         return individual
 
+    def selection(self,gene):
+        #store last generation's best individual unchanged
+        if gene > 0:
+            self.population[0] = self.bestpopulation[gene-1]
+        else:#this does not have meaning, just number adjustment
+            self.population[0] = self.temp[0]
+            #self.depict_average_variance(gene,self.temp)
+        #roulette selection and elite storing
+        #store the best 5% individual
+        self.temp.sort(key=lambda x:x[-1][0],reverse = True)
+        elite_number = int(self.population_size * 0.05)
+        for i in range(1,elite_number+1):
+            self.population[i] = self.temp[i]
+        min_fit = self.temp[-1][-1][0]
+        random.shuffle(self.temp)
+        ark = 0 # the number used to roulette in crossing
+        probability = 0
+        for i in range(len(self.temp)):
+            probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
+        roulette = 0
+        for i in range(elite_number+1,self.population_size):
+            roulette = random.randint(0,int(probability))
+            while roulette > 0:
+                roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
+                ark = (ark + 1) % len(self.temp)
+            self.population[i] = self.temp[ark]
+
     def fitness_function(self,rule):
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -167,6 +194,15 @@ class GA:
             if OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][6])] > OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][7])]:
                 self.temp[k][6],self.temp[k][7] = self.temp[k][7],self.temp[k][6]
 
+    def store_best_and_average(self):
+        self.population.sort(key=lambda x:x[-1][0],reverse = True)
+        self.bestpopulation.append(self.population[0])
+        random.shuffle(self.population)
+        total = 0
+        for e in range(self.population_size):
+            total += self.population[e][-1][0]
+        self.averagepopulation.append(total/self.population_size)
+
     def depict_fitness(self):
         x = range(0,len(self.bestpopulation))
         y = []
@@ -182,7 +218,7 @@ class GA:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
-        save_dir = '../output'
+        save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, 'fitness.png'))
         plt.close()
 
@@ -253,7 +289,7 @@ class GA:
                 print('rule error')
                 sys.exit()
 
-    def execute_GA(self,method=ROULETTE):
+    def execute_GA(self):
         first = time.time()
 
         #randomly generating individual group
@@ -288,43 +324,8 @@ class GA:
                 rule[-1][0], rule[-1][1] = self.fitness_function(rule)
 
             #selection
-            #change size of self.population
-            self.population = [0] * self.population_size
-            #store last generation's best individual unchanged
-            if gene > 0:
-                self.population[0] = self.bestpopulation[gene-1]
-            else:#this does not have meaning, just number adjustment
-                self.population[0] = self.temp[0]
-                #self.depict_average_variance(gene,self.temp)
-            if method == ROULETTE:#roulette selection and elite storing
-                #store the best 5% individual
-                self.temp.sort(key=lambda x:x[-1][0],reverse = True)
-                elite_number = int(self.population_size * 0.05)
-                for i in range(1,elite_number+1):
-                    self.population[i] = self.temp[i]
-                min_fit = self.temp[-1][-1][0]
-                random.shuffle(self.temp)
-                ark = 0 # the number used to roulette in crossing
-                probability = 0
-                for i in range(len(self.temp)):
-                    probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
-                roulette = 0
-                for i in range(elite_number+1,self.population_size):
-                    roulette = random.randint(0,int(probability))
-                    while roulette > 0:
-                        roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
-                        ark = (ark + 1) % len(self.temp)
-                    self.population[i] = self.temp[ark]
-            else:
-                print('Selected method does not exist')
-                sys.exit()
-            self.population.sort(key=lambda x:x[-1][0],reverse = True)
-            self.bestpopulation.append(self.population[0])
-            random.shuffle(self.population)
-            total = 0
-            for e in range(self.population_size):
-                total += self.population[e][-1][0]
-            self.averagepopulation.append(total/self.population_size)
+            self.selection(gene)
+            self.store_best_and_average()
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
