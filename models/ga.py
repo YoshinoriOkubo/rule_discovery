@@ -40,16 +40,16 @@ class GA:
     def adapt_rule(self,oil_price,freight,exchange,own_ship,rule):
         a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
         b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
-        if a == b or ( a <= oil_price and oil_price <= b):
+        if a <= oil_price and oil_price <= b:
             c = FREIGHT_RATE_LIST[convert2to10_in_list(rule[2])]
             d = FREIGHT_RATE_LIST[convert2to10_in_list(rule[3])]
-            if c == d or ( c <= freight and freight <= d):
+            if c <= freight and freight <= d:
                 e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
                 f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
-                if e == f or (e <= exchange and exchange <= f):
+                if e <= exchange and exchange <= f:
                     g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
                     h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
-                    if g == h or (g <= own_ship and own_ship <= h):
+                    if g <= own_ship and own_ship <= h:
                         result = [True]
                         result.append([])
                         result[1].append(VESSEL_SPEED_LIST[self.actionlist[0]])

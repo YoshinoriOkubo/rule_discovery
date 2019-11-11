@@ -37,13 +37,13 @@ def select_rules(rule,oil,freight,exchange,own_ship):
 
 def adapt_rule(oil_price,freight,exchange,own_ship,rule,actionlist=None):
     a,b = rule[0],rule[1]
-    if a == b or ( a <= oil_price and oil_price <= b):
+    if a <= oil_price and oil_price <= b:
         c,d = rule[2],rule[3]
-        if c == d or ( c <= freight and freight <= d):
+        if c <= freight and freight <= d:
             e,f = rule[4],rule[5]
-            if e == f or (e <= exchange and exchange <= f):
+            if e <= exchange and exchange <= f:
                 g,h = rule[6],rule[7]
-                if g == h or (g <= own_ship and own_ship <= h):
+                if g <= own_ship and own_ship <= h:
                     result = [True]
                     result.append([])
                     result[1].append(VESSEL_SPEED_LIST[int(rule[8])])
