@@ -88,12 +88,14 @@ class Ship:
         return cash
 
     def buy_new_ship(self,freight_data,time,number):
+        freight_criteria = freight_data[0]['price']
+        freight_now = freight_data[time]['price']
         if self.exist_number + number > self.max_ship_number:
             number = self.max_ship_number - self.exist_number
         if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
             self.ship_order_list.append([number,ORDER_TIME])
             self.order_number += number
-            return - INITIAL_COST_OF_SHIPBUIDING * number
+            return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+(freight_now/freight_criteria))*number
         else:
             return 0
 
