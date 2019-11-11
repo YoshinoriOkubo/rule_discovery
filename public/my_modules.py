@@ -200,7 +200,7 @@ def depict_whole_scenario(oil,freight_outward,exchange):
         plt.ylabel(name, fontsize = 16)
         plt.grid(True)
         plt.xlim(0,600)
-        plt.ylim(0, 160)
+        #plt.ylim(0, 160)
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()

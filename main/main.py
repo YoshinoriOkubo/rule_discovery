@@ -43,7 +43,7 @@ def multi_processing():
     all_actionlist = make_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
     num_pool = multi.cpu_count()
-    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i]] for i in range(4)]
+    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i]] for i in range(4**6)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         export_rules_csv(p)
@@ -65,8 +65,9 @@ def main():
     start = time.time()
     #single_processing()
     #multi_processing()
-    one_rule_example([0,0,1,3,1,2])
+    #one_rule_example([0,0,1,3,1,2])
     print(time.time()-start)
+    send_messege()
 
 if __name__ == "__main__":
     main()
