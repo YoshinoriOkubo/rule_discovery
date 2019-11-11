@@ -77,7 +77,7 @@ class Ship:
     def sell_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
         if time - 3 < 0:
-            FREIGHT_PREV[time-3]
+            freight_now = FREIGHT_PREV[time-3]
         else:
             freight_now = freight_data[time-3]['price']
         if self.exist_number - number < self.min_ship_number:
@@ -98,7 +98,7 @@ class Ship:
         if number > 0:
             freight_criteria = freight_data[0]['price']
             if time - 3 < 0:
-                FREIGHT_PREV[time-3]
+                freight_now = FREIGHT_PREV[time-3]
             else:
                 freight_now = freight_data[time-3]['price']
             if self.exist_number + number > self.max_ship_number:
@@ -128,7 +128,7 @@ class Ship:
         if number > 0:
             freight_criteria = freight_data[0]['price']
             if time - 3 < 0:
-                FREIGHT_PREV[time-3]
+                freight_now = FREIGHT_PREV[time-3]
             else:
                 freight_now = freight_data[time-3]['price']
             if self.exist_number + number > self.max_ship_number:
