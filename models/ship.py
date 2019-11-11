@@ -49,7 +49,7 @@ class Ship:
         return cash
 
     def calculate_idle_rate(self,freight):
-        freight_outward = (2*freight - LOAD_FACTOR_EUROPE_TO_ASIA*625.7839568)/(LOAD_FACTOR_ASIA_TO_EUROPE + LOAD_FACTOR_EUROPE_TO_ASIA*0.128162493)
+        freight_outward = (2*freight - LOAD_FACTOR_EUROPE_TO_ASIA*F_INTERCEPT)/(LOAD_FACTOR_ASIA_TO_EUROPE + LOAD_FACTOR_EUROPE_TO_ASIA*F_INCLINATION)
         gap = 0.485597471 + freight_outward * -0.000325635# mean (supply - demand)/demand
         self.idle_rate = 1 - 1 /(1 + gap)
         number_of_operating = INITIAL_NUMBER_OF_SHIPS - self.idle_rate * INITIAL_NUMBER_OF_SHIPS
@@ -76,7 +76,10 @@ class Ship:
 
     def sell_ship(self,freight_data,time,number):
         freight_criteria = freight_data[0]['price']
-        freight_now = freight_data[time]['price']
+        if time - 3 < 0:
+            FREIGHT_PREV[time-3]
+        else:
+            freight_now = freight_data[time-3]['price']
         if self.exist_number - number < self.min_ship_number:
             number = self.exist_number - self.min_ship_number
         self.exist_number -= number
@@ -94,7 +97,10 @@ class Ship:
     def buy_new_ship(self,freight_data,time,number):
         if number > 0:
             freight_criteria = freight_data[0]['price']
-            freight_now = freight_data[time]['price']
+            if time - 3 < 0:
+                FREIGHT_PREV[time-3]
+            else:
+                freight_now = freight_data[time-3]['price']
             if self.exist_number + number > self.max_ship_number:
                 number = self.max_ship_number - self.exist_number
             if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
@@ -121,7 +127,10 @@ class Ship:
     def buy_secondhand_ship(self,freight_data,time,number):
         if number > 0:
             freight_criteria = freight_data[0]['price']
-            freight_now = freight_data[time]['price']
+            if time - 3 < 0:
+                FREIGHT_PREV[time-3]
+            else:
+                freight_now = freight_data[time-3]['price']
             if self.exist_number + number > self.max_ship_number:
                 number = self.max_ship_number - self.exist_number
             self.exist_number += number
@@ -135,7 +144,7 @@ class Ship:
 
     def charter_ship(self,oil_price,freight,number,direction):
         if number > 0:
-            p = CHARTER_PERIOD.index(12)
+            p = CHARTER_PERIOD.index(CHARTER_TIME)
             if direction == DECISION_CHARTER_OUT:
                 if self.exist_number > 0:
                     cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.total_number
