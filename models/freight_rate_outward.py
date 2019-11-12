@@ -65,8 +65,8 @@ class FreightOutward:
 
         # latest date from history_data
         latest_history_date_str, latest_freight_rate = self.history_data[-1]
+        latest_freight_rate = FREIGHT_0
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
-
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
             current_freight_rate = latest_freight_rate

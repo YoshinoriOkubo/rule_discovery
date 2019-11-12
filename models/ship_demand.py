@@ -9,10 +9,10 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-class Sinario:
+class ShipDemand:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_history_data(OIL_TYPE)
+            self.history_data = load_monthly_history_data(DEMAND_TYPE)
         else:
             self.history_data = history_data
         # initialize parameters
@@ -24,18 +24,18 @@ class Sinario:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / DELAT_T
+        delta_t = 1.0 / 10
         values  = np.array([])
-        for date, oil_price in self.history_data:
+        for date, ship_demand in self.history_data:
             if index == 0:
                 # initialize the price
-                s_0 = oil_price
+                s_0 = ship_demand
             else:
-                s_t      = oil_price
+                s_t      = ship_demand
                 base_val = math.log(s_t / s_0)
                 values   = np.append(values, base_val)
                 # update the price
-                s_0      = oil_price
+                s_0      = ship_demand
             index += 1
 
         # substitute inf to nan in values
@@ -47,8 +47,8 @@ class Sinario:
         self.p      = 0.5 + 0.5 * (self.neu / self.sigma) * np.sqrt(delta_t)
         return
 
-    def calc_oilprice(self, current_oilprice):
-        return self.u * current_oilprice if random.randint(0,1) < self.p else self.d * current_oilprice
+    def calc_ship_demand(self, current_ship_demand):
+        return self.u * current_ship_demand if random.randint(0,1) < self.p else self.d * current_ship_demand
 
     # generate predicted sinario
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -63,16 +63,16 @@ class Sinario:
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        latest_history_date_str, latest_oilprice = self.history_data[-1]
+        latest_history_date_str, latest_ship_demand = self.history_data[-1]
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
-            current_oilprice = latest_oilprice
+            current_ship_demand = latest_ship_demand
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for i in range(10):
-                    current_oilprice    = self.calc_oilprice(current_oilprice)
-                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
+                    current_ship_demand    = self.calc_ship_demand(current_ship_demand)
+                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_ship_demand)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return

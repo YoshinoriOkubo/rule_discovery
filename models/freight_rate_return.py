@@ -91,5 +91,5 @@ class FreightReturn:
             self.predicted_data = np.copy(self.history_data)
             for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                 for time in range(len(self.history_data[pattern])):
-                    self.predicted_data[pattern][time]['price'] = 625.7839568 + 0.128162493 * self.history_data[pattern][time]['price']
+                    self.predicted_data[pattern][time]['price'] = F_INTERCEPT + F_INCLINATION * self.history_data[pattern][time]['price']
         return

@@ -76,6 +76,10 @@ def load_monthly_history_data(type,direction=None,from_date=None, to_date=None):
             raise Exception('freight type error!')
     elif type == EXCHANGE_TYPE:
         history_data_path = '../data/exchange_rate_after_praza_agreement.csv'
+    elif type == DEMAND_TYPE:
+        history_data_path = '../data/ship_demand.csv'
+    elif type == SUPPLY_TYPE:
+        history_data_path = '../data/ship_supply.csv'
     else:
         raise Exception('type error')
 
@@ -162,11 +166,11 @@ def export_scenario_csv(oil,freight_outward,freight_return,exchange):
                 print(row)
                 writer.writerow(row)
 
-def depict_scenario(oil,freight_outward,freight_return,exchange):
-    list1 = [oil,freight_outward,freight_return,exchange]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate']
+def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
     for (data, name) in zip(list1,list2):
-        x = range(oil.predict_years*12)
+        x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             y = []
             for time in range(data.predict_years*12):
@@ -176,14 +180,13 @@ def depict_scenario(oil,freight_outward,freight_return,exchange):
         plt.xlabel('month', fontsize = 16)
         plt.ylabel(name, fontsize = 16)
         plt.grid(True)
-        plt.ylim(0, 160)
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
         plt.close()
 
-def depict_whole_scenario(oil,freight_outward,exchange):
-    list1 = [oil,freight_outward,exchange]
-    list2 = ['oil_price','freight_outward','exchange_rate']
+def depict_whole_scenario(oil,freight_outward,exchange,demand,supply):
+    list1 = [oil,freight_outward,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','exchange_rate','ship_demand','ship_supply']
     for (data, name) in zip(list1,list2):
         orignal_length = len(data.history_data)
         x = range(VESSEL_LIFE_TIME*12+orignal_length)
@@ -205,10 +208,10 @@ def depict_whole_scenario(oil,freight_outward,exchange):
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
 
-def depict_distribution(oil,freight_outward,exchange):
-    list1 = [oil,freight_outward,exchange]
-    list2 = ['oil_price','freight_outward','exchange_rate']
-    list3 = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST]
+def depict_distribution(oil,freight_outward,exchange,demand,supply):
+    list1 = [oil,freight_outward,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','exchange_rate','ship_demand','ship_supply']
+    list3 = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,SHIP_DEMAND_LIST,SHIP_SUPPLY_LIST]
     for (data, name, list) in zip(list1,list2,list3):
         distribution = [0]*16
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):

@@ -25,18 +25,18 @@ class ExchangeRate:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / 12
+        delta_t = 1.0 / DELAT_T
         values  = np.array([])
-        for date, freight_rate in self.history_data:
+        for date, exchange_rate in self.history_data:
             if index == 0:
                 # initialize the price
-                s_0 = freight_rate
+                s_0 = exchange_rate
             else:
-                s_t      = freight_rate
+                s_t      = exchange_rate
                 base_val = math.log(s_t / s_0)
                 values   = np.append(values, base_val)
                 # update the price
-                s_0      = freight_rate
+                s_0      = exchange_rate
             index += 1
 
         # substitute inf to nan in values
@@ -48,8 +48,8 @@ class ExchangeRate:
         self.p      = 0.5 + 0.5 * (self.neu / self.sigma) * np.sqrt(delta_t)
         return
 
-    def calc_freight_rate(self, current_freight_rate):
-        return self.u * current_freight_rate if random.randint(0,1) < self.p else self.d * current_freight_rate
+    def calc_exchange_rate(self, current_exchange_rate):
+        return self.u * current_exchange_rate if random.randint(0,1) < self.p else self.d * current_exchange_rate
 
     # generate predicted sinario
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -64,24 +64,17 @@ class ExchangeRate:
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        latest_history_date_str, latest_freight_rate = self.history_data[-1]
+        latest_history_date_str, latest_exchange_rate = self.history_data[-1]
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
 
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
-            current_freight_rate = latest_freight_rate
+            current_exchange_rate = latest_exchange_rate
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                current_freight_rate    = self.calc_freight_rate(current_freight_rate)
-
-                #make a threshold
-                #if current_freight_rate > 2500:
-                    #current_freight_rate = current_freight_rate * self.d /self.u
-                #if current_freight_rate < 500:
-                    #current_freight_rate = current_freight_rate * self.u /self.d
-
-
-                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
+                for index in range(10):
+                    current_exchange_rate    = self.calc_exchange_rate(current_exchange_rate)
+                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_exchange_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
         return

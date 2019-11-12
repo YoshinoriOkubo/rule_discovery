@@ -65,7 +65,7 @@ def main():
     start = time.time()
     #single_processing()
     #multi_processing()
-    #one_rule_example([0,0,1,3,1,2])
+    one_rule_example([0,0,1,3,1,2])
     print(time.time()-start)
     send_messege()
 
