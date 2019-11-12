@@ -19,7 +19,7 @@ class Freight:
             self.history_data = load_monthly_history_data(FREIGHT_TYPE,CCFI)
 
     def calc_freight(self,pattern,time):
-        return self.ship_demand_data[pattern][time]['price']/self.ship_supply_data[pattern][time]['price']*(-1809432.357) + 4770.569817
+        return max(0,self.ship_demand_data[pattern][time]['price']/self.ship_supply_data[pattern][time]['price']*(-1809432.357) + 4770.569817)
 
 
     # generate predicted sinario

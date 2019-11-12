@@ -78,7 +78,9 @@ class ShipSupply:
         future_supply = self.calc_ship_supply_future()
         order_number = future_demand*12/SHIP_NUMBER_PER_DEMAND - future_supply
         if order_number > 0:
-            #print('order',order_number)
+            if order_number > ORDER_CAPACITY:
+                order_number = ORDER_CAPACITY
+            #print(time,order_number)
             self.orderbook.append([order_number,ORDER_TIME])
         return
 
@@ -102,4 +104,10 @@ class ShipSupply:
                     self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_ship_supply())], dtype=dt))
                     self.add_age()
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        for pattern in range(predict_pattern_number):
+            point = self.predicted_data[pattern][24]['price']
+            start = self.predicted_data[pattern][0]['price']
+            inclination = (point-start)/24
+            for i in range(24):
+                self.predicted_data[pattern][i]['price'] = start + inclination*i
         return
