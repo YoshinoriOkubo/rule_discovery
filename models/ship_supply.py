@@ -15,6 +15,7 @@ class ShipSupply:
         self.ship_age_distribution = []
         self.orderbook = []
         self.lack_number = 0
+        self.ini_sup = ship_demand_data[0][0]['price']/SHIP_NUMBER_PER_DEMAND
         if history_data is None:
             self.history_data = load_monthly_history_data(SUPPLY_TYPE)
 
@@ -25,19 +26,19 @@ class ShipSupply:
         sum = WITHIN_FIVE + WITHIN_TEN + WITHIN_FIF
         for time in range(VESSEL_LIFE_TIME*12):
             if time < five_year:
-                self.ship_age_distribution.append(5000*WITHIN_FIVE/sum/60)
+                self.ship_age_distribution.append(self.ini_sup*WITHIN_FIVE/sum/60)
             elif time < ten_year:
-                self.ship_age_distribution.append(5000*WITHIN_TEN/sum/60)
+                self.ship_age_distribution.append(self.ini_sup*WITHIN_TEN/sum/60)
             else:
-                self.ship_age_distribution.append(5000*WITHIN_FIF/sum/60)
-        for time in range(VESSEL_LIFE_TIME*12,20*12):
+                self.ship_age_distribution.append(self.ini_sup*WITHIN_FIF/sum/60)
+        for time in range(VESSEL_LIFE_TIME*12,(VESSEL_LIFE_TIME+5)*12):
             self.ship_age_distribution.append(0)
 
     def generate_orderbook(self):
         self.orderbook = []
         for time in range(1,ORDER_TIME):
             order_number = self.ship_age_distribution[-(60+time)]
-            self.orderbook.append([order_number,time])
+            self.orderbook.append([order_number*1.1,time])
 
     def add_age(self):
         for age in reversed(range(0,VESSEL_LIFE_TIME*12)):
@@ -47,13 +48,16 @@ class ShipSupply:
                 self.ship_age_distribution[age] = self.ship_age_distribution[age-1]
         if self.lack_number > 0:
             age = VESSEL_LIFE_TIME*12
-            while self.lack_number > 0 and age < 20*12:
+            list = [0]*60
+            while self.lack_number > 0 and age < (VESSEL_LIFE_TIME+5)*12:
                 remain_number = self.ship_age_distribution[age-1]
                 if remain_number > self.lack_number:
                     remain_number = self.lack_number
-                self.ship_age_distribution[age] = remain_number
+                list.append(remain_number)
                 self.lack_number -= remain_number
                 age += 1
+            for age in range(VESSEL_LIFE_TIME*12,(VESSEL_LIFE_TIME+5)*12):
+                self.ship_age_distribution[age] = list[age-VESSEL_LIFE_TIME*12]
         self.under_construct()
         self.finish_construct()
 
@@ -72,13 +76,13 @@ class ShipSupply:
         ship_demand_now = self.ship_demand_data[pattern][now]['price']
         ship_demand_before = self.ship_demand_data[pattern][now-term]['price']
         future_demand = (ship_demand_now - ship_demand_before)*ORDER_TIME/term + ship_demand_now
-        return future_demand
+        return future_demand*1.2
 
     def calc_ship_supply_future(self):
         supply = 0
         for construct in self.orderbook:
             supply += construct[0]
-        for in_operation in range(0,VESSEL_LIFE_TIME*12-ORDER_TIME):#don't count over 15
+        for in_operation in range(0,(VESSEL_LIFE_TIME+5)*12-ORDER_TIME):
             supply += self.ship_age_distribution[in_operation]
         return supply
 
@@ -91,7 +95,7 @@ class ShipSupply:
         order_number = future_demand/SHIP_NUMBER_PER_DEMAND - future_supply
         if order_number > 0:
             if order_number > ORDER_CAPACITY:
-                self.lack_number += order_number - ORDER_CAPACITY
+                self.lack_number = order_number - ORDER_CAPACITY
                 order_number = ORDER_CAPACITY
             self.orderbook.append([order_number,ORDER_TIME])
         return
@@ -115,11 +119,11 @@ class ShipSupply:
                     self.order_ship(pattern,year*12+month)
                     self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_ship_supply())], dtype=dt))
                     self.add_age()
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
         for pattern in range(predict_pattern_number):
             point = self.predicted_data[pattern][24]['price']
             start = self.predicted_data[pattern][0]['price']
             inclination = (point-start)/24
             for i in range(24):
-                self.predicted_data[pattern][i]['price'] = start + inclination*i
+                self.predicted_data[pattern][i]['price'] = start + inclination*i*random.random()
         return
