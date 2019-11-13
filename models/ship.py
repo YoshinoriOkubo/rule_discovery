@@ -13,12 +13,26 @@ class Ship:
         self.charter_flag = False
         self.charter_list = []
         self.idle_rate = 0
-        self.agelist = [0]*self.exist_number
+        self.agelist = []
+        self.generate_agelist(self.exist_number)
         self.charter_out_agelist = []
         self.max_ship_number = int(INITIAL_NUMBER_OF_SHIPS * 1.5)
         self.min_ship_number = 0 #int(INITIAL_NUMBER_OF_SHIPS * 0.5)
         self.ship_order_list = []
         self.order_number = 0
+
+    def generate_agelist(self,number):
+        sum = WITHIN_FIVE + WITHIN_TEN + WITHIN_FIF
+        number_under_five = int(number * WITHIN_FIVE/sum)
+        number_under_ten = int(number * WITHIN_TEN/sum)
+        number_under_fif = number - number_under_five - number_under_ten
+        for index in range(0,number_under_five):
+            self.agelist.append(int(index*60/number_under_five))
+        for index in range(0,number_under_ten):
+            self.agelist.append(int(index*60/number_under_ten)+60)
+        for index in range(0,number_under_fif):
+            self.agelist.append(int(index*60/number_under_fif)+120)
+
 
     def check(self):
         flag = len(self.agelist) == self.exist_number
@@ -48,19 +62,15 @@ class Ship:
         self.ship_under_construct()
         return cash
 
-    def calculate_idle_rate(self,freight):
-        freight_outward = (2*freight - LOAD_FACTOR_EUROPE_TO_ASIA*F_INTERCEPT)/(LOAD_FACTOR_ASIA_TO_EUROPE + LOAD_FACTOR_EUROPE_TO_ASIA*F_INCLINATION)
-        gap = 0.485597471 + freight_outward * -0.000325635# mean (supply - demand)/demand
-        self.idle_rate = 1 - 1 /(1 + gap)
-        number_of_operating = INITIAL_NUMBER_OF_SHIPS - self.idle_rate * INITIAL_NUMBER_OF_SHIPS
-        if self.total_number > 0:
-            self.idle_rate = (self.total_number - number_of_operating)/self.total_number
-            if self.idle_rate < 0:
-                self.idle_rate = 0
-        else:
+    def calculate_idle_rate(self,demand,supply):
+        demand_own = demand * self.total_number/supply
+        ship_needed = demand_own/SHIP_NUMBER_PER_DEMAND
+        if ship_needed > self.total_number:
             self.idle_rate = 0
+        else:
+            self.idle_rate = (self.total_number - ship_needed)/self.total_number
 
-    def calculate_income_per_month(self,oil_price,freight):
+    def calculate_income_per_month(self,oil_price,freight,demand,supply):
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + 1
         number_of_trips = 30 / time_spent_to_one_trip
@@ -69,7 +79,7 @@ class Ship:
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
-            self.calculate_idle_rate(freight)
+            self.calculate_idle_rate(demand,supply)
             return (self.idle_rate*(-cost_fixed_in_one_trip)+(1-self.idle_rate)*profit_in_one_trip)*number_of_trips * self.total_number
         else:
             return -cost_fixed_in_one_trip * number_of_trips * self.total_number
@@ -142,12 +152,12 @@ class Ship:
             return 0
 
 
-    def charter_ship(self,oil_price,freight,number,direction):
+    def charter_ship(self,oil_price,freight,demand,supply,number,direction):
         if number > 0:
             p = CHARTER_PERIOD.index(CHARTER_TIME)
             if direction == DECISION_CHARTER_OUT:
                 if self.exist_number > 0:
-                    cash = self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] / self.total_number
+                    cash = self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] / self.total_number
                     self.charter_flag = True
                     if self.exist_number < number:
                         number = self.exist_number
@@ -164,7 +174,7 @@ class Ship:
                     if number + self.total_number > self.max_ship_number:
                         number = self.max_ship_number - self.total_number
                     self.total_number -= number
-                    cash = -self.calculate_income_per_month(oil_price,freight) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
+                    cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
                     self.total_number += number
                     cash *= number
                     self.charter_list.append([cash,number,p,direction])

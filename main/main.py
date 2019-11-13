@@ -22,8 +22,8 @@ def make_actionlist():
                             all_actionlist.append([speed,purchase_new,purchase_secondhand,sell,charter_in,charter_out])
     return all_actionlist
 
-def process(oil_data,freight_outward_data,freight_return_data,exchange_data,actionlist):
-    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
+def process(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,actionlist):
+    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     actionlist)
     return ga.execute_GA()
@@ -41,16 +41,16 @@ def single_processing():
 
 def multi_processing():
     all_actionlist = make_actionlist()
-    oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
     num_pool = multi.cpu_count()
-    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,all_actionlist[i]] for i in range(4**6)]
+    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,all_actionlist[i]] for i in range(4**6)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         export_rules_csv(p)
 
 def one_rule_example(actionlist):
-    oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
-    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,
                     TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,
                     actionlist)
     p = []

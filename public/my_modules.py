@@ -45,7 +45,7 @@ def export_rules_csv(list):
 
 def load_generated_sinario():
     all_data = []
-    for name in ['oil_price','freight_outward','freight_return','exchange_rate']:
+    for name in ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply']:
         history_data_path = '../output/scenario/{}.csv'.format(name)
         # read data
         dt   = np.dtype({'names': ('date', 'price'),
@@ -149,9 +149,9 @@ def calc_statistics(list):
     sigma /= n
     return [e,sigma]
 
-def export_scenario_csv(oil,freight_outward,freight_return,exchange):
-    list1 = [oil,freight_outward,freight_return,exchange]
-    list2 = ['oil price','freight_outward','freight_return','exchange_rate']
+def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil price','freight_outward','freight_return','exchange_rate','demand','supply']
     for (data, name) in zip(list1,list2):
         path = '../output/scenario/{}.csv'.format(name)
         with open(path, 'w') as f:
@@ -163,7 +163,6 @@ def export_scenario_csv(oil,freight_outward,freight_return,exchange):
                 for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
                     row.append(data.predicted_data[pattern][time]['date'])
                     row.append(data.predicted_data[pattern][time]['price'])
-                print(row)
                 writer.writerow(row)
 
 def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):

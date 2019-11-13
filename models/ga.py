@@ -19,11 +19,13 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,TEU_size,init_speed,route_distance,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,TEU_size,init_speed,route_distance,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil_price_history_data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
         self.freight_rate_return_data = freight_rate_return # freight rate return history data
         self.exchange_rate_data = exchange_rate # exchange_rate history data
+        self.demand_data = demand
+        self.supply_data = supply
         self.TEU_size = TEU_size #size of ship(TEU)
         self.init_speed = init_speed # initial speed of ship (km/h)
         self.route_distance = route_distance # distance of fixed route (km)
@@ -131,25 +133,26 @@ class GA:
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
                     total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
+                    current_demand = self.demand_data[pattern][year*12+month]['price']
+                    current_supply = self.supply_data[pattern][year*12+month]['price']
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
                     if result[0]:
                         ship.change_speed(result[1][0])
                         cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                         cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
                         cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][3])
-                        ship.charter_ship(current_oil_price,total_freight,result[1][4],DECISION_CHARTER_IN)
-                        ship.charter_ship(current_oil_price,total_freight,result[1][5],DECISION_CHARTER_OUT)
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_IN)
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][5],DECISION_CHARTER_OUT)
                         if ship.charter_flag == True:
                             cash_flow += ship.charter()
                             ship.end_charter()
-                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
                     ship.change_speed(self.init_speed)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
             ship.sell_ship(self.freight_rate_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
-            fitness -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*self.exchange_rate_data[pattern][0]['price']
             fitness /= HUNDRED_MILLION
             fitness /= INITIAL_NUMBER_OF_SHIPS
             Record.append(fitness)
