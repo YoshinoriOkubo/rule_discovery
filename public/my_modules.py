@@ -184,9 +184,9 @@ def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
         plt.close()
 
-def depict_whole_scenario(oil,freight_outward,exchange,demand,supply):
-    list1 = [oil,freight_outward,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','exchange_rate','ship_demand','ship_supply']
+def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','freight_outward','exchange_rate','ship_demand','ship_supply']
     for (data, name) in zip(list1,list2):
         orignal_length = len(data.history_data)
         x = range(VESSEL_LIFE_TIME*12+orignal_length)
@@ -208,7 +208,21 @@ def depict_whole_scenario(oil,freight_outward,exchange,demand,supply):
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
 
-def depict_distribution(oil,freight_outward,exchange,demand,supply):
+def depict_distribution(oil,freight_outward,freight_return,exchange,demand,supply):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
+    list3 = [0,0,0,0,0,0]
+    list4 = [150,4000,4000,250,30,10000]
+    for type,name,down,up in zip(list1,list2,list3,list4):
+        data = []
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            for time in range(VESSEL_LIFE_TIME * 12):
+                data.append(type.predicted_data[pattern][time]['price'])
+        plt.hist(data, range=(down, up))
+        save_dir = '../output/image'
+        plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
+        plt.close()
+    '''
     list1 = [oil,freight_outward,exchange,demand,supply]
     list2 = ['oil_price','freight_outward','exchange_rate','ship_demand','ship_supply']
     list3 = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,SHIP_DEMAND_LIST,SHIP_SUPPLY_LIST]
@@ -235,3 +249,4 @@ def depict_distribution(oil,freight_outward,exchange,demand,supply):
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()
+    '''
