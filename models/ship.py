@@ -63,19 +63,25 @@ class Ship:
         return cash
 
     def calculate_idle_rate(self,demand,supply):
-        demand_own = demand * self.total_number/supply
-        ship_needed = demand_own/SHIP_NUMBER_PER_DEMAND
-        if ship_needed > self.total_number:
-            self.idle_rate = 0
+        if self.total_number > 0:
+            demand_own = demand * self.total_number/supply
+            ship_needed = demand_own/SHIP_NUMBER_PER_DEMAND
+            if ship_needed > self.total_number:
+                self.idle_rate = 0
+            else:
+                self.idle_rate = (self.total_number - ship_needed)/self.total_number
         else:
-            self.idle_rate = (self.total_number - ship_needed)/self.total_number
+            self.idle_rate = 0
+
+    def calc_fuel_cost(self,oil_price):
+        return self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
 
     def calculate_income_per_month(self,oil_price,freight,demand,supply):
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + 1
         number_of_trips = 30 / time_spent_to_one_trip
         income_in_one_trip = self.size * freight
-        cost_unfixed_in_one_trip = (self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed())
+        cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price)
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
@@ -173,9 +179,7 @@ class Ship:
                     self.charter_flag = True
                     if number + self.total_number > self.max_ship_number:
                         number = self.max_ship_number - self.total_number
-                    self.total_number -= number
                     cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
-                    self.total_number += number
                     cash *= number
                     self.charter_list.append([cash,number,p,direction])
 
