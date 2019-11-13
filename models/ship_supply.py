@@ -14,6 +14,7 @@ class ShipSupply:
         self.ship_demand_data = ship_demand_data
         self.ship_age_distribution = []
         self.orderbook = []
+        self.lack_number = 0
         if history_data is None:
             self.history_data = load_monthly_history_data(SUPPLY_TYPE)
 
@@ -29,19 +30,30 @@ class ShipSupply:
                 self.ship_age_distribution.append(5000*WITHIN_TEN/sum/60)
             else:
                 self.ship_age_distribution.append(5000*WITHIN_FIF/sum/60)
+        for time in range(VESSEL_LIFE_TIME*12,20*12):
+            self.ship_age_distribution.append(0)
 
     def generate_orderbook(self):
         self.orderbook = []
         for time in range(1,ORDER_TIME):
-            order_number = self.ship_age_distribution[-time]
+            order_number = self.ship_age_distribution[-(60+time)]
             self.orderbook.append([order_number,time])
 
     def add_age(self):
-        for age in reversed(range(0,len(self.ship_age_distribution))):
+        for age in reversed(range(0,VESSEL_LIFE_TIME*12)):
             if age == 0:
                 self.ship_age_distribution[age] = 0
             else:
                 self.ship_age_distribution[age] = self.ship_age_distribution[age-1]
+        if self.lack_number > 0:
+            age = VESSEL_LIFE_TIME*12
+            while self.lack_number > 0 and age < 20*12:
+                remain_number = self.ship_age_distribution[age-1]
+                if remain_number > self.lack_number:
+                    remain_number = self.lack_number
+                self.ship_age_distribution[age] = remain_number
+                self.lack_number -= remain_number
+                age += 1
         self.under_construct()
         self.finish_construct()
 
@@ -66,7 +78,7 @@ class ShipSupply:
         supply = 0
         for construct in self.orderbook:
             supply += construct[0]
-        for in_operation in range(0,VESSEL_LIFE_TIME*12-ORDER_TIME):
+        for in_operation in range(0,VESSEL_LIFE_TIME*12-ORDER_TIME):#don't count over 15
             supply += self.ship_age_distribution[in_operation]
         return supply
 
@@ -76,11 +88,11 @@ class ShipSupply:
             future_demand += self.forecast_demand_in_two_years(pattern,time,term)
         future_demand /= ORDER_TIME
         future_supply = self.calc_ship_supply_future()
-        order_number = future_demand*12/SHIP_NUMBER_PER_DEMAND - future_supply
+        order_number = future_demand/SHIP_NUMBER_PER_DEMAND - future_supply
         if order_number > 0:
             if order_number > ORDER_CAPACITY:
+                self.lack_number += order_number - ORDER_CAPACITY
                 order_number = ORDER_CAPACITY
-            #print(time,order_number)
             self.orderbook.append([order_number,ORDER_TIME])
         return
 

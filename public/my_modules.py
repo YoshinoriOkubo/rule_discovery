@@ -186,7 +186,7 @@ def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
 
 def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_outward','exchange_rate','ship_demand','ship_supply']
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
     for (data, name) in zip(list1,list2):
         orignal_length = len(data.history_data)
         x = range(VESSEL_LIFE_TIME*12+orignal_length)
@@ -219,6 +219,8 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
             for time in range(VESSEL_LIFE_TIME * 12):
                 data.append(type.predicted_data[pattern][time]['price'])
         plt.hist(data, range=(down, up))
+        plt.xlabel('{} value'.format(name))
+        plt.ylabel('number')
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()
