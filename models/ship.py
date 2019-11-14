@@ -4,11 +4,11 @@ sys.path.append('../public')
 from constants  import *
 
 class Ship:
-    def __init__(self, size, speed, route):
+    def __init__(self, size, speed, route,number=None):
         self.size = size
         self.speed = speed# km/h
         self.route = route
-        self.exist_number = INITIAL_NUMBER_OF_SHIPS # ships own
+        self.exist_number = number if number else INITIAL_NUMBER_OF_SHIPS # ships own
         self.total_number = self.exist_number # ships own and ships charter in
         self.charter_flag = False
         self.charter_list = []

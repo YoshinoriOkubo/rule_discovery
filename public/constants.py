@@ -27,7 +27,7 @@ LOADING_DAYS = 2
 FIVE_YEARS_OLD = 60
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 10, 'generation':10, 'population_size':50}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 100, 'generation':5, 'population_size':50}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']

@@ -165,9 +165,9 @@ def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,suppl
                     row.append(data.predicted_data[pattern][time]['price'])
                 writer.writerow(row)
 
-def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
+def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply,new_ship_market):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship_market]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship_market']
     for (data, name) in zip(list1,list2):
         x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
