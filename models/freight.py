@@ -27,13 +27,13 @@ class Freight:
 
     def calc_freight(self,type,pattern,time):
         if type == OUTWARD:
-            inclination = -2661522.996
-            intercept = 6834.623141
-            delay = -9
+            inclination = FREIGHT_OUTWARD_INCLINATION
+            intercept = FREIGHT_OUTWARD_INTERCEPT
+            delay = FREIGHT_OUTWARD_DELAY
         elif type == RETURN:
-            inclination = -869948.0385
-            intercept = 2578.502045
-            delay = -3
+            inclination = FREIGHT_RETURN_INCLINATION
+            intercept = FREIGHT_RETURN_INTERCEPT
+            delay = FREIGHT_RETURN_DELAY
         if time - delay < 0 or time - delay > VESSEL_LIFE_TIME*12-1:
             time = time + delay
         fuel_cost = self.calc_fuel_cost(self.oil_data[pattern][time]['price'])
