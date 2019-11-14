@@ -163,32 +163,32 @@ class GA:
         #store the best 5% individual
         self.temp.sort(key=lambda x:x[-1][0],reverse = True)
         elite_number = int(self.population_size * 0.05)
-        for i in range(1,elite_number+1):
-            self.population[i] = self.temp[i]
+        for ith_individual in range(1,elite_number+1):
+            self.population[ith_individual] = self.temp[ith_individual]
         min_fit = self.temp[-1][-1][0]
         random.shuffle(self.temp)
         ark = 0 # the number used to roulette in crossing
         probability = 0
-        for i in range(len(self.temp)):
-            probability = probability + self.temp[i][-1][0] + (0.1 - min_fit)
+        for jth_individual in range(len(self.temp)):
+            probability = probability + self.temp[jth_individual][-1][0] + (0.1 - min_fit)#Translation
         roulette = 0
-        for i in range(elite_number+1,self.population_size):
+        for kth_individual in range(elite_number+1,self.population_size):
             roulette = random.randint(0,int(probability))
             while roulette > 0:
                 roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
                 ark = (ark + 1) % len(self.temp)
-            self.population[i] = self.temp[ark]
+            self.population[kth_individual] = self.temp[ark]
 
     def exchange_rule(self):
-        for k in range(len(self.temp)):
-            if OIL_PRICE_LIST[convert2to10_in_list(self.temp[k][0])] > OIL_PRICE_LIST[convert2to10_in_list(self.temp[k][1])]:
-                self.temp[k][0],self.temp[k][1] = self.temp[k][1],self.temp[k][0]
-            if FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[k][2])] > FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[k][3])]:
-                self.temp[k][2],self.temp[k][3] = self.temp[k][3],self.temp[k][2]
-            if EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][4])] > EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[k][5])]:
-                self.temp[k][4],self.temp[k][5] = self.temp[k][5],self.temp[k][4]
-            if OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][6])] > OWN_SHIP_LIST[convert2to10_in_list(self.temp[k][7])]:
-                self.temp[k][6],self.temp[k][7] = self.temp[k][7],self.temp[k][6]
+        for rule_unnatural in range(len(self.temp)):
+            if OIL_PRICE_LIST[convert2to10_in_list(self.temp[rule_unnatural][0])] > OIL_PRICE_LIST[convert2to10_in_list(self.temp[rule_unnatural][1])]:
+                self.temp[rule_unnatural][0],self.temp[rule_unnatural][1] = self.temp[rule_unnatural][1],self.temp[rule_unnatural][0]
+            if FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[rule_unnatural][2])] > FREIGHT_RATE_LIST[convert2to10_in_list(self.temp[rule_unnatural][3])]:
+                self.temp[rule_unnatural][2],self.temp[rule_unnatural][3] = self.temp[rule_unnatural][3],self.temp[rule_unnatural][2]
+            if EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[rule_unnatural][4])] > EXCHANGE_RATE_LIST[convert2to10_in_list(self.temp[rule_unnatural][5])]:
+                self.temp[rule_unnatural][4],self.temp[rule_unnatural][5] = self.temp[rule_unnatural][5],self.temp[rule_unnatural][4]
+            if OWN_SHIP_LIST[convert2to10_in_list(self.temp[rule_unnatural][6])] > OWN_SHIP_LIST[convert2to10_in_list(self.temp[rule_unnatural][7])]:
+                self.temp[rule_unnatural][6],self.temp[rule_unnatural][7] = self.temp[rule_unnatural][7],self.temp[rule_unnatural][6]
 
     def store_best_and_average(self):
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
@@ -290,7 +290,7 @@ class GA:
         first = time.time()
 
         #randomly generating individual group
-        for i in range(self.population_size):
+        for p_size in range(self.population_size):
             self.population.append(self.generateIndividual())
         #self.depict_average_variance(0,self.population,self.actionlist)
 
@@ -308,17 +308,17 @@ class GA:
                 self.temp.append(b)
 
             #mutation
-            for individual in self.temp:
+            for individual_mutaion in self.temp:
                 if random.random() < self.alpha:
-                    individual = self.mutation(individual)
+                    individual_mutaion = self.mutation(individual_mutaion)
 
             #rule check
             self.exchange_rule()
 
             #computation of fitness
-            for one in range(len(self.temp)):
-                rule = self.temp[one]
-                rule[-1][0], rule[-1][1] = self.fitness_function(rule)
+            for rule_index in range(len(self.temp)):
+                rule_selected = self.temp[rule_index]
+                rule_selected[-1][0], rule_selected[-1][1] = self.fitness_function(rule_selected)
 
             #selection
             self.selection()
