@@ -151,7 +151,7 @@ def calc_statistics(list):
 
 def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply):
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil price','freight_outward','freight_return','exchange_rate','demand','supply']
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply']
     for (data, name) in zip(list1,list2):
         path = '../output/scenario/{}.csv'.format(name)
         with open(path, 'w') as f:
@@ -213,13 +213,17 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
     list3 = [0,0,0,0,0,0]
     list4 = [150,4000,4000,250,30,10000]
     for type,name,down,up in zip(list1,list2,list3,list4):
+        ave = 0
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(VESSEL_LIFE_TIME * 12):
                 data.append(type.predicted_data[pattern][time]['price'])
+                ave += type.predicted_data[pattern][time]['price']
+        print(ave/(DEFAULT_PREDICT_PATTERN_NUMBER*180))
         plt.hist(data, range=(down, up))
         plt.xlabel('{} value'.format(name))
-        plt.ylabel('number')
+        plt.ylabel('Frequency')
+        plt.title('{} value in generated scenario'.format(name))
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()
