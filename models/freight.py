@@ -13,12 +13,16 @@ from my_modules import *
 from constants  import *
 
 class Freight:
-    def __init__(self, ship_demand_data,ship_supply_data,oil_data,history_data=None):
-        self.ship_demand_data = ship_demand_data
-        self.ship_supply_data = ship_supply_data
-        self.oil_data = oil_data
+    def __init__(self, ship_demand,ship_supply,oil,type,history_data=None):
+        self.ship_demand_data = ship_demand.predicted_data
+        self.ship_supply_data = ship_supply.predicted_data
+        self.oil_data = oil.predicted_data
+        self.type = type
         if history_data is None:
-            self.history_data = load_monthly_history_data(FREIGHT_TYPE,CCFI)
+            if self.type == OUTWARD:
+                self.history_data = load_monthly_history_data(FREIGHT_TYPE,OUTWARD)
+            elif self.type == RETURN:
+                    self.history_data = load_monthly_history_data(FREIGHT_TYPE,RETURN)
 
     def calc_fuel_cost(self,oil):
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
@@ -34,14 +38,14 @@ class Freight:
             inclination = FREIGHT_RETURN_INCLINATION
             intercept = FREIGHT_RETURN_INTERCEPT
             delay = FREIGHT_RETURN_DELAY
-        if time - delay < 0 or time - delay > VESSEL_LIFE_TIME*12-1:
-            time = time + delay
+        current_demand = self.ship_demand_data[pattern][time-delay]['price']
+        current_supply = self.ship_supply_data[pattern][time-delay]['price']
         fuel_cost = self.calc_fuel_cost(self.oil_data[pattern][time]['price'])
         minimum_freight = fuel_cost/TEU_SIZE#100% LOAD_FACTOR
-        return max(minimum_freight,self.ship_demand_data[pattern][time-delay]['price']/self.ship_supply_data[pattern][time-delay]['price']*(inclination) + intercept)
+        return max(minimum_freight,inclination*current_demand/current_supply + intercept)
 
     # generate predicted sinario
-    def generate_sinario(self,type,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
+    def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
         dt   = np.dtype({'names': ('date', 'price'),
@@ -50,6 +54,6 @@ class Freight:
         for pattern in range(predict_pattern_number):
             for year in range(self.predict_years):
                 for month in range(12):
-                    self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_freight(type,pattern,year*12+month))], dtype=dt))
+                    self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_freight(self.type,pattern,year*12+month))], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
         return

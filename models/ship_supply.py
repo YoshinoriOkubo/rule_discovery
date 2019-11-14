@@ -10,12 +10,12 @@ from my_modules import *
 from constants  import *
 
 class ShipSupply:
-    def __init__(self, ship_demand_data,history_data=None):
-        self.ship_demand_data = ship_demand_data
+    def __init__(self, ship_demand,history_data=None):
+        self.ship_demand_data = ship_demand.predicted_data
         self.ship_age_distribution = []
         self.orderbook = []
         self.lack_number = 0
-        self.ini_sup = ship_demand_data[0][0]['price']/SHIP_NUMBER_PER_DEMAND
+        self.ini_sup = self.ship_demand_data[0][0]['price']/SHIP_NUMBER_PER_DEMAND
         if history_data is None:
             self.history_data = load_monthly_history_data(SUPPLY_TYPE)
 
@@ -114,12 +114,11 @@ class ShipSupply:
         for pattern in range(predict_pattern_number):
             self.generate_distribution()
             self.generate_orderbook()
-            for year in range(self.predict_years):
-                for month in range(12):
-                    self.order_ship(pattern,year*12+month)
-                    self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_ship_supply())], dtype=dt))
-                    self.add_age()
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
+            for time in range(VESSEL_LIFE_TIME*12+FREIGHT_MAX_DELAY):
+                self.order_ship(pattern,time)
+                self.predicted_data = np.append(self.predicted_data, np.array([(time, self.calc_ship_supply())], dtype=dt))
+                self.add_age()
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12+FREIGHT_MAX_DELAY)
         for pattern in range(predict_pattern_number):
             point = self.predicted_data[pattern][24]['price']
             start = self.predicted_data[pattern][0]['price']

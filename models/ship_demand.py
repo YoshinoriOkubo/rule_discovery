@@ -68,11 +68,11 @@ class ShipDemand:
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
             current_ship_demand = latest_ship_demand
-            for predict_month_num in range(predict_months_num):
+            for predict_month_num in range(predict_months_num+FREIGHT_MAX_DELAY):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for i in range(DELAT_T):
                     current_ship_demand    = self.calc_ship_demand(current_ship_demand)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_ship_demand)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12+FREIGHT_MAX_DELAY)
         return
