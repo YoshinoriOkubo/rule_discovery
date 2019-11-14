@@ -76,5 +76,5 @@ class ExchangeRate:
                 for index in range(10):
                     current_exchange_rate    = self.calc_exchange_rate(current_exchange_rate)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_exchange_rate)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
         return

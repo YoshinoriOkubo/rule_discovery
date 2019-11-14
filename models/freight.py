@@ -25,7 +25,6 @@ class Freight:
         fuel_cost = ship.calc_fuel_cost(oil)
         return fuel_cost
 
-
     def calc_freight(self,type,pattern,time):
         if type == OUTWARD:
             inclination = -2661522.996
@@ -38,9 +37,8 @@ class Freight:
         if time - delay < 0 or time - delay > VESSEL_LIFE_TIME*12-1:
             time = time + delay
         fuel_cost = self.calc_fuel_cost(self.oil_data[pattern][time]['price'])
-        minimum_freight = fuel_cost/TEU_SIZE
+        minimum_freight = fuel_cost/TEU_SIZE#100% LOAD_FACTOR
         return max(minimum_freight,self.ship_demand_data[pattern][time-delay]['price']/self.ship_supply_data[pattern][time-delay]['price']*(inclination) + intercept)
-
 
     # generate predicted sinario
     def generate_sinario(self,type,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -49,7 +47,6 @@ class Freight:
         dt   = np.dtype({'names': ('date', 'price'),
                          'formats': (np.float , np.float)})
         self.predicted_data = np.array([], dtype=dt)
-
         for pattern in range(predict_pattern_number):
             for year in range(self.predict_years):
                 for month in range(12):

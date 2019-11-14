@@ -73,7 +73,7 @@ class Ship:
         else:
             self.idle_rate = 0
 
-    def calc_fuel_cost(self,oil_price):
+    def calc_fuel_cost(self,oil_price):#in one trip
         return self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
 
     def calculate_income_per_month(self,oil_price,freight,demand,supply):

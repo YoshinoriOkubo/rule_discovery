@@ -24,7 +24,7 @@ class ShipDemand:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / 10
+        delta_t = 1.0 / DELAT_T
         values  = np.array([])
         for date, ship_demand in self.history_data:
             if index == 0:
@@ -71,8 +71,8 @@ class ShipDemand:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                for i in range(10):
+                for i in range(DELAT_T):
                     current_ship_demand    = self.calc_ship_demand(current_ship_demand)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_ship_demand)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
         return
