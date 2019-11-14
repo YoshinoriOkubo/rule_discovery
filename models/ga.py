@@ -4,13 +4,7 @@ import time
 import sys
 import matplotlib.pyplot as plt
 import os
-from multiprocessing import Pool
-import multiprocessing as multi
 from ship import Ship
-from oil_price import Oil
-from freight_rate_outward import FreightOutward
-from freight_rate_return import FreightReturn
-from exchange_rate import ExchangeRate
 # import own modules #
 sys.path.append('../public')
 sys.path.append('../output')
