@@ -19,16 +19,13 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,TEU_size,init_speed,route_distance,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
-        self.oil_price_data = oil_price_data #oil_price_history_data
-        self.freight_rate_outward_data = freight_rate_outward #feright rate outward history data
-        self.freight_rate_return_data = freight_rate_return # freight rate return history data
-        self.exchange_rate_data = exchange_rate # exchange_rate history data
-        self.demand_data = demand
-        self.supply_data = supply
-        self.TEU_size = TEU_size #size of ship(TEU)
-        self.init_speed = init_speed # initial speed of ship (km/h)
-        self.route_distance = route_distance # distance of fixed route (km)
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+        self.oil_price_data = oil_price_data #oil price predicted data
+        self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
+        self.freight_rate_return_data = freight_rate_return # freight rate return predicted data
+        self.exchange_rate_data = exchange_rate # exchange_rate predicted data
+        self.demand_data = demand#ship demand predicted data
+        self.supply_data = supply#ship supply predicted data
         self.actionlist = actionlist # decision of action parts.
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
@@ -91,24 +88,24 @@ class GA:
         temp1 = []
         temp2 = []
         crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
-        for x in range(DEFAULT_NUM_OF_CONDITION*2):
-            if x == crossover_block:
+        for condition in range(DEFAULT_NUM_OF_CONDITION*2):
+            if condition == crossover_block:
                 temp1.append([])
                 temp2.append([])
-                length = len(a[x]) - 1
+                length = len(a[condition]) - 1
                 crossover_point = random.randint(1,length-2)
-                for i in range(0,crossover_point):
-                    temp1[x].append(a[x][i])
-                    temp2[x].append(b[x][i])
-                for i in range(crossover_point,len(a[x])):
-                    temp1[x].append(b[x][i])
-                    temp2[x].append(a[x][i])
+                for former in range(0,crossover_point):
+                    temp1[condition].append(a[condition][former])
+                    temp2[condition].append(b[condition][former])
+                for latter in range(crossover_point,len(a[condition])):
+                    temp1[condition].append(b[condition][latter])
+                    temp2[condition].append(a[condition][latter])
             else:
-                temp1.append(a[x])
-                temp2.append(b[x])
-        for x in range(DEFAULT_NUM_OF_CONDITION*2,len(a)-1):
-            temp1.append(a[x])
-            temp2.append(b[x])
+                temp1.append(a[condition])
+                temp2.append(b[condition])
+        for action in range(DEFAULT_NUM_OF_CONDITION*2,len(a)-1):
+            temp1.append(a[action])
+            temp2.append(b[action])
         temp1.append([0,0])
         temp2.append([0,0])
         return [temp1,temp2]
@@ -124,7 +121,7 @@ class GA:
         Record = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
-            ship = Ship(self.TEU_size,self.init_speed,self.route_distance)
+            ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
             for year in range(VESSEL_LIFE_TIME):
                 cash_flow = 0
                 for month in range(12):
@@ -148,7 +145,7 @@ class GA:
                             ship.end_charter()
                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
-                    ship.change_speed(self.init_speed)
+                    ship.change_speed(INITIAL_SPEED)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
