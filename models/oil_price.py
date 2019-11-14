@@ -9,7 +9,7 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-class Sinario:
+class Oil:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
             self.history_data = load_monthly_history_data(OIL_TYPE)
@@ -71,7 +71,7 @@ class Sinario:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                for i in range(10):
+                for i in range(DELAT_T):
                     current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)

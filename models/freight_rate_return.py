@@ -13,13 +13,13 @@ class FreightReturn:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
             self.history_data = load_monthly_history_data(FREIGHT_TYPE,RETURN)
-            self.flag = True
+            self.use_binomial = True
         else:
             self.history_data = history_data
-            self.flag = False
+            self.use_binomial = False
 
         # initialize parameters
-        if self.flag:
+        if self.use_binomial:
             if (neu is None or sigma is None or u is None or d is None or p is None):
                 self.calc_params_from_history()
             else:
@@ -58,7 +58,7 @@ class FreightReturn:
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
-        if self.flag:
+        if self.use_binomial:
             # predicted data type
             dt   = np.dtype({'names': ('date', 'price'),
                              'formats': ('S10' , np.float)})

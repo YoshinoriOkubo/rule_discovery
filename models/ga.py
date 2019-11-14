@@ -7,7 +7,7 @@ import os
 from multiprocessing import Pool
 import multiprocessing as multi
 from ship import Ship
-from oil_price import Sinario
+from oil_price import Oil
 from freight_rate_outward import FreightOutward
 from freight_rate_return import FreightReturn
 from exchange_rate import ExchangeRate

@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../models')
-from oil_price import Sinario
+from oil_price import Oil
 from freight_rate_outward import FreightOutward
 from freight_rate_return import FreightReturn
 from exchange_rate import ExchangeRate
@@ -17,7 +17,7 @@ from constants  import *
 
 start = time.time()
 
-sinario = Sinario()
+sinario = Oil()
 sinario.generate_sinario()
 demand = ShipDemand()
 demand.generate_sinario()
