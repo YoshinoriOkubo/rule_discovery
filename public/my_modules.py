@@ -19,11 +19,15 @@ def convert2to10_in_list(list):
     else:
         return None
 
-def export_rules_csv(list):
-    with open('../output/ship_rule.csv', 'w') as f:
+def export_rules_csv(list,one):
+    if one is None:
+        path = '../output/ship_rule.csv'
+    else:
+        path = '../output/ship_one_rule.csv'
+    with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','expectation','variance'])
-    with open('../output/ship_rule.csv', 'a') as f:
+    with open(path, 'a') as f:
         writer = csv.writer(f)
         for index in range(len(list)):
             row = []
@@ -62,24 +66,29 @@ def load_generated_sinario():
         all_data.append(data)
     return all_data
 
-def load_monthly_history_data(type,direction=None,from_date=None, to_date=None):
+def load_history_data(unit,type,direction=None,from_date=None, to_date=None):
+    if unit == MONTH:
+        name = 'monthly'
+    elif unit == YEAR:
+        name = 'yearly'
+
     if type == OIL_TYPE:
-        history_data_path = '../data/crude_oil_monthly_history.csv'
+        history_data_path = '../data/crude_oil_{}.csv'.format(name)
     elif type == FREIGHT_TYPE:
         if direction == OUTWARD:
-            history_data_path = '../data/freight_rate_history_outward.csv'
+            history_data_path = '../data/freight_rate_outward_{}.csv'.format(name)
         elif direction == RETURN:
-            history_data_path = '../data/freight_rate_history_return.csv'
+            history_data_path = '../data/freight_rate_return_{}.csv'.format(name)
         elif direction == CCFI:
-            history_data_path = '../data/ccfi_history.csv'
+            history_data_path = '../data/ccfi_{}.csv'.format(name)
         else:
             raise Exception('freight type error!')
     elif type == EXCHANGE_TYPE:
-        history_data_path = '../data/exchange_rate_after_praza_agreement.csv'
+        history_data_path = '../data/exchange_rate_{}.csv'.format(name)
     elif type == DEMAND_TYPE:
-        history_data_path = '../data/ship_demand.csv'
+        history_data_path = '../data/ship_demand_{}.csv'.format(name)
     elif type == SUPPLY_TYPE:
-        history_data_path = '../data/ship_supply.csv'
+        history_data_path = '../data/ship_supply_{}.csv'.format(name)
     else:
         raise Exception('type error')
 
@@ -165,10 +174,12 @@ def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,suppl
                     row.append(data.predicted_data[pattern][time]['price'])
                 writer.writerow(row)
 
-def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply,new_ship_market):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship_market]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship_market']
-    for (data, name) in zip(list1,list2):
+def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
+    down = [0,0,0,0,0,0]
+    up = [140,4000,4000,250,30,10000]
+    for (data, name,d,u) in zip(list1,list2,down,up):
         x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             y = []
@@ -178,6 +189,7 @@ def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply,ne
         plt.title('Transition of {}'.format(name), fontsize = 20)
         plt.xlabel('month', fontsize = 16)
         plt.ylabel(name, fontsize = 16)
+        plt.ylim(d,u)
         plt.grid(True)
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
@@ -186,23 +198,24 @@ def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply,ne
 def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
     list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    for (data, name) in zip(list1,list2):
-        orignal_length = len(data.history_data)
+    down = [0,0,0,0,0,0]
+    up = [140,4000,2000,250,20,10000]
+    for (data, name, d, u) in zip(list1,list2,down,up):
+        orignal_length = len(data.monthly_history_data)
         x = range(VESSEL_LIFE_TIME*12+orignal_length)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             y = []
             for time in range(180+orignal_length):
                 if time < orignal_length:
-                    y.append(data.history_data[time][1])
+                    y.append(data.monthly_history_data[time]['price'])
                 else:
                     y.append(data.predicted_data[pattern][time-orignal_length]['price'])
-            plt.plot(x, y)#,label='pattern {0}'.format(pattern+1))
+            plt.plot(x, y)
         plt.title('Transition of {}'.format(name), fontsize = 20)
         plt.xlabel('month', fontsize = 16)
         plt.ylabel(name, fontsize = 16)
+        plt.ylim(d,u)
         plt.grid(True)
-        plt.xlim(0,600)
-        #plt.ylim(0, 160)
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
@@ -211,7 +224,7 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
     list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
     list3 = [0,0,0,0,0,0]
-    list4 = [150,4000,4000,250,30,10000]
+    list4 = [150,4000,2000,250,20,10000]
     for type,name,down,up in zip(list1,list2,list3,list4):
         ave = 0
         data = []
@@ -227,31 +240,3 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()
-    '''
-    list1 = [oil,freight_outward,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','exchange_rate','ship_demand','ship_supply']
-    list3 = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,SHIP_DEMAND_LIST,SHIP_SUPPLY_LIST]
-    for (data, name, list) in zip(list1,list2,list3):
-        distribution = [0]*16
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            for time in range(VESSEL_LIFE_TIME * 12):
-                value = data.predicted_data[pattern][time]['price']
-                for i in range(16):
-                    if i == 15:
-                        if list[i] < value:
-                            distribution[i] += 1
-                    else:
-                        if list[i] < value and value < list[i+1]:
-                            distribution[i] += 1
-        for index in range(len(distribution)):
-            distribution[index] = distribution[index]/(DEFAULT_PREDICT_PATTERN_NUMBER*180.0)
-        left = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-        label = list
-        plt.title('{} distribution'.format(name))
-        plt.xlabel(name)
-        plt.ylabel('Propability')
-        plt.bar(left,distribution,tick_label=label,align='center')
-        save_dir = '../output/image'
-        plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
-        plt.close()
-    '''

@@ -12,7 +12,7 @@ from constants  import *
 class FreightOutward:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.history_data = load_monthly_history_data(FREIGHT_TYPE,OUTWARD)
+            self.history_data = load_monthly_history_data(FREIGHT_TYPE,CCFI)
         else:
             self.history_data = history_data
         # initialize parameters
@@ -25,7 +25,7 @@ class FreightOutward:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / (DELAT_T)
+        delta_t = 1.0 / (DELTA_T)
         values  = np.array([])
         for date, freight_rate in self.history_data:
             if index == 0:
@@ -73,7 +73,7 @@ class FreightOutward:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                for i in range(DELAT_T):
+                for i in range(DELTA_T):
                     current_freight_rate    = self.calc_freight_rate(current_freight_rate)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_freight_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,VESSEL_LIFE_TIME*12)

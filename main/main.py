@@ -41,7 +41,8 @@ def single_processing():
 def multi_processing():
     all_actionlist = make_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
-    num_pool = multi.cpu_count() - 2
+    num_pool = multi.cpu_count()
+    numpool = int(numpool*0.9)
     tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,all_actionlist[i]] for i in range(4**2)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
@@ -55,6 +56,7 @@ def one_rule_example(actionlist):
     p = []
     p.append(ga.execute_GA())
     print(p)
+    export_rules_csv(p,1)
 
 def send_messege():
     slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
@@ -64,7 +66,7 @@ def main():
     start = time.time()
     #single_processing()
     #multi_processing()
-    one_rule_example([0,0,1,3,1,2])
+    one_rule_example([0,0,0,1,0,0])
     print(time.time()-start)
 
 if __name__ == "__main__":

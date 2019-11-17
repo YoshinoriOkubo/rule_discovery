@@ -20,9 +20,9 @@ class Freight:
         self.type = type
         if history_data is None:
             if self.type == OUTWARD:
-                self.history_data = load_monthly_history_data(FREIGHT_TYPE,OUTWARD)
+                self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,OUTWARD)
             elif self.type == RETURN:
-                    self.history_data = load_monthly_history_data(FREIGHT_TYPE,RETURN)
+                    self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,RETURN)
 
     def calc_fuel_cost(self,oil):
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)

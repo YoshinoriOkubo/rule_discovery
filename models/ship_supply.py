@@ -17,7 +17,7 @@ class ShipSupply:
         self.lack_number = 0
         self.ini_sup = self.ship_demand_data[0][0]['price']*SHIP_NUMBER_PER_DEMAND
         if history_data is None:
-            self.history_data = load_monthly_history_data(SUPPLY_TYPE)
+            self.monthly_history_data = load_history_data(MONTH,SUPPLY_TYPE)
 
     def generate_distribution(self):
         self.ship_age_distribution = []
