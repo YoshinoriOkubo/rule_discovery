@@ -72,7 +72,7 @@ class ShipSupply:
                 self.ship_age_distribution[0] = number
                 self.orderbook.pop(0)
 
-    def forecast_demand_in_two_years(self,pattern,now,term):
+    def forecast_demand(self,pattern,now,term):
         ship_demand_now = self.ship_demand_data[pattern][now]['price']
         ship_demand_before = self.ship_demand_data[pattern][now-term]['price']
         future_demand = (ship_demand_now - ship_demand_before)*ORDER_TIME/term + ship_demand_now
@@ -89,7 +89,7 @@ class ShipSupply:
     def order_ship(self,pattern,time):
         future_demand = 0
         for term in range(1,ORDER_TIME+1):
-            future_demand += self.forecast_demand_in_two_years(pattern,time,term)
+            future_demand += self.forecast_demand(pattern,time,term)
         future_demand /= ORDER_TIME
         future_supply = self.calc_ship_supply_future()
         order_number = future_demand*SHIP_NUMBER_PER_DEMAND - future_supply
