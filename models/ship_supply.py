@@ -120,9 +120,9 @@ class ShipSupply:
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
         for pattern in range(predict_pattern_number):
-            point = self.predicted_data[pattern][24]['price']
+            point = self.predicted_data[pattern][ORDER_TIME]['price']
             start = self.predicted_data[pattern][0]['price']
-            inclination = (point-start)/24
-            for i in range(24):
+            inclination = (point-start)/ORDER_TIME
+            for i in range(ORDER_TIME):
                 self.predicted_data[pattern][i]['price'] = start + inclination*i*random.random()
         return
