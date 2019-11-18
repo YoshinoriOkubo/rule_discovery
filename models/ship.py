@@ -87,7 +87,7 @@ class Ship:
             self.idle_rate = 0
 
     def freight_impact(self,freight_outward_data,time):
-        freight_criteria = freight_outward_data[0]['price']
+        freight_criteria = FREIGHT_3
         if time - 3 < 0:
             freight_three_month_before = FREIGHT_PREV[time-3]
         else:
@@ -104,7 +104,7 @@ class Ship:
             if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
                 self.ship_order_list.append([number,ORDER_TIME])
                 self.order_number += number
-                return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+self.freight_impact(freight_outward_data,time))*number
+                return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+self.freight_impact(freight_outward_data,time))*(1 + INDIRECT_COST)*number
             else:
                 return 0
         else:
