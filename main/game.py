@@ -12,17 +12,45 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
+def make_new_market(freight):
+    list = []
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        list.append([])
+        for time in range(VESSEL_LIFE_TIME*12):
+            freight_criteria = FREIGHT_3
+            if time - 3 < 0:
+                freight_three_month_before = FREIGHT_PREV[time-3]
+            else:
+                freight_three_month_before = freight[pattern][time-3]['price']
+            list[pattern].append({'price':(0.5)*(1+INDIRECT_COST)*(1+freight_three_month_before/freight_criteria)})
+    return list
+
+def make_secondhand_market(freight):
+    list = []
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        list.append([])
+        for time in range(VESSEL_LIFE_TIME*12):
+            freight_criteria = FREIGHT_3
+            if time - 3 < 0:
+                freight_three_month_before = FREIGHT_PREV[time-3]
+            else:
+                freight_three_month_before = freight[pattern][time-3]['price']
+            list[pattern].append({'price':(2/3)*(1+INDIRECT_COST)*(freight_three_month_before/freight_criteria)})
+    return list
+
 def depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,time):
     sns.set()
     sns.set_style('whitegrid')
     sns.set_palette('gray')
 
     fig = plt.figure()
-
-    list1 = [oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data]
-    list2 = [fig.add_subplot(2, 3, 1),fig.add_subplot(2, 3, 2),fig.add_subplot(2, 3, 3),fig.add_subplot(2, 3, 4),fig.add_subplot(2, 3, 5),fig.add_subplot(2, 3, 6)]
-    list3 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    list4 = [59.29,1250,810,119.8,10.65,5103]
+    new = make_new_market(freight_outward_data)
+    secondhand = make_secondhand_market(freight_outward_data)
+    list1 = [oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,new,secondhand]
+    list2 = ([fig.add_subplot(2, 4, 1),fig.add_subplot(2, 4, 2),fig.add_subplot(2, 4, 3),fig.add_subplot(2, 4, 4),
+              fig.add_subplot(2, 4, 5),fig.add_subplot(2, 4, 6),fig.add_subplot(2,4,7),fig.add_subplot(2,4,8)])
+    list3 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand']
+    list4 = [59.29,1250,810,119.8,10.65,5103,1+INDIRECT_COST,(2/3)*(1+INDIRECT_COST)]
     for (data,ax,name,start) in zip(list1,list2,list3,list4):
         x, y = [-1], [start]
         if time > 10:
