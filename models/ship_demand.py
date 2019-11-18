@@ -25,7 +25,7 @@ class ShipDemand:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / DELTA_T
+        delta_t = 1.0 / DELTA_T_MONTH
         values  = np.array([])
         for date, ship_demand in self.yearly_history_data:
             if index == 0:

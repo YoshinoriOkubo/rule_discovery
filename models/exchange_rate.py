@@ -12,10 +12,9 @@ from constants  import *
 class ExchangeRate:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.yearly_history_data = load_history_data(YEAR,EXCHANGE_TYPE)
             self.monthly_history_data = load_history_data(MONTH,EXCHANGE_TYPE)
         else:
-            self.yearly_history_data = history_data
+            self.monthly_history_data = history_data
         # initialize parameters
         if (neu is None or sigma is None or u is None or d is None or p is None):
             self.calc_params_from_history()
@@ -26,9 +25,9 @@ class ExchangeRate:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / DELTA_T
+        delta_t = 1.0 / DELTA_T_DAY
         values  = np.array([])
-        for date, exchange_rate in self.yearly_history_data:
+        for date, exchange_rate in self.monthly_history_data:
             if index == 0:
                 # initialize the price
                 s_0 = exchange_rate
@@ -65,7 +64,7 @@ class ExchangeRate:
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        latest_history_date_str, latest_exchange_rate = self.yearly_history_data[-1]
+        latest_history_date_str, latest_exchange_rate = self.monthly_history_data[-1]
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
 
         for pattern in range(predict_pattern_number):
@@ -74,7 +73,8 @@ class ExchangeRate:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                current_exchange_rate    = self.calc_exchange_rate(current_exchange_rate)
+                for time in range(DELTA_T_DAY):
+                    current_exchange_rate    = self.calc_exchange_rate(current_exchange_rate)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_exchange_rate)], dtype=dt))
         self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
         return

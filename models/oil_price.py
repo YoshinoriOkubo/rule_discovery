@@ -12,10 +12,9 @@ from constants  import *
 class Oil:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.yearly_history_data = load_history_data(YEAR,OIL_TYPE)
             self.monthly_history_data = load_history_data(MONTH,OIL_TYPE)
         else:
-            self.yearly_history_data = history_data
+            self.monthly_history_data = history_data
         # initialize parameters
         if (neu is None or sigma is None or u is None or d is None or p is None):
             self.calc_params_from_history()
@@ -25,9 +24,9 @@ class Oil:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / DELTA_T
+        delta_t = 1.0 / DELTA_T_DAY
         values  = np.array([])
-        for date, oil_price in self.yearly_history_data:
+        for date, oil_price in self.monthly_history_data:
             if index == 0:
                 # initialize the price
                 s_0 = oil_price
@@ -38,7 +37,6 @@ class Oil:
                 # update the price
                 s_0      = oil_price
             index += 1
-
         # substitute inf to nan in values
         values = inf_to_nan_in_array(values)
         self.neu    = np.nanmean(values)
@@ -64,7 +62,8 @@ class Oil:
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        latest_history_date_str, latest_oilprice = self.yearly_history_data[-1]
+        #latest_history_date_str, latest_oilprice = self.yearly_history_data[-1]
+        latest_history_date_str, latest_oilprice = self.monthly_history_data[-1]
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
@@ -72,7 +71,8 @@ class Oil:
             for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                current_oilprice    = self.calc_oilprice(current_oilprice)
+                for time in range(DELTA_T_DAY):
+                    current_oilprice    = self.calc_oilprice(current_oilprice)
                 self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
+        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,15*12)
         return
