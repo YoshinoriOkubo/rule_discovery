@@ -19,7 +19,7 @@ def convert2to10_in_list(list):
     else:
         return None
 
-def export_rules_csv(list,one):
+def export_rules_csv(list,one=None):
     if one is None:
         path = '../output/ship_rule.csv'
     else:
@@ -233,7 +233,7 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
                 data.append(type.predicted_data[pattern][time]['price'])
                 ave += type.predicted_data[pattern][time]['price']
         print(ave/(DEFAULT_PREDICT_PATTERN_NUMBER*180))
-        plt.hist(data, range=(down, up))
+        plt.hist(data,bins=20,range=(down, up))
         plt.xlabel('{} value'.format(name))
         plt.ylabel('Frequency')
         plt.title('{} value in generated scenario'.format(name))

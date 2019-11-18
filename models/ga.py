@@ -322,7 +322,7 @@ class GA:
 
         #print('finish')
         #print('Spent time is {0}'.format(time.time() - first))
-        self.depict_fitness()
+        #self.depict_fitness()
         #self.depict_average_variance()
         #self.print_result()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)

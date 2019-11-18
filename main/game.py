@@ -113,9 +113,8 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 if year*12 + month == 0:
                     print('Purchase number is limited to whether 0 or 1')
                 number = depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
-                cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
-                #input_line2 = input()
-                #cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,int(input_line2))
+                #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
+                cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)

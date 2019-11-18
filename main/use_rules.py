@@ -8,7 +8,7 @@ from my_modules import *
 from constants  import *
 
 def load_ship_rules():
-    path = '../output/ship_rule.csv'
+    path = '../output/ship_one_rule.csv'
     rule = []
     with open(path) as f:
         reader = csv.reader(f)
@@ -62,12 +62,17 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,actionlist=None):
                     return result
     return [False]
 
-def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,rule,actionlist):
+def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,rule,actionlist):
     Record = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        print(ship.total_number)
+        for i in range(len(ship.agelist)):
+            if ship.agelist[i] == 0:
+                fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(freight_outward_data,0))*(1 + INDIRECT_COST)
+            else:
+                fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(freight_outward_data,0)*(1 + INDIRECT_COST)
+        fitness *= exchange_data[pattern][0]['price']
         for year in range(VESSEL_LIFE_TIME):
             cash_flow = 0
             for month in range(12):
@@ -76,6 +81,8 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 current_freight_rate_return = freight_return_data[pattern][year*12+month]['price']
                 total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_exchange = exchange_data[pattern][year*12+month]['price']
+                current_demand = demand_data[pattern][year*12+month]['price']
+                current_supply = supply_data[pattern][year*12+month]['price']
                 rule_selected = select_rules(rule,current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number)
                 result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule_selected,actionlist)
                 if result[0]:
@@ -83,12 +90,12 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                     cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,result[1][1])
                     cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,result[1][2])
                     cash_flow += ship.sell_ship(freight_outward_data[pattern],year*12+month,result[1][3])
-                    ship.charter_ship(current_oil_price,total_freight,result[1][4],DECISION_CHARTER_IN)
-                    ship.charter_ship(current_oil_price,total_freight,result[1][5],DECISION_CHARTER_OUT)
+                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_IN)
+                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][5],DECISION_CHARTER_OUT)
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
-                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight)
+                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -96,20 +103,17 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             fitness += cash_flow / DISCOUNT
         print(ship.total_number)
         ship.sell_ship(freight_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
-        fitness -= INITIAL_COST_OF_SHIPBUIDING*INITIAL_NUMBER_OF_SHIPS*exchange_data[pattern][0]['price']
         fitness /= HUNDRED_MILLION
-        fitness /= INITIAL_NUMBER_OF_SHIPS
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
 
 def main():
     actionlist = [[0]*4,[0]*4,[0]*4,[0]*4,[0]*4,[0]*4]
-    print(actionlist)
     rule = load_ship_rules()
-    oil_data,freight_outward_data,freight_return_data,exchange_data = load_generated_sinario()
-    e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,rule,actionlist)
-    print(actionlist)
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,rule,actionlist)
+    print(e)
 
 if __name__ == "__main__":
     main()
