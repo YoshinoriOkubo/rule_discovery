@@ -205,12 +205,30 @@ class Ship:
     def change_speed(self,speed):
         self.speed = speed
 
+    def decide_best_speed(self,oil_price,freight,demand,supply):
+        best_speed = VESSEL_SPEED_LIST[0]
+        max = 0
+        for speed in VESSEL_SPEED_LIST:
+            speed_km_h = self.change_knot_to_km_h(speed)
+            time_spent_to_one_trip = self.route/(speed_km_h * 24) + LOADING_DAYS
+            number_of_trips = 30 / time_spent_to_one_trip
+            income_in_one_trip = self.size * freight
+            cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price,speed)
+            cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
+            profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
+            profit = profit_in_one_trip * number_of_trips
+            if max < profit:
+                max = profit
+                best_speed = speed
+        return best_speed
+
     def calculate_income_per_month(self,oil_price,freight,demand,supply):
+        self.change_speed(self.decide_best_speed(oil_price,freight,demand,supply))
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + LOADING_DAYS
         number_of_trips = 30 / time_spent_to_one_trip
         income_in_one_trip = self.size * freight
-        cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price)
+        cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price,self.speed)
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
         profit_in_one_trip = income_in_one_trip - cost_unfixed_in_one_trip - cost_fixed_in_one_trip
         if profit_in_one_trip > 0:
@@ -219,11 +237,11 @@ class Ship:
         else:
             return -cost_fixed_in_one_trip * number_of_trips * self.total_number
 
-    def calc_fuel_cost(self,oil_price):#in one trip
-        return self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed()
+    def calc_fuel_cost(self,oil_price,speed):#in one trip
+        return self.route * self.change_dollers_per_Barrels_to_dollers_per_kg(oil_price) * self.calculate_fuel_consumption_from_speed(speed)
 
-    def calculate_fuel_consumption_from_speed(self):
-        speed_km_h = self.change_knot_to_km_h(self.speed)
+    def calculate_fuel_consumption_from_speed(self,speed):
+        speed_km_h = self.change_knot_to_km_h(speed)
         DWT = 10.8 * self.size + 12400
         DSP = 1.37 * DWT + 1660
         k_c0 = 6.87 * 10**(-5)

@@ -45,12 +45,11 @@ class GA:
                     if g <= own_ship and own_ship <= h:
                         result = [True]
                         result.append([])
-                        result[1].append(VESSEL_SPEED_LIST[self.actionlist[0]])
+                        result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
                         result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                        result[1].append(PURCHASE_NUMBER[self.actionlist[2]])
-                        result[1].append(SELL_NUMBER[self.actionlist[3]])
-                        result[1].append(CHARTER_IN_NUMBER[self.actionlist[4]])
-                        result[1].append(CHARTER_OUT_NUMBER[self.actionlist[5]])
+                        result[1].append(SELL_NUMBER[self.actionlist[2]])
+                        result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
+                        result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
                         return result
         return [False]
 
@@ -128,12 +127,11 @@ class GA:
                     current_supply = self.supply_data[pattern][year*12+month]['price']
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
                     if result[0]:
-                        ship.change_speed(result[1][0])
-                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
-                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][3])
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_IN)
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][5],DECISION_CHARTER_OUT)
+                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][0])
+                        cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
+                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
                         if ship.charter_flag == True:
                             cash_flow += ship.charter()
                             ship.end_charter()
@@ -259,14 +257,12 @@ class GA:
             d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
             e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
             f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
-            speed = VESSEL_SPEED_LIST[self.actionlist[0]]
-            purchase_new = PURCHASE_NUMBER[self.actionlist[1]]
-            purchase_secondhand = PURCHASE_NUMBER[self.actionlist[2]]
-            sell = SELL_NUMBER[self.actionlist[3]]
-            charter_in = CHARTER_IN_NUMBER[self.actionlist[4]]
-            charter_out = CHARTER_OUT_NUMBER[self.actionlist[5]]
+            purchase_new = PURCHASE_NUMBER[self.actionlist[0]]
+            purchase_secondhand = PURCHASE_NUMBER[self.actionlist[1]]
+            sell = SELL_NUMBER[self.actionlist[2]]
+            charter_in = CHARTER_IN_NUMBER[self.actionlist[3]]
+            charter_out = CHARTER_OUT_NUMBER[self.actionlist[4]]
             print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5}'.format(a,b,c,d,e,f))
-            print('speed {}'.format(speed))
             print('purchase {} new ships'.format(purchase_new))
             print('purchase {} secondhand ships'.format(purchase_secondhand))
             print('sell {} ships'.format(sell))

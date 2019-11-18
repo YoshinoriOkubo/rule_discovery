@@ -16,7 +16,7 @@ def load_ship_rules():
             if row[0] != 'a':
                 list = []
                 for index in range(len(row)):
-                    if index > 13:
+                    if index > 12:
                         list.append(float(row[index]))
                     else:
                         list.append(int(row[index]))
@@ -46,19 +46,17 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,actionlist=None):
                 if g <= own_ship and own_ship <= h:
                     result = [True]
                     result.append([])
-                    result[1].append(VESSEL_SPEED_LIST[int(rule[8])])
+                    result[1].append(PURCHASE_NUMBER[int(rule[8])])
                     result[1].append(PURCHASE_NUMBER[int(rule[9])])
-                    result[1].append(PURCHASE_NUMBER[int(rule[10])])
-                    result[1].append(SELL_NUMBER[int(rule[11])])
-                    result[1].append(CHARTER_IN_NUMBER[int(rule[12])])
-                    result[1].append(CHARTER_OUT_NUMBER[int(rule[13])])
+                    result[1].append(SELL_NUMBER[int(rule[10])])
+                    result[1].append(CHARTER_IN_NUMBER[int(rule[11])])
+                    result[1].append(CHARTER_OUT_NUMBER[int(rule[12])])
                     if actionlist is not None:
                         actionlist[0][int(rule[8])] += 1
                         actionlist[1][int(rule[9])] += 1
                         actionlist[2][int(rule[10])] += 1
                         actionlist[3][int(rule[11])] += 1
                         actionlist[4][int(rule[12])] += 1
-                        actionlist[5][int(rule[13])] += 1
                     return result
     return [False]
 
@@ -87,11 +85,11 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule_selected,actionlist)
                 if result[0]:
                     ship.change_speed(result[1][0])
-                    cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,result[1][1])
-                    cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,result[1][2])
-                    cash_flow += ship.sell_ship(freight_outward_data[pattern],year*12+month,result[1][3])
-                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_IN)
-                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][5],DECISION_CHARTER_OUT)
+                    cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,result[1][0])
+                    cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,result[1][1])
+                    cash_flow += ship.sell_ship(freight_outward_data[pattern],year*12+month,result[1][2])
+                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
+                    ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
@@ -101,7 +99,6 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
-        print(ship.total_number)
         ship.sell_ship(freight_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
         fitness /= HUNDRED_MILLION
         Record.append(fitness)

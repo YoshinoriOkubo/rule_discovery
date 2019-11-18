@@ -26,7 +26,7 @@ def export_rules_csv(list,one=None):
         path = '../output/ship_one_rule.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','expectation','variance'])
+        writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','expectation','variance'])
     with open(path, 'a') as f:
         writer = csv.writer(f)
         for index in range(len(list)):

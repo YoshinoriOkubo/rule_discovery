@@ -13,24 +13,22 @@ from ga import GA
 
 def make_small_actionlist():
     all_actionlist = []
-    for speed in range(2):
-        for purchase_new in range(2):
-            for purchase_secondhand in range(2):
-                for sell in range(2):
-                    for charter_in in range(2):
-                        for charter_out in range(2):
-                            all_actionlist.append([speed,purchase_new,purchase_secondhand,sell,charter_in,charter_out])
+    for purchase_new in range(2):
+        for purchase_secondhand in range(2):
+            for sell in range(2):
+                for charter_in in range(2):
+                    for charter_out in range(2):
+                        all_actionlist.append([purchase_new,purchase_secondhand,sell,charter_in,charter_out])
     return all_actionlist
 
 def make_actionlist():
     all_actionlist = []
-    for speed in range(4):
-        for purchase_new in range(4):
-            for purchase_secondhand in range(4):
-                for sell in range(4):
-                    for charter_in in range(4):
-                        for charter_out in range(4):
-                            all_actionlist.append([speed,purchase_new,purchase_secondhand,sell,charter_in,charter_out])
+    for purchase_new in range(4):
+        for purchase_secondhand in range(4):
+            for sell in range(4):
+                for charter_in in range(4):
+                    for charter_out in range(4):
+                        all_actionlist.append([purchase_new,purchase_secondhand,sell,charter_in,charter_out])
     return all_actionlist
 
 def process(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,actionlist):
@@ -77,8 +75,8 @@ def send_messege():
 def main():
     start = time.time()
     #single_processing()
-    multi_processing()
-    #one_rule_example([0,0,1,0,0,0])
+    #multi_processing()
+    one_rule_example([0,1,0,0,0])
     print(time.time()-start)
 
 if __name__ == "__main__":
