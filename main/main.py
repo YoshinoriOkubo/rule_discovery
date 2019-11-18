@@ -11,6 +11,17 @@ from my_modules import *
 sys.path.append('../models')
 from ga import GA
 
+def make_small_actionlist():
+    all_actionlist = []
+    for speed in range(2):
+        for purchase_new in range(2):
+            for purchase_secondhand in range(2):
+                for sell in range(2):
+                    for charter_in in range(2):
+                        for charter_out in range(2):
+                            all_actionlist.append([speed,purchase_new,purchase_secondhand,sell,charter_in,charter_out])
+    return all_actionlist
+
 def make_actionlist():
     all_actionlist = []
     for speed in range(4):
@@ -39,7 +50,8 @@ def single_processing():
     export_rules_csv(rule)
 
 def multi_processing():
-    all_actionlist = make_actionlist()
+    #all_actionlist = make_actionlist()
+    all_actionlist = make_small_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
     num_pool = multi.cpu_count()
     numpool = int(numpool*0.9)
