@@ -51,7 +51,6 @@ class Freight:
         for p_num in range(predict_pattern_number):
             self.predicted_data.append([])
         for pattern in range(predict_pattern_number):
-            for year in range(self.predict_years):
-                for month in range(12):
-                    self.predicted_data[pattern].append({'date':year*12+month, 'price':self.calc_freight(self.type,pattern,year*12+month)})
+            for time in range(self.predict_years*12):
+                self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'], 'price':self.calc_freight(self.type,pattern,time)})
         return
