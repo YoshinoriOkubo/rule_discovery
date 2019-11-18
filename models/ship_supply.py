@@ -107,18 +107,18 @@ class ShipSupply:
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
-        dt   = np.dtype({'names': ('date', 'price'),
-                         'formats': (np.float , np.float)})
-        self.predicted_data = np.array([], dtype=dt)
+        # predicted data type
+        self.predicted_data = []
+        for p_num in range(predict_pattern_number):
+            self.predicted_data.append([])
 
         for pattern in range(predict_pattern_number):
             self.generate_distribution()
             self.generate_orderbook()
             for time in range(VESSEL_LIFE_TIME*12+FREIGHT_MAX_DELAY):
                 self.order_ship(pattern,time)
-                self.predicted_data = np.append(self.predicted_data, np.array([(time, self.calc_ship_supply())], dtype=dt))
+                self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12+FREIGHT_MAX_DELAY)
         for pattern in range(predict_pattern_number):
             point = self.predicted_data[pattern][24]['price']
             start = self.predicted_data[pattern][0]['price']
