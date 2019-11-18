@@ -55,14 +55,13 @@ class Oil:
         self.predict_years  = predict_years
 
         # predicted data type
-        dt   = np.dtype({'names': ('date', 'price'),
-                         'formats': ('S10' , np.float)})
-        self.predicted_data = np.array([], dtype=dt)
+        self.predicted_data = []
+        for p_num in range(predict_pattern_number):
+            self.predicted_data.append([])
 
         predict_months_num = int(self.predict_years * 12)
 
         # latest date from history_data
-        #latest_history_date_str, latest_oilprice = self.yearly_history_data[-1]
         latest_history_date_str, latest_oilprice = self.monthly_history_data[-1]
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
         for pattern in range(predict_pattern_number):
@@ -73,6 +72,5 @@ class Oil:
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for time in range(DELTA_T_DAY):
                     current_oilprice    = self.calc_oilprice(current_oilprice)
-                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_oilprice)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,15*12)
+                self.predicted_data[pattern].append({'date':current_date_str,'price':current_oilprice})
         return

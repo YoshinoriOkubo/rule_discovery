@@ -57,9 +57,9 @@ class ShipDemand:
         self.predict_years  = predict_years
 
         # predicted data type
-        dt   = np.dtype({'names': ('date', 'price'),
-                         'formats': ('S10' , np.float)})
-        self.predicted_data = np.array([], dtype=dt)
+        self.predicted_data = []
+        for p_num in range(predict_pattern_number):
+            self.predicted_data.append([])
 
         predict_months_num = int(self.predict_years * 12)
 
@@ -73,6 +73,5 @@ class ShipDemand:
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 current_ship_demand    = self.calc_ship_demand(current_ship_demand)
-                self.predicted_data = np.append(self.predicted_data, np.array([(current_date_str, current_ship_demand)], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12+FREIGHT_MAX_DELAY)
+                self.predicted_data[pattern].append({'date':current_date_str, 'price':current_ship_demand})
         return

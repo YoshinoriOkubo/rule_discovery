@@ -1,4 +1,3 @@
-import numpy as np
 import sys
 import math
 import datetime
@@ -48,12 +47,11 @@ class Freight:
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
-        dt   = np.dtype({'names': ('date', 'price'),
-                         'formats': (np.float , np.float)})
-        self.predicted_data = np.array([], dtype=dt)
+        self.predicted_data = []
+        for p_num in range(predict_pattern_number):
+            self.predicted_data.append([])
         for pattern in range(predict_pattern_number):
             for year in range(self.predict_years):
                 for month in range(12):
-                    self.predicted_data = np.append(self.predicted_data, np.array([(year*12+month, self.calc_freight(self.type,pattern,year*12+month))], dtype=dt))
-        self.predicted_data = self.predicted_data.reshape(DEFAULT_PREDICT_PATTERN_NUMBER,predict_years*12)
+                    self.predicted_data[pattern].append({'date':year*12+month, 'price':self.calc_freight(self.type,pattern,year*12+month)})
         return
