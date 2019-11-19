@@ -25,7 +25,7 @@ class Freight:
 
     def calc_fuel_cost(self,oil):
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        fuel_cost = ship.calc_fuel_cost(oil)
+        fuel_cost = ship.calc_fuel_cost(oil,ship.speed)
         return fuel_cost
 
     def calc_freight(self,type,pattern,time):
