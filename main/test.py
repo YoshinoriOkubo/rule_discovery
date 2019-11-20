@@ -55,7 +55,7 @@ def fitness_function(rule):
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']
                 f += current_freight_rate_outward
                 current_freight_rate_return = freight_rate_return_data[pattern][year*12+month]['price']
-                total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_exchange = exchange_rate_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']

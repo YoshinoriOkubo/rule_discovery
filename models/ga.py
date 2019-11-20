@@ -121,7 +121,7 @@ class GA:
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
-                    total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']
@@ -317,7 +317,7 @@ class GA:
 
         #print('finish')
         #print('Spent time is {0}'.format(time.time() - first))
-        #self.depict_fitness()
+        self.depict_fitness()
         #self.depict_average_variance()
         #self.print_result()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)

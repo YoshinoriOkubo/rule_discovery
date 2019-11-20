@@ -20,7 +20,7 @@ def fitness_function_ave():
                 current_demand = 10.773913037102997
                 current_freight_rate_outward = 1468.1572093902791
                 current_freight_rate_return = 909.3065453615974
-                total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                total_freight =( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_supply = 5292.034884937528
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
@@ -43,7 +43,7 @@ def fitness_function():
                 current_oil_price = oil_price_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']
                 current_freight_rate_return = freight_rate_return_data[pattern][year*12+month]['price']
-                total_freight = 0.5 * ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 #current_exchange = exchange_rate_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
@@ -55,4 +55,4 @@ def fitness_function():
     e, sigma = calc_statistics(Record)
     return [e,sigma]
 print(fitness_function_ave())
-print(fitness_function())
+#print(fitness_function())
