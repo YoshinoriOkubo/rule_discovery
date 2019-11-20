@@ -47,7 +47,7 @@ class Ship:
         old_flag = False
         old_number = 0
         for e in self.agelist:
-            if e >= 180:
+            if e >= VESSEL_LIFE_TIME*12:
                 old_flag = True
                 old_number += 1
         self.agelist.sort(reverse = True)
@@ -101,7 +101,7 @@ class Ship:
         if number > 0:
             if self.exist_number + number > self.max_ship_number:
                 number = self.max_ship_number - self.exist_number
-            if time < VESSEL_LIFE_TIME*12 - ORDER_TIME:
+            if time < PAYBACK_PERIOD*12 - ORDER_TIME:
                 self.ship_order_list.append([number,ORDER_TIME])
                 self.order_number += number
                 return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+self.freight_impact(freight_outward_data,time))*(1 + INDIRECT_COST)*number
@@ -130,7 +130,7 @@ class Ship:
             self.total_number -= number
             cash = 0
             for i in range(number):
-                if self.agelist[i] < 180:
+                if self.agelist[i] < VESSEL_LIFE_TIME*12:
                     cash += INITIAL_COST_OF_SHIPBUIDING*self.age_impact(self.agelist[i])*self.freight_impact(freight_outward_data,time)
                 else:
                     cash += FINAL_VALUE

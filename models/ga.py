@@ -55,7 +55,7 @@ class GA:
 
     def check_rule_is_adapted(self,rule):
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-            for year in range(VESSEL_LIFE_TIME):
+            for year in range(DEFAULT_PREDICT_YEARS):
                 for month in range(12):
                     oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
@@ -115,7 +115,7 @@ class GA:
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-            for year in range(VESSEL_LIFE_TIME):
+            for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
                 for month in range(12):
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
@@ -126,7 +126,7 @@ class GA:
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
-                    if result[0]:
+                    if result[0] and year < PAYBACK_PERIOD:
                         cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][0])
                         cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
                         cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
@@ -141,7 +141,6 @@ class GA:
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
-            ship.sell_ship(self.freight_rate_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
             fitness /= HUNDRED_MILLION
             fitness /= INITIAL_NUMBER_OF_SHIPS
             Record.append(fitness)

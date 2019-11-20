@@ -115,7 +115,7 @@ class ShipSupply:
         for pattern in range(predict_pattern_number):
             self.generate_distribution()
             self.generate_orderbook()
-            for time in range(VESSEL_LIFE_TIME*12+FREIGHT_MAX_DELAY):
+            for time in range(self.predict_years*12+FREIGHT_MAX_DELAY):
                 self.order_ship(pattern,time)
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
