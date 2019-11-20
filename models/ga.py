@@ -132,9 +132,9 @@ class GA:
                         cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
                         ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
                         ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
-                        if ship.charter_flag == True:
-                            cash_flow += ship.charter()
-                            ship.end_charter()
+                    if ship.charter_flag == True:
+                        cash_flow += ship.charter()
+                        ship.end_charter()
                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
                     ship.change_speed(INITIAL_SPEED)
