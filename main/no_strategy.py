@@ -7,17 +7,17 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
-    if own_ship != 100:
-        return[True,100-own_ship]
-    '''
-    if True:
-        number = 0
-        for index in range(len(ship.agelist)):
-            if ship.agelist[index] == 180 - ORDER_TIME:
-                number += 1
-        return [True,number]
-    '''
+def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship,type=None):
+    if type is None:
+        if own_ship != 100:
+            return[True,100-own_ship]
+    else:
+        if True:
+            number = 0
+            for index in range(len(ship.agelist)):
+                if ship.agelist[index] == 180 - ORDER_TIME:
+                    number += 1
+            return [True,number]
     return [False]
 
 def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,rule):
@@ -31,7 +31,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             else:
                 fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(freight_outward_data,0)*(1 + INDIRECT_COST)
         fitness *= exchange_data[pattern][0]['price']
-        for year in range(VESSEL_LIFE_TIME):
+        for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             for month in range(12):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
@@ -42,7 +42,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
                 result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule,ship)
-                if result[0]:
+                if result[0] and year < PAYBACK_PERIOD:
                     #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,result[1])
                     cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,result[1])
                     #print(ship.total_number)
@@ -52,7 +52,6 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
-        ship.sell_ship(freight_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
         fitness /= HUNDRED_MILLION
         Record.append(fitness)
     e, sigma = calc_statistics(Record)

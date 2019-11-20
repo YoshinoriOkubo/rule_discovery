@@ -16,7 +16,7 @@ def make_new_market(freight):
     list = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         list.append([])
-        for time in range(VESSEL_LIFE_TIME*12):
+        for time in range(DEFAULT_PREDICT_YEARS*12):
             freight_criteria = FREIGHT_3
             if time - 3 < 0:
                 freight_three_month_before = FREIGHT_PREV[time-3]
@@ -29,7 +29,7 @@ def make_secondhand_market(freight):
     list = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         list.append([])
-        for time in range(VESSEL_LIFE_TIME*12):
+        for time in range(DEFAULT_PREDICT_YEARS*12):
             freight_criteria = FREIGHT_3
             if time - 3 < 0:
                 freight_three_month_before = FREIGHT_PREV[time-3]
@@ -98,7 +98,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        for year in range(VESSEL_LIFE_TIME):
+        for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             for month in range(12):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
@@ -108,20 +108,20 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 current_exchange = exchange_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
-                print('Now your company own {} ships'.format(ship.exist_number))
-                print('Please enter purcahse number')
-                if year*12 + month == 0:
-                    print('Purchase number is limited to whether 0 or 1')
-                number = depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
-                #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
-                cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
+                if year < PAYBACK_PERIOD:
+                    print('Now your company own {} ships'.format(ship.exist_number))
+                    print('Please enter purcahse number')
+                    if year*12 + month == 0:
+                        print('Purchase number is limited to whether 0 or 1')
+                    number = depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
+                    #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
+                    cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
-        ship.sell_ship(freight_outward_data[pattern],VESSEL_LIFE_TIME*12-1,ship.exist_number)
         fitness /= HUNDRED_MILLION
         fitness /= INITIAL_NUMBER_OF_SHIPS
         Record.append(fitness)
