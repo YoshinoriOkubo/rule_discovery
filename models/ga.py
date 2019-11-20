@@ -115,6 +115,12 @@ class GA:
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+            for i in range(len(ship.agelist)):
+                if ship.agelist[i] == 0:
+                    fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(self.freight_rate_outward_data,0))*(1 + INDIRECT_COST)
+                else:
+                    fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(self.freight_rate_outward_data,0)*(1 + INDIRECT_COST)
+            fitness *= self.exchange_rate_data[pattern][11]['price']
             for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
                 for month in range(12):
@@ -142,7 +148,7 @@ class GA:
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
             fitness /= HUNDRED_MILLION
-            fitness /= INITIAL_NUMBER_OF_SHIPS
+            fitness /= SCALING
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
         return [e,sigma]
@@ -202,7 +208,7 @@ class GA:
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
         plt.ylabel('fitness value', fontsize = 16)
-        plt.ylim(-2,2)
+        #plt.ylim(-2,2)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
