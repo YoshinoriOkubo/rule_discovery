@@ -110,6 +110,6 @@ for each_rule in rule:
     e,sigma,f = fitness_function(each_rule)
     print(e,',',f)
 
-each_rule = [0,50,1300,2000,100,130,97,105,0,1,0,0,0,[2.074606535,0.658025584]]
+each_rule = [10,140,300,2200,70,200,0,120,0,1,0,0,1,6.939222582318641,5.420854999758004]
 e,sigma,f_ave = fitness_function(each_rule)
 print(e,f_ave)

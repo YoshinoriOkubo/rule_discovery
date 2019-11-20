@@ -30,7 +30,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(freight_outward_data,0))*(1 + INDIRECT_COST)
             else:
                 fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(freight_outward_data,0)*(1 + INDIRECT_COST)
-        fitness *= exchange_data[pattern][0]['price']
+        fitness *= exchange_data[pattern][11]['price']
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             for month in range(12):
@@ -53,6 +53,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
         fitness /= HUNDRED_MILLION
+        fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
@@ -61,7 +62,7 @@ def main():
     rule = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,rule)
-    print(e,'100万')
+    print(e,'億円')
 
 if __name__ == "__main__":
     main()

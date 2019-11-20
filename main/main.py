@@ -76,7 +76,7 @@ def main():
     start = time.time()
     #single_processing()
     #multi_processing()
-    one_rule_example([0,0,1,0,0])
+    one_rule_example([1,0,0,0,0])
     print(time.time()-start)
 
 if __name__ == "__main__":

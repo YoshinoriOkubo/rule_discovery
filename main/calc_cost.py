@@ -54,5 +54,5 @@ def fitness_function():
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
-print(fitness_function_ave())
+print(fitness_function_ave()[0]/INITIAL_COST_OF_SHIPBUIDING)
 #print(fitness_function())
