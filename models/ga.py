@@ -143,7 +143,6 @@ class GA:
                         ship.end_charter()
                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
-                    ship.change_speed(INITIAL_SPEED)
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
                 fitness += cash_flow / DISCOUNT
@@ -216,7 +215,7 @@ class GA:
         plt.savefig(os.path.join(save_dir, 'fitness.png'))
         plt.close()
 
-    def depict_average_variance(self,gene=None,list=None):
+    def depict_average_variance(self,actionlist,gene=None,list=None):
         x = []
         y = []
         for i in range(self.population_size):
@@ -229,13 +228,14 @@ class GA:
         plt.scatter(x,y)
         x_min = min(x)
         x_min = x_min*0.9 if x_min>0 else x_min*1.1
-        plt.xlim(-1,1)
+        plt.xlim(-1,5)
         plt.ylim(0,2)
         plt.title("Rule Performance")
         plt.xlabel("Expectation")
         plt.ylabel("Variance")
         plt.grid(True)
-        save_dir = '../output'
+        save_dir = '../output/image'
+        name = str(actionlist[0]*16+actionlist[1]*8+actionlist[2]*4+actionlist[3]*2+actionlist[4])
         if gene == 0:
             plt.savefig(os.path.join(save_dir, 'Evaluation_{}_initial.png'.format(name)))
         else:
@@ -287,7 +287,7 @@ class GA:
         #randomly generating individual group
         for p_size in range(self.population_size):
             self.population.append(self.generateIndividual())
-        #self.depict_average_variance(0,self.population,self.actionlist)
+        #self.depict_average_variance(self.actionlist,0,self.population)
 
         #genetic algorithm
         for gene in range(self.generation):
@@ -323,8 +323,8 @@ class GA:
 
         #print('finish')
         #print('Spent time is {0}'.format(time.time() - first))
-        self.depict_fitness()
-        #self.depict_average_variance()
+        #self.depict_fitness()
+        #self.depict_average_variance(self.actionlist)
         #self.print_result()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
         return self.population[0]
