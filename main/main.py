@@ -11,6 +11,15 @@ from my_modules import *
 sys.path.append('../models')
 from ga import GA
 
+def make_minimum_actionlist():
+    all_actionlist = []
+    all_actionlist.append([1,0,0,0,0])
+    all_actionlist.append([0,1,0,0,0])
+    all_actionlist.append([0,0,1,0,0])
+    all_actionlist.append([0,0,0,1,0])
+    all_actionlist.append([0,0,0,0,1])
+    return [all_actionlist,5]
+
 def make_small_actionlist():
     all_actionlist = []
     for purchase_new in range(2):
@@ -19,7 +28,7 @@ def make_small_actionlist():
                 for charter_in in range(2):
                     for charter_out in range(2):
                         all_actionlist.append([purchase_new,purchase_secondhand,sell,charter_in,charter_out])
-    return all_actionlist
+    return [all_actionlist,2**5]
 
 def make_actionlist():
     all_actionlist = []
@@ -29,7 +38,7 @@ def make_actionlist():
                 for charter_in in range(4):
                     for charter_out in range(4):
                         all_actionlist.append([purchase_new,purchase_secondhand,sell,charter_in,charter_out])
-    return all_actionlist
+    return [all_actionlist,4**5]
 
 def process(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,actionlist):
     ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,
@@ -48,12 +57,13 @@ def single_processing():
     export_rules_csv(rule)
 
 def multi_processing():
-    #all_actionlist = make_actionlist()
-    all_actionlist = make_small_actionlist()
+    all_actionlist,number = make_minimum_actionlist()
+    #all_actionlist,number = make_small_actionlist()
+    #all_actionlist,number = make_actionlist()
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
     num_pool = multi.cpu_count()
     num_pool = int(num_pool*0.9)
-    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,all_actionlist[i]] for i in range(2**5)]
+    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,all_actionlist[i]] for i in range(number)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         export_rules_csv(p)
@@ -76,7 +86,7 @@ def main():
     start = time.time()
     #single_processing()
     #multi_processing()
-    one_rule_example([1,0,0,0,0])
+    one_rule_example([0,0,1,0,0])
     print(time.time()-start)
 
 if __name__ == "__main__":
