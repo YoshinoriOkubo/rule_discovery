@@ -199,7 +199,7 @@ def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,sup
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
     list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
     down = [0,0,0,0,0,0]
-    up = [200,4000,2000,250,20,10000]
+    up = [200,6834.62314,2000,250,20,10000]
     for (data, name, d, u) in zip(list1,list2,down,up):
         orignal_length = len(data.monthly_history_data)
         length_sum = DEFAULT_PREDICT_YEARS*12+orignal_length
@@ -232,7 +232,8 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(DEFAULT_PREDICT_YEARS * 12):
                 data.append(type.predicted_data[pattern][time]['price'])
-                ave += type.predicted_data[pattern][time]['price']
+                if type.predicted_data[pattern][time]['price'] < up:
+                    ave += type.predicted_data[pattern][time]['price']
         print(ave/(DEFAULT_PREDICT_PATTERN_NUMBER*DEFAULT_PREDICT_YEARS*12))
         plt.hist(data,bins=20,range=(down, up))
         plt.xlabel('{} value'.format(name))
