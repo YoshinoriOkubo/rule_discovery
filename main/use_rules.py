@@ -8,7 +8,8 @@ from my_modules import *
 from constants  import *
 
 def load_ship_rules():
-    path = '../output/ship_rule.csv'
+    path = '../output/rule-discovered/ship_rule.csv'
+    #path = '../output/rule-discovered/ship_one_rule.csv'
     rule = []
     with open(path) as f:
         reader = csv.reader(f)
@@ -24,10 +25,10 @@ def load_ship_rules():
     return rule
 
 def select_rules(rule,oil,freight,exchange,own_ship):
-    max_fitness = -10
+    max_fitness = -100
     result = None
     for one in rule:
-        if adapt_rule(oil,freight,exchange,own_ship,one):
+        if adapt_rule(oil,freight,exchange,own_ship,one)[0]:
             if max_fitness < one[-2] or (max_fitness == one[-2] and random.randint(0,1) < 0.5):
                 result = one
                 max_fitness = one[-2]
@@ -36,6 +37,8 @@ def select_rules(rule,oil,freight,exchange,own_ship):
     return result
 
 def adapt_rule(oil_price,freight,exchange,own_ship,rule,actionlist=None):
+    if rule is None:
+        return [False]
     a,b = rule[0],rule[1]
     if a <= oil_price and oil_price <= b:
         c,d = rule[2],rule[3]
