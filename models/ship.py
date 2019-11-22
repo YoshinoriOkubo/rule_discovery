@@ -76,8 +76,7 @@ class Ship:
 
     def calculate_idle_rate(self,demand,supply):
         if self.total_number > 0:
-            share = self.total_number/supply
-            demand_own = demand * share
+            demand_own = demand*(INITIAL_NUMBER_OF_SHIPS/supply)
             ship_needed = demand_own*SHIP_NUMBER_PER_DEMAND
             if ship_needed > self.total_number:
                 self.idle_rate = 0
@@ -140,10 +139,10 @@ class Ship:
         return 0
 
     def charter_ship(self,oil_price,freight,demand,supply,number,direction):
-        p = CHARTER_PERIOD.index(CHARTER_TIME)
+        p = CHARTER_TIME
         if direction == DECISION_CHARTER_OUT:
             if self.exist_number > 0:
-                cash = self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] / self.total_number
+                cash = self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM / self.total_number
                 if self.exist_number < number:
                     number = self.exist_number
                 if number > 0:
@@ -160,10 +159,10 @@ class Ship:
             if number > 0:
                 if self.total_number == 0:
                     self.total_number = 1
-                    cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] * (1 + INDIRECT_COST)
+                    cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM * (1 + INDIRECT_COST)
                     self.total_number = 0
                 else:
-                    cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM[p] * (1 + INDIRECT_COST) / self.total_number
+                    cash = -self.calculate_income_per_month(oil_price,freight,demand,supply) * RISK_PREMIUM * (1 + INDIRECT_COST) / self.total_number
                 self.total_number += number
                 cash *= number
                 self.charter_list.append([cash,number,p,direction])
