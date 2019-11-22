@@ -5,7 +5,6 @@ import os
 import random
 from ship_demand import ShipDemand
 from ship_supply import ShipSupply
-from ship import Ship
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -23,11 +22,6 @@ class Freight:
             elif self.type == RETURN:
                     self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,RETURN)
 
-    def calc_fuel_cost(self,oil):
-        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        fuel_cost = ship.calc_fuel_cost(oil,ship.speed)
-        return fuel_cost
-
     def calc_freight(self,type,pattern,time):
         if type == OUTWARD:
             inclination = FREIGHT_OUTWARD_INCLINATION
@@ -39,8 +33,7 @@ class Freight:
             delay = FREIGHT_RETURN_DELAY
         current_demand = self.ship_demand_data[pattern][time-delay]['price']
         current_supply = self.ship_supply_data[pattern][time-delay]['price']
-        fuel_cost = self.calc_fuel_cost(self.oil_data[pattern][time]['price'])
-        minimum_freight = fuel_cost/TEU_SIZE#100% LOAD_FACTOR
+        minimum_freight = 0
         return max(minimum_freight,inclination*current_demand/current_supply + intercept)
 
     # generate predicted sinario
