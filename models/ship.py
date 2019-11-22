@@ -118,7 +118,7 @@ class Ship:
             self.total_number += number
             for i in range(number):
                 self.agelist.append(FIVE_YEARS_OLD)
-            return -INITIAL_COST_OF_SHIPBUIDING*self.age_impact(FIVE_YEARS_OLD)*self.freight_impact(freight_outward_data,time)*(1 + INDIRECT_COST)*number
+            return -max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(FIVE_YEARS_OLD)*self.freight_impact(freight_outward_data,time)*(1 + INDIRECT_COST)*number)
         else:
             return 0
 
