@@ -4,6 +4,7 @@ import datetime
 import os
 import csv
 import matplotlib.pyplot as plt
+import statistics
 from constants import *
 
 def convert2to10_in_list(list):
@@ -158,6 +159,69 @@ def calc_statistics(list):
     sigma /= n
     return [e,sigma]
 
+def export_binomial_parameter(oil,exchange,demand):
+    path = '../output/scenario/paramater.csv'
+    with open(path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['type', 'mu', 'sigma', 'u', 'd', 'p'])
+    with open(path, 'a') as f:
+        writer = csv.writer(f)
+        list1 = [oil,exchange,demand]
+        list2 = ['oil price', 'exchange rate', 'ship demand']
+        for data, name in zip(list1,list2) :
+            row = []
+            row.append(name)
+            row.append(data.neu)
+            row.append(data.sigma)
+            row.append(data.u)
+            row.append(data.d)
+            row.append(data.p)
+            writer.writerow(row)
+
+def export_statistical_feature(oil,freight_outward,freight_return,exchange,demand,supply):
+    #export mean, variance, stdev,median, minimum, maximum, mean with barrier
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
+    list3 = [0,0,0,0,0,0]
+    list4 = [150,2000,2000,250,20,10000]
+    statistical_feature = []
+    number = 0
+    for type,name,down,up in zip(list1,list2,list3,list4):
+        statistical_feature.append({})
+        data = []
+        data_modifyed = []
+        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+            for time in range(DEFAULT_PREDICT_YEARS * 12):
+                data.append(type.predicted_data[pattern][time]['price'])
+                if type.predicted_data[pattern][time]['price'] < up:
+                    data_modifyed.append(type.predicted_data[pattern][time]['price'])
+        dictionary_data = statistical_feature[number]
+        dictionary_data['mean'] = statistics.mean(data)
+        dictionary_data['variance'] = statistics.variance(data)
+        dictionary_data['stdev'] = statistics.stdev(data)
+        dictionary_data['median'] = statistics.median(data)
+        dictionary_data['min'] = min(data)
+        dictionary_data['max'] = max(data)
+        number += 1
+    path = '../output/scenario/statistics.csv'
+    with open(path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['name', 'mean', 'variance', 'stdev', 'median', 'min', 'max'])
+    with open(path, 'a') as f:
+        writer = csv.writer(f)
+        for index in range(len(statistical_feature)):
+            statistics_data = statistical_feature[index]
+            name = list2[index]
+            row = []
+            row.append(name)
+            row.append(statistics_data['mean'])
+            row.append(statistics_data['variance'])
+            row.append(statistics_data['stdev'])
+            row.append(statistics_data['median'])
+            row.append(statistics_data['min'])
+            row.append(statistics_data['max'])
+            writer.writerow(row)
+
 def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply):
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
     list2 = ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply']
@@ -227,14 +291,10 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
     list3 = [0,0,0,0,0,0]
     list4 = [150,4000,2000,250,20,10000]
     for type,name,down,up in zip(list1,list2,list3,list4):
-        ave = 0
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(DEFAULT_PREDICT_YEARS * 12):
                 data.append(type.predicted_data[pattern][time]['price'])
-                if type.predicted_data[pattern][time]['price'] < up:
-                    ave += type.predicted_data[pattern][time]['price']
-        print(ave/(DEFAULT_PREDICT_PATTERN_NUMBER*DEFAULT_PREDICT_YEARS*12))
         plt.hist(data,bins=20,range=(down, up))
         plt.xlabel('{} value'.format(name))
         plt.ylabel('Frequency')
