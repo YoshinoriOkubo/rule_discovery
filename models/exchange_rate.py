@@ -75,5 +75,7 @@ class ExchangeRate:
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for time in range(DELTA_T_DAY):
                     current_exchange_rate    = self.calc_exchange_rate(current_exchange_rate)
+                    if current_exchange_rate > MAX_EXCHANGE:
+                        current_exchange_rate = current_exchange_rate/self.u
                 self.predicted_data[pattern].append({'date':current_date_str, 'price':current_exchange_rate})
         return

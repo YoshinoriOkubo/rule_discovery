@@ -22,9 +22,9 @@ def convert2to10_in_list(list):
 
 def export_rules_csv(list,one=None):
     if one is None:
-        path = '../output/ship_rule.csv'
+        path = '../output/rule-discovered/ship_rule.csv'
     else:
-        path = '../output/ship_one_rule.csv'
+        path = '../output/rule-discovered/ship_one_rule.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','expectation','variance'])
