@@ -26,6 +26,8 @@ def main():
     freight_return.generate_sinario()
     exchange = ExchangeRate()
     exchange.generate_sinario()
+    export_binomial_parameter(oil,exchange,demand)
+    export_statistical_feature(oil,freight_outward,freight_return,exchange,demand,supply)
     export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply)
     depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply)
     depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply)

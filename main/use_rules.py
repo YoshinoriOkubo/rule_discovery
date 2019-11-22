@@ -100,7 +100,6 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
         fitness /= HUNDRED_MILLION
-        fitness /= DEFAULT_PREDICT_PATTERN_NUMBER
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
@@ -110,7 +109,7 @@ def main():
     rule = load_ship_rules()
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,rule,actionlist)
-    print(e)
+    print(e,'億円')
     print(actionlist)
 
 if __name__ == "__main__":

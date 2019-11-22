@@ -131,7 +131,7 @@ class Ship:
             cash = 0
             for i in range(number):
                 if self.agelist[i] < VESSEL_LIFE_TIME*12:
-                    cash += INITIAL_COST_OF_SHIPBUIDING*self.age_impact(self.agelist[i])*self.freight_impact(freight_outward_data,time)
+                    cash += max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(self.agelist[i])*self.freight_impact(freight_outward_data,time))
                 else:
                     cash += FINAL_VALUE
             for sold_ship in range(number):
