@@ -73,5 +73,7 @@ class Oil:
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for time in range(DELTA_T_DAY):
                     current_oilprice    = self.calc_oilprice(current_oilprice)
+                    if current_oilprice > MAX_OIL_PRICE:
+                        current_oilprice = current_oilprice/self.u
                 self.predicted_data[pattern].append({'date':current_date_str,'price':current_oilprice})
         return
