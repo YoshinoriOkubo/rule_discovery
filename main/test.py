@@ -48,6 +48,12 @@ def fitness_function(rule):
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+        for i in range(len(ship.agelist)):
+            if ship.agelist[i] == 0:
+                fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(freight_outward_data,0))*(1 + INDIRECT_COST)
+            else:
+                fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(freight_outward_data,0)*(1 + INDIRECT_COST)
+        fitness *= exchange_data[pattern][11]['price']
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             for month in range(12):
@@ -77,9 +83,7 @@ def fitness_function(rule):
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_rate_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
-        ship.sell_ship(freight_rate_outward_data[pattern],DEFAULT_PREDICT_YEARS*12-1,ship.exist_number)
         fitness /= HUNDRED_MILLION
-        fitness /= INITIAL_NUMBER_OF_SHIPS
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     if number > 0:
@@ -89,27 +93,32 @@ def fitness_function(rule):
     #print(f/(DEFAULT_PREDICT_PATTERN_NUMBER*180))
     return [e,sigma,f_ave]
 
-path = '../output/ship_rule.csv'
-rule = []
-with open(path) as f:
-    reader = csv.reader(f)
-    for row in reader:
-        if row[0] != 'a':
-            list = []
-            for index in range(len(row)):
-                if index > 12:
-                    list.append(float(row[index]))
-                else:
-                    list.append(int(row[index]))
-            rule.append(list)
-a = 0
-for each_rule in rule:
-    if a == 16:
-        print('後半')
-    a += 1
-    e,sigma,f = fitness_function(each_rule)
-    print(e,',',f)
+def main():
+    '''
+    path = '../output/ship_rule.csv'
+    rule = []
+    with open(path) as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] != 'a':
+                list = []
+                for index in range(len(row)):
+                    if index > 12:
+                        list.append(float(row[index]))
+                    else:
+                        list.append(int(row[index]))
+                rule.append(list)
+    a = 0
+    for each_rule in rule:
+        if a == 16:
+            print('後半')
+        a += 1
+        e,sigma,f = fitness_function(each_rule)
+        print(e,',',f)
+    '''
+    rule = [10,140,300,2200,70,200,0,120,0,1,0,0,1,6.939222582318641,5.420854999758004]
+    e,sigma,f_ave = fitness_function(rule)
+    print(e,f_ave)
 
-each_rule = [10,140,300,2200,70,200,0,120,0,1,0,0,1,6.939222582318641,5.420854999758004]
-e,sigma,f_ave = fitness_function(each_rule)
-print(e,f_ave)
+if __name__ == "__main__":
+    main()
