@@ -20,6 +20,32 @@ def convert2to10_in_list(list):
     else:
         return None
 
+def export_rules_integrate_csv(list):
+    path = '../output/rule-discovered/rule.csv'
+    with open(path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['a','b','c','d','e','f','g','h'])
+    with open(path, 'a') as f:
+        writer = csv.writer(f)
+        for index in range(len(list)):
+            individual = list[index]
+            for block in range(3):
+                row = []
+                if block == 2:
+                    row.append(individual[block][0])
+                    row.append(individual[block][1])
+                else:
+                    for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
+                        if col_cond == 0 or col_cond == 1:
+                            row.append(OIL_PRICE_LIST[convert2to10_in_list(individual[block][col_cond])])
+                        elif col_cond == 2 or col_cond == 3:
+                            row.append(FREIGHT_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
+                        elif col_cond == 4 or col_cond == 5:
+                            row.append(EXCHANGE_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
+                        else:
+                            row.append(OWN_SHIP_LIST[convert2to10_in_list(individual[block][col_cond])])
+                writer.writerow(row)
+
 def export_rules_csv(list,one=None):
     if one is None:
         path = '../output/rule-discovered/ship_rule.csv'
@@ -90,6 +116,10 @@ def load_history_data(unit,type,direction=None,from_date=None, to_date=None):
         history_data_path = '../data/ship_demand_{}.csv'.format(name)
     elif type == SUPPLY_TYPE:
         history_data_path = '../data/ship_supply_{}.csv'.format(name)
+    elif type == NEWSHIPMARKET_TYPE:
+        history_data_path = '../data/new_ship_price_{}.csv'.format(name)
+    elif type == SECONDHAND_TYPE:
+        history_data_path = '../data/secondhand_ship_price_{}.csv'.format(name)
     else:
         raise Exception('type error')
 
@@ -178,12 +208,12 @@ def export_binomial_parameter(oil,exchange,demand):
             row.append(data.p)
             writer.writerow(row)
 
-def export_statistical_feature(oil,freight_outward,freight_return,exchange,demand,supply):
+def export_statistical_feature(oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship):
     #export mean, variance, stdev,median, minimum, maximum, mean with barrier
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    list3 = [0,0,0,0,0,0]
-    list4 = [150,2000,2000,250,20,10000]
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    list3 = [0,0,0,0,0,0,0,0]
+    list4 = [150,2000,2000,250,20,10000,150*10**6,150*10**6]
     statistical_feature = []
     number = 0
     for type,name,down,up in zip(list1,list2,list3,list4):
@@ -222,9 +252,9 @@ def export_statistical_feature(oil,freight_outward,freight_return,exchange,deman
             row.append(statistics_data['max'])
             writer.writerow(row)
 
-def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply']
+def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply','new_ship','secondhand_ship']
     for (data, name) in zip(list1,list2):
         path = '../output/scenario/{}.csv'.format(name)
         with open(path, 'w') as f:
@@ -238,11 +268,11 @@ def export_scenario_csv(oil,freight_outward,freight_return,exchange,demand,suppl
                     row.append(data.predicted_data[pattern][time]['price'])
                 writer.writerow(row)
 
-def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    down = [0,0,0,0,0,0]
-    up = [200,4000,4000,250,30,10000]
+def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    down = [0,0,0,0,0,0,0,0]
+    up = [200,4000,4000,250,30,10000,150*10**6,150*10**6]
     for (data, name,d,u) in zip(list1,list2,down,up):
         x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -259,11 +289,11 @@ def depict_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
         plt.close()
 
-def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    down = [0,0,0,0,0,0]
-    up = [200,6834.62314,2000,250,20,10000]
+def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    down = [0,0,0,0,0,0,0,0]
+    up = [200,6834.62314,2000,250,20,10000,150*10**6,150*10**6]
     for (data, name, d, u) in zip(list1,list2,down,up):
         orignal_length = len(data.monthly_history_data)
         length_sum = DEFAULT_PREDICT_YEARS*12+orignal_length
@@ -285,11 +315,11 @@ def depict_whole_scenario(oil,freight_outward,freight_return,exchange,demand,sup
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
 
-def depict_distribution(oil,freight_outward,freight_return,exchange,demand,supply):
-    list1 = [oil,freight_outward,freight_return,exchange,demand,supply]
-    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply']
-    list3 = [0,0,0,0,0,0]
-    list4 = [150,4000,2000,250,20,10000]
+def depict_distribution(oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship):
+    list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
+    list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    list3 = [0,0,0,0,0,0,0,0]
+    list4 = [150,4000,2000,250,20,10000,150*10**6,150*10**6]
     for type,name,down,up in zip(list1,list2,list3,list4):
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):

@@ -86,30 +86,6 @@ class Ship:
         else:
             self.idle_rate = 0
 
-    def freight_impact(self,freight_outward_data,time):
-        freight_criteria = FREIGHT_3
-        if time - 3 < 0:
-            freight_three_month_before = FREIGHT_PREV[time-3]
-        else:
-            freight_three_month_before = freight_outward_data[time-3]['price']
-        return freight_three_month_before/freight_criteria
-
-    def age_impact(self,age):
-        return 1 - age/(VESSEL_LIFE_TIME*12)
-
-    def buy_new_ship(self,freight_outward_data,time,number):
-        if number > 0:
-            if self.exist_number + number > self.max_ship_number:
-                number = self.max_ship_number - self.exist_number
-            if time < PAYBACK_PERIOD*12 - ORDER_TIME:
-                self.ship_order_list.append([number,ORDER_TIME])
-                self.order_number += number
-                return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+self.freight_impact(freight_outward_data,time))*(1 + INDIRECT_COST)*number
-            else:
-                return 0
-        else:
-            return 0
-
     def buy_new_ship_form_demand_and_supply(self,demand,supply,number):
         if number > 0:
             if self.exist_number + number > self.max_ship_number:
@@ -122,18 +98,6 @@ class Ship:
                 return - price *(1 + INDIRECT_COST)*number
             else:
                 return 0
-        else:
-            return 0
-
-    def buy_secondhand_ship(self,freight_outward_data,time,number):
-        if number > 0:
-            if self.exist_number + number > self.max_ship_number:
-                number = self.max_ship_number - self.exist_number
-            self.exist_number += number
-            self.total_number += number
-            for i in range(number):
-                self.agelist.append(FIVE_YEARS_OLD)
-            return -max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(FIVE_YEARS_OLD)*3.0*self.freight_impact(freight_outward_data,time)*(1 + INDIRECT_COST))*number
         else:
             return 0
 
@@ -150,36 +114,6 @@ class Ship:
             return -max(FINAL_VALUE,price*(1 + INDIRECT_COST))*number
         else:
             return 0
-
-    def buy_secondhand_ship_NPV(self,oil,freight,demand,supply,time,number):
-        if number > 0:
-            if self.exist_number + number > self.max_ship_number:
-                number = self.max_ship_number - self.exist_number
-            self.exist_number += number
-            self.total_number += number
-            for i in range(number):
-                self.agelist.append(FIVE_YEARS_OLD)
-                price = 130 * self.calculate_income_per_month(oil,freight,demand,supply)/self.total_number
-            return -max(FINAL_VALUE,price)*number
-        else:
-            return 0
-
-    def sell_ship(self,freight_outward_data,time,number):
-        if number > 0:
-            if self.exist_number - number < self.min_ship_number:
-                number = self.exist_number - self.min_ship_number
-            self.exist_number -= number
-            self.total_number -= number
-            cash = 0
-            for i in range(number):
-                if self.agelist[i] < VESSEL_LIFE_TIME*12:
-                    cash += max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(self.agelist[i])*self.freight_impact(freight_outward_data,time))
-                else:
-                    cash += FINAL_VALUE
-            for sold_ship in range(number):
-                self.agelist.pop(0)
-            return cash
-        return 0
 
     def sell_ship_from_demand_and_supply(self,demand,supply,number):
         if number > 0:
@@ -320,3 +254,70 @@ class Ship:
     def change_dollers_per_Barrels_to_dollers_per_kg(self,oil_price):
         return oil_price / 135
         #1barrels = 135kg
+
+
+    def freight_impact(self,freight_outward_data,time):
+        freight_criteria = FREIGHT_3
+        if time - 3 < 0:
+            freight_three_month_before = FREIGHT_PREV[time-3]
+        else:
+            freight_three_month_before = freight_outward_data[time-3]['price']
+        return freight_three_month_before/freight_criteria
+
+    def age_impact(self,age):
+        return 1 - age/(VESSEL_LIFE_TIME*12)
+
+    def buy_new_ship(self,freight_outward_data,time,number):
+        if number > 0:
+            if self.exist_number + number > self.max_ship_number:
+                number = self.max_ship_number - self.exist_number
+            if time < PAYBACK_PERIOD*12 - ORDER_TIME:
+                self.ship_order_list.append([number,ORDER_TIME])
+                self.order_number += number
+                return - INITIAL_COST_OF_SHIPBUIDING*0.5*(1+self.freight_impact(freight_outward_data,time))*(1 + INDIRECT_COST)*number
+            else:
+                return 0
+        else:
+            return 0
+
+    def buy_secondhand_ship(self,freight_outward_data,time,number):
+        if number > 0:
+            if self.exist_number + number > self.max_ship_number:
+                number = self.max_ship_number - self.exist_number
+            self.exist_number += number
+            self.total_number += number
+            for i in range(number):
+                self.agelist.append(FIVE_YEARS_OLD)
+            return -max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(FIVE_YEARS_OLD)*3.0*self.freight_impact(freight_outward_data,time)*(1 + INDIRECT_COST))*number
+        else:
+            return 0
+
+    def buy_secondhand_ship_NPV(self,oil,freight,demand,supply,time,number):
+        if number > 0:
+            if self.exist_number + number > self.max_ship_number:
+                number = self.max_ship_number - self.exist_number
+            self.exist_number += number
+            self.total_number += number
+            for i in range(number):
+                self.agelist.append(FIVE_YEARS_OLD)
+                price = 130 * self.calculate_income_per_month(oil,freight,demand,supply)/self.total_number
+            return -max(FINAL_VALUE,price)*number
+        else:
+            return 0
+
+    def sell_ship(self,freight_outward_data,time,number):
+        if number > 0:
+            if self.exist_number - number < self.min_ship_number:
+                number = self.exist_number - self.min_ship_number
+            self.exist_number -= number
+            self.total_number -= number
+            cash = 0
+            for i in range(number):
+                if self.agelist[i] < VESSEL_LIFE_TIME*12:
+                    cash += max(FINAL_VALUE,INITIAL_COST_OF_SHIPBUIDING*self.age_impact(self.agelist[i])*self.freight_impact(freight_outward_data,time))
+                else:
+                    cash += FINAL_VALUE
+            for sold_ship in range(number):
+                self.agelist.pop(0)
+            return cash
+        return 0
