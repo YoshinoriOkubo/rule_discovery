@@ -38,14 +38,51 @@ def make_secondhand_market(freight):
             list[pattern].append({'price':(2/3)*(1+INDIRECT_COST)*(freight_three_month_before/freight_criteria)})
     return list
 
+def make_new_market_from_demand_and_supply(demand,supply):
+    list = []
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        list.append([])
+        for time in range(DEFAULT_PREDICT_YEARS*12):
+            price = NEW_BUILDING_INCLINATION * demand[pattern][time]['price']/supply[pattern][time]['price'] + NEW_BUILDING_INTERCEPT
+            list[pattern].append({'price':price*(1+INDIRECT_COST)})
+    return list
+
+def depict_two_market(demand_data,supply_data):
+    new = make_new_market_from_demand_and_supply(demand_data,supply_data)
+    secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
+    x = range(360)
+    y = []
+    pattern = 4
+    for i in range(360):
+        y.append(new[pattern][i]['price'])
+    plt.plot(x,y)
+    y = []
+    for i in range(360):
+        y.append(secondhand[pattern][i]['price'])
+    plt.plot(x,y)
+    save_dir = '../output/image'
+    plt.savefig(os.path.join(save_dir, 'market.png'))
+
+
+def make_secondhand_market_from_demand_and_supply(demand,supply):
+    list = []
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        list.append([])
+        for time in range(DEFAULT_PREDICT_YEARS*12):
+            price = SECONDHAND_INCLINATION * demand[pattern][time]['price']/supply[pattern][time]['price'] + SECONDHAND_INTERCEPT
+            list[pattern].append({'price':price*(1+INDIRECT_COST)})
+    return list
+
 def depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,time):
     sns.set()
     sns.set_style('whitegrid')
     sns.set_palette('gray')
 
     fig = plt.figure()
-    new = make_new_market(freight_outward_data)
-    secondhand = make_secondhand_market(freight_outward_data)
+    #new = make_new_market(freight_outward_data)
+    new = make_new_market_from_demand_and_supply(demand_data,supply_data)
+    #secondhand = make_secondhand_market(freight_outward_data)
+    secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
     list1 = [oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,new,secondhand]
     list2 = ([fig.add_subplot(2, 4, 1),fig.add_subplot(2, 4, 2),fig.add_subplot(2, 4, 3),fig.add_subplot(2, 4, 4),
               fig.add_subplot(2, 4, 5),fig.add_subplot(2, 4, 6),fig.add_subplot(2,4,7),fig.add_subplot(2,4,8)])
@@ -95,6 +132,8 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
 
 def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data):
     Record = []
+    depict_two_market(demand_data,supply_data)
+    sys.exit()
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
@@ -108,6 +147,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 current_exchange = exchange_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
+                '''
                 if year < PAYBACK_PERIOD:
                     print('Now your company own {} ships'.format(ship.exist_number))
                     print('Please enter purcahse number')
@@ -116,6 +156,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                     number = depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
                     #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
                     cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
+                '''
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)
