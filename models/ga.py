@@ -69,7 +69,7 @@ class GA:
         temp = []
         for condition in range(DEFAULT_NUM_OF_CONDITION*2):
             temp.append([])
-            for a in range(4):
+            for a in range(DEFAULT_NUM_OF_BIT):
                 temp[condition].append(random.randint(0,1))
         for action in range(DEFAULT_NUM_OF_ACTION):
             temp.append(self.actionlist[action])
@@ -86,7 +86,7 @@ class GA:
                 temp1.append([])
                 temp2.append([])
                 length = len(a[condition]) - 1
-                crossover_point = random.randint(1,length-2)
+                crossover_point = random.randint(1,length-1)
                 for former in range(0,crossover_point):
                     temp1[condition].append(a[condition][former])
                     temp2[condition].append(b[condition][former])
