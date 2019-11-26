@@ -7,6 +7,7 @@ import os
 from multiprocessing import Pool
 import multiprocessing as multi
 from ship import Ship
+import slackweb
 # import own modules #
 sys.path.append('../public')
 sys.path.append('../output')
@@ -40,16 +41,16 @@ class GA_Trade:
             rule = rule_two[which_action]
             a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
             b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
-            if a <= oil_price and oil_price <= b:
+            if a < oil_price and oil_price < b:
                 c = FREIGHT_RATE_LIST[convert2to10_in_list(rule[2])]
                 d = FREIGHT_RATE_LIST[convert2to10_in_list(rule[3])]
-                if c <= freight and freight <= d:
+                if c < freight and freight < d:
                     e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
                     f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
-                    if e <= exchange and exchange <= f:
+                    if e < exchange and exchange < f:
                         g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
                         h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
-                        if g <= own_ship and own_ship <= h:
+                        if g < own_ship and own_ship < h:
                             result[which_action][0] = True
                             result[which_action][1] = 1
         return result
@@ -151,13 +152,13 @@ class GA_Trade:
                         result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
                         if result[0][0]:
                             cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
-                        if result[1][0] and year < PAYBACK_PERIOD:
+                        if result[1][0]:
                             cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
-                        if result[2][0] and year < PAYBACK_PERIOD:
+                        if result[2][0]:
                             cash_flow += ship.sell_ship(current_secondhand,result[2][1])
-                        if result[3][0] and year < PAYBACK_PERIOD:
+                        if result[3][0]:
                             ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[3][1],DECISION_CHARTER_IN)
-                        if result[4][0] and year < PAYBACK_PERIOD:
+                        if result[4][0]:
                             ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[4][1],DECISION_CHARTER_OUT)
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
@@ -341,7 +342,7 @@ class GA_Trade:
             self.exchange_rule()
 
             num_pool = multi.cpu_count()
-            num_pool = int(num_pool*0.9)
+            num_pool = int(num_pool*0.95)
             with Pool(num_pool) as pool:
                 p = pool.map(self.process, self.temp)
                 for index in range(len(self.temp)):
@@ -380,3 +381,5 @@ if __name__ == "__main__":
     start = time.time()
     main()
     print(time.time()-start)
+    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    slack.notify(text="program end!!!!!!!!!")

@@ -14,16 +14,16 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule):
     actionlist = rule[8:13]
     a = rule[0]
     b = rule[1]
-    if a <= oil_price and oil_price <= b:
+    if a < oil_price and oil_price < b:
         c = rule[2]
         d = rule[3]
-        if c <= freight and freight <= d:
+        if c < freight and freight < d:
             e = rule[4]
             f = rule[5]
-            if e <= exchange and exchange <= f:
+            if e < exchange and exchange < f:
                 g = rule[6]
                 h = rule[7]
-                if g <= own_ship and own_ship <= h:
+                if g < own_ship and own_ship < h:
                     result = [True]
                     result.append([])
                     result[1].append(PURCHASE_NUMBER[actionlist[0]])
