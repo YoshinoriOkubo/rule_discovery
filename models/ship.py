@@ -104,7 +104,7 @@ class Ship:
             self.total_number += number
             for i in range(number):
                 self.agelist.append(FIVE_YEARS_OLD)
-            return - max(FINAL_VALUE,price*(1 + INDIRECT_COST))*number
+            return - price *(1 + INDIRECT_COST)*number
         else:
             return 0
 
