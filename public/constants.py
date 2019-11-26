@@ -27,7 +27,7 @@ LOADING_DAYS = 12
 FIVE_YEARS_OLD = 60
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 20, 'generation':100, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1, 'generation':1, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
@@ -39,6 +39,7 @@ DEFAULT_ALPHA = 0.01
 DEFAULT_NUM_OF_BIT = 3
 DEFAULT_NUM_OF_CONDITION = 4
 DEFAULT_NUM_OF_ACTION = 5
+DEFAULT_NUM_OF_ACTION_INTEGRATE = 3
 #for condition parts
 def make_condition_options():
     import csv

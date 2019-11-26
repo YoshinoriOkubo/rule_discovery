@@ -35,8 +35,8 @@ class GA_Trade:
         self.averagepopulation = [] # the average value of fitness in each generation
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,rule_two):
-        result = [[False,0],[False,0],[False,0]]
-        for which_action in range(3):
+        result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
+        for which_action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             rule = rule_two[which_action]
             a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
             b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
@@ -68,14 +68,14 @@ class GA_Trade:
 
     def generateIndividual(self):
         temp = []
-        actionlist =[[1,0,0],[0,1,0],[0,0,1]]
-        for trade in range(3):
+        actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
+        for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             temp.append([])
             for condition in range(DEFAULT_NUM_OF_CONDITION*2):
                 temp[trade].append([])
                 for a in range(DEFAULT_NUM_OF_BIT):
                     temp[trade][condition].append(random.randint(0,1))
-            for action in range(3):
+            for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 temp[trade].append(actionlist[trade][action])
         temp.append([0,0])
         return temp
@@ -85,7 +85,7 @@ class GA_Trade:
         temp2 = []
         which_action = random.randint(0,1)
         crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
-        for index in range(3):
+        for index in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             if index == which_action:
                 temp1.append([])
                 temp2.append([])
@@ -104,7 +104,7 @@ class GA_Trade:
                     else:
                         temp1[index].append(a[index][condition])
                         temp2[index].append(b[index][condition])
-                for action in range(3):
+                for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                     temp1[index].append(a[index][action+DEFAULT_NUM_OF_CONDITION*2])
                     temp2[index].append(b[index][action+DEFAULT_NUM_OF_CONDITION*2])
             else:
@@ -148,21 +148,19 @@ class GA_Trade:
                     current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
                     current_secondhand = self.secondhand[pattern][year*12+month]['price']
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
-                    if result[0] and year < PAYBACK_PERIOD:
+                    if result[0][0] and year < PAYBACK_PERIOD:
                         cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
-                    if result[1] and year < PAYBACK_PERIOD:
+                    if result[1][0] and year < PAYBACK_PERIOD:
                         cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
-                    if result[2] and year < PAYBACK_PERIOD:
+                    if result[2][0] and year < PAYBACK_PERIOD:
                         cash_flow += ship.sell_ship(current_secondhand,result[2][1])
-                    #if result[0] and year < PAYBACK_PERIOD:
-                        #cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][0])
-                        #cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        #cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
-                        #ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
-                        #ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
-                    #if ship.charter_flag == True:
-                        #cash_flow += ship.charter()
-                        #ship.end_charter()
+                    if result[3][0] and year < PAYBACK_PERIOD:
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[3][1],DECISION_CHARTER_IN)
+                    if result[4][0] and year < PAYBACK_PERIOD:
+                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[4][1],DECISION_CHARTER_OUT)
+                    if ship.charter_flag == True:
+                        cash_flow += ship.charter()
+                        ship.end_charter()
                     cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
@@ -200,7 +198,7 @@ class GA_Trade:
 
     def exchange_rule(self):
         for individual_index in range(len(self.temp)):
-            for condition_block in range(3):
+            for condition_block in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 condition = self.temp[individual_index][condition_block]
                 if OIL_PRICE_LIST[convert2to10_in_list(condition[0])] > OIL_PRICE_LIST[convert2to10_in_list(condition[1])]:
                     condition[0],condition[1] = condition[1],condition[0]
@@ -358,20 +356,7 @@ class GA_Trade:
 
             #selection
             self.selection(gene)
-            for rule in self.population:
-                for i in range(3):
-                    thisone = rule[i]
-                    a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
-                    b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
-                    c = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[2])]
-                    d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
-                    e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
-                    f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
-                    g = OWN_SHIP_LIST[convert2to10_in_list(thisone[6])]
-                    h = OWN_SHIP_LIST[convert2to10_in_list(thisone[7])]
-                    if a > b or c > d or e > f or g > h:
-                        print('rule error')
-                        sys.exit()
+
             self.store_best_and_average()
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break

@@ -33,9 +33,9 @@ def export_rules_integrate_csv(list):
         writer = csv.writer(f)
         for index in range(len(list)):
             individual = list[index]
-            for block in range(4):
+            for block in range(DEFAULT_NUM_OF_ACTION_INTEGRATE+1):
                 row = []
-                if block == 3:
+                if block == DEFAULT_NUM_OF_ACTION_INTEGRATE:
                     row.append(individual[block][0])
                     row.append(individual[block][1])
                 else:
