@@ -40,8 +40,8 @@ def make_actionlist():
                         all_actionlist.append([purchase_new,purchase_secondhand,sell,charter_in,charter_out])
     return [all_actionlist,4**5]
 
-def process(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,actionlist):
-    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,
+def process(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,actionlist):
+    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,
                     actionlist)
     return ga.execute_GA()
 
@@ -60,18 +60,18 @@ def multi_processing():
     all_actionlist,number = make_minimum_actionlist()
     #all_actionlist,number = make_small_actionlist()
     #all_actionlist,number = make_actionlist()
-    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     num_pool = multi.cpu_count()
     num_pool = int(num_pool*0.9)
-    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,all_actionlist[i]] for i in range(number)]
+    tutumimono = [[oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,all_actionlist[i]] for i in range(number)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         export_rules_csv(p)
     send_messege()
 
 def one_rule_example(actionlist):
-    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
-    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    ga = GA(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,
                     actionlist)
     p = []
     p.append(ga.execute_GA())

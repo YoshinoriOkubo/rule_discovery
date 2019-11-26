@@ -13,13 +13,15 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,newbuilding,secondhand,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
         self.freight_rate_return_data = freight_rate_return # freight rate return predicted data
         self.exchange_rate_data = exchange_rate # exchange_rate predicted data
         self.demand_data = demand#ship demand predicted data
         self.supply_data = supply#ship supply predicted data
+        self.newbuilding = newbuilding#new building ship price data
+        self.secondhand = secondhand#secondhand ship price data
         self.actionlist = actionlist # decision of action parts.
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
@@ -115,12 +117,14 @@ class GA:
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+            '''
             for i in range(len(ship.agelist)):
                 if ship.agelist[i] == 0:
                     fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(self.freight_rate_outward_data,0))*(1 + INDIRECT_COST)
                 else:
                     fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(self.freight_rate_outward_data,0)*(1 + INDIRECT_COST)
             fitness *= self.exchange_rate_data[pattern][11]['price']
+            '''
             for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
                 for month in range(12):
@@ -131,13 +135,16 @@ class GA:
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']
-                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
-                    if result[0] and year < PAYBACK_PERIOD:
-                        cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][0])
-                        cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
-                        cash_flow += ship.sell_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][2])
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
+                    current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
+                    current_secondhand = self.secondhand[pattern][year*12+month]['price']
+                    if year < PAYBACK_PERIOD:
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
+                        if result[0]:
+                            cash_flow += ship.buy_new_ship(current_newbuilding,result[1][0])
+                            cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
+                            cash_flow += ship.sell_ship(current_secondhand,result[1][2])
+                            ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][3],DECISION_CHARTER_IN)
+                            ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[1][4],DECISION_CHARTER_OUT)
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
