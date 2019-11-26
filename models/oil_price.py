@@ -63,7 +63,6 @@ class Oil:
 
         # latest date from history_data
         latest_history_date_str, latest_oilprice = self.monthly_history_data[-1]
-        latest_oilprice = 30
         latest_history_date                      = datetime.datetime.strptime(latest_history_date_str.decode('UTF-8'), '%Y/%m/%d')
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
