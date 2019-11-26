@@ -13,10 +13,14 @@ def convert2to10_in_list(list):
     for i in range(len(list)):
         x = length - 1 - i
         result += list[i] * 2 ** (x)
-    if len(list) == 4:
-        return GRAY_CODE_4[result]
-    elif len(list) == 1:
+    if len(list) == 1:
         return result
+    elif len(list) == 2:
+        return GRAY_CODE_2[result]
+    elif len(list) == 3:
+        return GRAY_CODE_3[result]
+    elif len(list) == 4:
+        return GRAY_CODE_4[result]
     else:
         return None
 
