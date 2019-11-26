@@ -24,17 +24,20 @@ class Freight:
 
     def calc_freight(self,type,pattern,time):
         if type == OUTWARD:
-            inclination = FREIGHT_OUTWARD_INCLINATION
-            intercept = FREIGHT_OUTWARD_INTERCEPT
+            inclination_oil = F_OUTWARD_INCLINATION_OIL
+            inclination_demand = F_OUTWARD_INCLINATION_DEMAND
+            intercept = F_OUTWARD_INTERCEPT
             delay = FREIGHT_OUTWARD_DELAY
         elif type == RETURN:
-            inclination = FREIGHT_RETURN_INCLINATION
-            intercept = FREIGHT_RETURN_INTERCEPT
+            inclination_oil = F_RETURN_INCLINATION_OIL
+            inclination_demand = F_RETURN_INCLINATION_DEMAND
+            intercept = F_RETURN_INTERCEPT
             delay = FREIGHT_RETURN_DELAY
+        current_oil = self.oil_data[pattern][time]['price']
         current_demand = self.ship_demand_data[pattern][time-delay]['price']
         current_supply = self.ship_supply_data[pattern][time-delay]['price']
         minimum_freight = 0
-        return max(minimum_freight,inclination*current_demand/current_supply + intercept)
+        return max(minimum_freight,inclination_oil*current_oil + inclination_demand*current_demand/current_supply + intercept)
 
     # generate predicted sinario
     def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
