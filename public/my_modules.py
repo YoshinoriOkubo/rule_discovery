@@ -33,9 +33,9 @@ def export_rules_integrate_csv(list):
         writer = csv.writer(f)
         for index in range(len(list)):
             individual = list[index]
-            for block in range(3):
+            for block in range(4):
                 row = []
-                if block == 2:
+                if block == 3:
                     row.append(individual[block][0])
                     row.append(individual[block][1])
                 else:
@@ -80,7 +80,7 @@ def export_rules_csv(list,one=None):
 
 def load_generated_sinario():
     all_data = []
-    for name in ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply']:
+    for name in ['oil_price','freight_outward','freight_return','exchange_rate','demand','supply','new_ship','secondhand_ship']:
         history_data_path = '../output/scenario/{}.csv'.format(name)
         # read data
         dt   = np.dtype({'names': ('date', 'price'),

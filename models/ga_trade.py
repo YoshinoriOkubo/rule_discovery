@@ -15,13 +15,15 @@ from my_modules import *
 
 class GA_Trade:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,actionlist=None,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,newbuilding,secondhand,actionlist=None,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
         self.freight_rate_return_data = freight_rate_return # freight rate return predicted data
         self.exchange_rate_data = exchange_rate # exchange_rate predicted data
         self.demand_data = demand#ship demand predicted data
         self.supply_data = supply#ship supply predicted data
+        self.newbuilding = newbuilding#new building ship price data
+        self.secondhand = secondhand#secondhand ship price data
         self.actionlist = None if actionlist else None # decision of action parts.
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
@@ -33,8 +35,8 @@ class GA_Trade:
         self.averagepopulation = [] # the average value of fitness in each generation
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,rule_two):
-        result = [[False,0],[False,0]]
-        for which_action in range(2):
+        result = [[False,0],[False,0],[False,0]]
+        for which_action in range(3):
             rule = rule_two[which_action]
             a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
             b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
@@ -50,11 +52,6 @@ class GA_Trade:
                         if g <= own_ship and own_ship <= h:
                             result[which_action][0] = True
                             result[which_action][1] = 1
-                            #result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
-                            #result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                            #result[1].append(SELL_NUMBER[self.actionlist[2]])
-                            #result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
-                            #result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
         return result
 
     def check_rule_is_adapted(self,rule):
@@ -71,14 +68,14 @@ class GA_Trade:
 
     def generateIndividual(self):
         temp = []
-        actionlist =[[1,0],[0,1]]
-        for trade in range(2):
+        actionlist =[[1,0,0],[0,1,0],[0,0,1]]
+        for trade in range(3):
             temp.append([])
             for condition in range(DEFAULT_NUM_OF_CONDITION*2):
                 temp[trade].append([])
                 for a in range(DEFAULT_NUM_OF_BIT):
                     temp[trade][condition].append(random.randint(0,1))
-            for action in range(2):
+            for action in range(3):
                 temp[trade].append(actionlist[trade][action])
         temp.append([0,0])
         return temp
@@ -88,7 +85,7 @@ class GA_Trade:
         temp2 = []
         which_action = random.randint(0,1)
         crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
-        for index in range(2):
+        for index in range(3):
             if index == which_action:
                 temp1.append([])
                 temp2.append([])
@@ -107,7 +104,7 @@ class GA_Trade:
                     else:
                         temp1[index].append(a[index][condition])
                         temp2[index].append(b[index][condition])
-                for action in range(2):
+                for action in range(3):
                     temp1[index].append(a[index][action+DEFAULT_NUM_OF_CONDITION*2])
                     temp2[index].append(b[index][action+DEFAULT_NUM_OF_CONDITION*2])
             else:
@@ -148,11 +145,15 @@ class GA_Trade:
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']
+                    current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
+                    current_secondhand = self.secondhand[pattern][year*12+month]['price']
                     result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
-                    if result[0]:
-                        cash_flow += ship.buy_secondhand_ship_from_demand_and_supply(current_demand,current_supply,result[0][1])
-                    if result[1]:
-                        cash_flow += ship.sell_ship_from_demand_and_supply(current_demand,current_supply,result[1][1])
+                    if result[0] and year < PAYBACK_PERIOD:
+                        cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
+                    if result[1] and year < PAYBACK_PERIOD:
+                        cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
+                    if result[2] and year < PAYBACK_PERIOD:
+                        cash_flow += ship.sell_ship(current_secondhand,result[2][1])
                     #if result[0] and year < PAYBACK_PERIOD:
                         #cash_flow += ship.buy_new_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][0])
                         #cash_flow += ship.buy_secondhand_ship(self.freight_rate_outward_data[pattern],year*12+month,result[1][1])
@@ -199,7 +200,7 @@ class GA_Trade:
 
     def exchange_rule(self):
         for individual_index in range(len(self.temp)):
-            for condition_block in range(2):
+            for condition_block in range(3):
                 condition = self.temp[individual_index][condition_block]
                 if OIL_PRICE_LIST[convert2to10_in_list(condition[0])] > OIL_PRICE_LIST[convert2to10_in_list(condition[1])]:
                     condition[0],condition[1] = condition[1],condition[0]
@@ -313,7 +314,6 @@ class GA_Trade:
         return self.process(*args)
 
     def execute_GA(self):
-        first = time.time()
 
         #randomly generating individual group
         for p_size in range(self.population_size):
@@ -359,7 +359,7 @@ class GA_Trade:
             #selection
             self.selection(gene)
             for rule in self.population:
-                for i in range(2):
+                for i in range(3):
                     thisone = rule[i]
                     a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
                     b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
@@ -376,8 +376,6 @@ class GA_Trade:
             #if gene > 10 and self.check_convergence(self.bestpopulation,10):
             #    break
 
-        #print('finish')
-        #print('Spent time is {0}'.format(time.time() - first))
         self.depict_fitness()
         #self.depict_average_variance(self.actionlist)
         #self.print_result()
@@ -386,9 +384,9 @@ class GA_Trade:
 
 
 def main():
-    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     rule = []
-    ga = GA_Trade(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,)
+    ga = GA_Trade(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
     p = ga.execute_GA()
     export_rules_integrate_csv(p)
 
