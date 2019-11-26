@@ -145,19 +145,20 @@ class GA_Trade:
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']
-                    current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
-                    current_secondhand = self.secondhand[pattern][year*12+month]['price']
-                    result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
-                    if result[0][0] and year < PAYBACK_PERIOD:
-                        cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
-                    if result[1][0] and year < PAYBACK_PERIOD:
-                        cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
-                    if result[2][0] and year < PAYBACK_PERIOD:
-                        cash_flow += ship.sell_ship(current_secondhand,result[2][1])
-                    if result[3][0] and year < PAYBACK_PERIOD:
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[3][1],DECISION_CHARTER_IN)
-                    if result[4][0] and year < PAYBACK_PERIOD:
-                        ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[4][1],DECISION_CHARTER_OUT)
+                    if year < PAYBACK_PERIOD:
+                        current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
+                        current_secondhand = self.secondhand[pattern][year*12+month]['price']
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
+                        if result[0][0]:
+                            cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
+                        if result[1][0] and year < PAYBACK_PERIOD:
+                            cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])
+                        if result[2][0] and year < PAYBACK_PERIOD:
+                            cash_flow += ship.sell_ship(current_secondhand,result[2][1])
+                        if result[3][0] and year < PAYBACK_PERIOD:
+                            ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[3][1],DECISION_CHARTER_IN)
+                        if result[4][0] and year < PAYBACK_PERIOD:
+                            ship.charter_ship(current_oil_price,total_freight,current_demand,current_supply,result[4][1],DECISION_CHARTER_OUT)
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
