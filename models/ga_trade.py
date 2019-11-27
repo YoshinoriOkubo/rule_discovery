@@ -34,6 +34,7 @@ class GA_Trade:
         self.temp = [] #temporary group that has individuals
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
+        self.number_of_train_data = int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,rule_two):
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
@@ -56,7 +57,7 @@ class GA_Trade:
         return result
 
     def check_rule_is_adapted(self,rule):
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        for pattern in range(self.number_of_train_data):
             for year in range(DEFAULT_PREDICT_YEARS):
                 for month in range(12):
                     oil_price = self.oil_price_data[pattern][year*12+month]['price']
@@ -125,7 +126,7 @@ class GA_Trade:
 
     def fitness_function(self,rule):
         Record = []
-        for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        for pattern in range(self.number_of_train_data):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
             '''

@@ -25,7 +25,7 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship,type=None):
 def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,type):
     Record = []
     data = []
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
         '''
