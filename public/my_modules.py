@@ -28,7 +28,7 @@ def export_rules_integrate_csv(list):
     path = '../output/rule-discovered/rule.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['a','b','c','d','e','f','g','h'])
+        writer.writerow(['a','b','c','d','e','f','g','h','i','j'])
     with open(path, 'a') as f:
         writer = csv.writer(f)
         for index in range(len(list)):
@@ -42,7 +42,7 @@ def export_rules_integrate_csv(list):
                     for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
                         if col_cond == 0 or col_cond == 1:
                             row.append(OIL_PRICE_LIST[convert2to10_in_list(individual[block][col_cond])])
-                        elif col_cond == 2 or col_cond == 3:
+                        elif col_cond == 2 or col_cond == 3 or col_cond == 8 or col_cond == 9:
                             row.append(FREIGHT_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
                         elif col_cond == 4 or col_cond == 5:
                             row.append(EXCHANGE_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
@@ -117,7 +117,7 @@ def load_history_data(unit,type,direction=None,from_date=None, to_date=None):
     elif type == EXCHANGE_TYPE:
         history_data_path = '../data/exchange_rate_{}.csv'.format(name)
     elif type == DEMAND_TYPE:
-        history_data_path = '../data/demand_{}.csv'.format(name)
+        history_data_path = '../data/ship_demand_{}.csv'.format(name)
     elif type == SUPPLY_TYPE:
         history_data_path = '../data/ship_supply_{}.csv'.format(name)
     elif type == NEWSHIPMARKET_TYPE:

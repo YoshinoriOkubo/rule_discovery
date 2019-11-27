@@ -26,7 +26,7 @@ def load_ship_rules(type):
                         for j in range(2):
                             list[x].append(float(temp[i+x][j]))
                     else:
-                        for k in range(8):
+                        for k in range(DEFAULT_NUM_OF_CONDITION*2):
                             list[-1].append(float(temp[i+x][k]))
                 rule.append(list)
     else:
@@ -48,19 +48,19 @@ def load_ship_rules(type):
                     rule.append(list)
     return rule
 
-def select_rules(rule,oil,freight,exchange,own_ship,type):
+def select_rules(rule,oil,freight,exchange,own_ship,freight_data,time,type):
     max_fitness = -100
     result = None
     for one in rule:
         if type != 2:
-            if adapt_rule(oil,freight,exchange,own_ship,one,type)[0]:
+            if adapt_rule(oil,freight,exchange,own_ship,one,freight_data,time,type)[0]:
                 if max_fitness < one[-2] or (max_fitness == one[-2] and random.randint(0,1) < 0.5):
                     result = one
                     max_fitness = one[-2]
                 else:
                     pass
         else:
-            r = adapt_rule(oil,freight,exchange,own_ship,one,type)
+            r = adapt_rule(oil,freight,exchange,own_ship,one,freight_data,time,type)
             if r[0][0] == True or r[1][0] == True or r[2][0] == True or r[3][0] == True or r[4][0] == True:
                 if max_fitness < one[-1][0] or (max_fitness == one[-1][0] and random.randint(0,1) < 0.5):
                     result = one
@@ -69,7 +69,7 @@ def select_rules(rule,oil,freight,exchange,own_ship,type):
                     pass
     return result
 
-def adapt_rule(oil_price,freight,exchange,own_ship,rule,type,actionlist=None):
+def adapt_rule(oil_price,freight,exchange,own_ship,rule,freight_data,time,type,actionlist=None):
     if type != 2:
         if rule is None:
             return [False]
@@ -81,20 +81,30 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,type,actionlist=None):
                 if e < exchange and exchange < f:
                     g,h = rule[6],rule[7]
                     if g < own_ship and own_ship < h:
-                        result = [True]
-                        result.append([])
-                        result[1].append(PURCHASE_NUMBER[int(rule[8])])
-                        result[1].append(PURCHASE_NUMBER[int(rule[9])])
-                        result[1].append(SELL_NUMBER[int(rule[10])])
-                        result[1].append(CHARTER_IN_NUMBER[int(rule[11])])
-                        result[1].append(CHARTER_OUT_NUMBER[int(rule[12])])
-                        if actionlist is not None:
-                            actionlist[0][int(rule[8])] += 1
-                            actionlist[1][int(rule[9])] += 1
-                            actionlist[2][int(rule[10])] += 1
-                            actionlist[3][int(rule[11])] += 1
-                            actionlist[4][int(rule[12])] += 1
-                        return result
+                        average_freight = 0
+                        for data_index in range(10):
+                            if time - data_index < 0:
+                                average_freight += FREIGHT_PREV[time - data_index]
+                            else:
+                                average_freight += freight_data[time - data_index]['price']
+                        average_freight /= 10
+                        i = rule[8]
+                        j = rule[9]
+                        if i < average_freight and average_freight < j:
+                            result = [True]
+                            result.append([])
+                            result[1].append(PURCHASE_NUMBER[int(rule[-5])])
+                            result[1].append(PURCHASE_NUMBER[int(rule[-4])])
+                            result[1].append(SELL_NUMBER[int(rule[-3])])
+                            result[1].append(CHARTER_IN_NUMBER[int(rule[-2])])
+                            result[1].append(CHARTER_OUT_NUMBER[int(rule[-1])])
+                            if actionlist is not None:
+                                actionlist[0][int(rule[8])] += 1
+                                actionlist[1][int(rule[9])] += 1
+                                actionlist[2][int(rule[10])] += 1
+                                actionlist[3][int(rule[11])] += 1
+                                actionlist[4][int(rule[12])] += 1
+                            return result
         return [False]
     else:
         if rule is None:
@@ -110,15 +120,24 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,type,actionlist=None):
                     if e <= exchange and exchange <= f:
                         g,h = rule_s[6],rule_s[7]
                         if g <= own_ship and own_ship <= h:
-                            result[which_action][0] = True
-                            result[which_action][1] = 1
-                            if actionlist is not None:
-                                actionlist[which_action][1] += 1
-                            #result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
-                            #result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                            #result[1].append(SELL_NUMBER[self.actionlist[2]])
-                            #result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
-                            #result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
+                            average_freight = 0
+                            for data_index in range(10):
+                                if time - data_index < 0:
+                                    average_freight += FREIGHT_PREV[time - data_index]
+                                else:
+                                    average_freight += freight_data[time - data_index]['price']
+                            average_freight /= 10
+                            i,j = rule_s[8],rule_s[9]
+                            if i < average_freight and average_freight < j:
+                                result[which_action][0] = True
+                                result[which_action][1] = 1
+                                if actionlist is not None:
+                                    actionlist[which_action][1] += 1
+                                #result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
+                                #result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
+                                #result[1].append(SELL_NUMBER[self.actionlist[2]])
+                                #result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
+                                #result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
         return result
 
 def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type):
@@ -145,8 +164,8 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                 if year < PAYBACK_PERIOD:
                     current_newbuilding = newbuilding_data[pattern][year*12+month]['price']
                     current_secondhand = secondhand_data[pattern][year*12+month]['price']
-                    rule_selected = select_rules(rule,current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,type)
-                    result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule_selected,type,actionlist)
+                    rule_selected = select_rules(rule,current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,freight_outward_data[pattern],year*12+month,type)
+                    result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule_selected,freight_outward_data[pattern],year*12+month,type,actionlist)
                     if type != 2:
                         if result[0]:
                             ship.change_speed(result[1][0])

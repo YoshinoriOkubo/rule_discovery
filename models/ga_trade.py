@@ -36,10 +36,10 @@ class GA_Trade:
         self.averagepopulation = [] # the average value of fitness in each generation
         self.number_of_train_data = int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)
 
-    def adapt_rule(self,oil_price,freight,exchange,own_ship,rule_two):
+    def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
         for which_action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
-            rule = rule_two[which_action]
+            rule = rule_integrate[which_action]
             a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
             b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
             if a < oil_price and oil_price < b:
@@ -52,10 +52,20 @@ class GA_Trade:
                         g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
                         h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
                         if g < own_ship and own_ship < h:
-                            result[which_action][0] = True
-                            result[which_action][1] = 1
+                            average_freight = 0
+                            for data_index in range(10):
+                                if time - data_index < 0:
+                                    average_freight += FREIGHT_PREV[time - data_index]
+                                else:
+                                    average_freight += freight_data[time - data_index]['price']
+                            average_freight /= 10
+                            i = FREIGHT_RATE_LIST[convert2to10_in_list(rule[8])]
+                            j = FREIGHT_RATE_LIST[convert2to10_in_list(rule[9])]
+                            if i < average_freight and average_freight < j:
+                                result[which_action][0] = True
+                                result[which_action][1] = 1
         return result
-
+    '''
     def check_rule_is_adapted(self,rule):
         for pattern in range(self.number_of_train_data):
             for year in range(DEFAULT_PREDICT_YEARS):
@@ -67,7 +77,7 @@ class GA_Trade:
                     if result[0]:
                         return True
         return False
-
+    '''
     def generateIndividual(self):
         temp = []
         actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
@@ -80,7 +90,7 @@ class GA_Trade:
             for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 temp[trade].append(actionlist[trade][action])
         temp.append([0,0])
-        return temp
+        return temp 
 
     def crossover(self,a,b):
         temp1 = []
@@ -150,7 +160,7 @@ class GA_Trade:
                     if year < PAYBACK_PERIOD:
                         current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
                         current_secondhand = self.secondhand[pattern][year*12+month]['price']
-                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,self.freight_rate_outward_data[pattern],year*12+month,rule)
                         if result[0][0]:
                             cash_flow += ship.buy_new_ship(current_newbuilding,result[0][1])
                         if result[1][0]:

@@ -18,8 +18,8 @@ DISCOUNT_RATE = 0.06
 CHARTER_TIME = 12
 RISK_PREMIUM = 0.95
 INDIRECT_COST = 0.05
-LOAD_FACTOR_ASIA_TO_EUROPE = 0.44
-LOAD_FACTOR_EUROPE_TO_ASIA = 0.31
+LOAD_FACTOR_ASIA_TO_EUROPE = 0.4576#0.88#0.44
+LOAD_FACTOR_EUROPE_TO_ASIA = 0.286#0.55#0.31
 INITIAL_NUMBER_OF_SHIPS = 100
 ORDER_CAPACITY=55
 SHIP_NUMBER_PER_DEMAND = 1.0/0.02326057
@@ -27,7 +27,7 @@ LOADING_DAYS = 12
 FIVE_YEARS_OLD = 60
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 5, 'generation':50, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 5, 'generation':1, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
@@ -38,7 +38,7 @@ TEST_DATA_SET = 1 - 0.8
 
 "Chromosome paramater"
 DEFAULT_NUM_OF_BIT = 3
-DEFAULT_NUM_OF_CONDITION = 4
+DEFAULT_NUM_OF_CONDITION = 5
 DEFAULT_NUM_OF_ACTION = 5
 DEFAULT_NUM_OF_ACTION_INTEGRATE = 3
 #for condition parts
@@ -59,7 +59,7 @@ def make_condition_options():
                     data[-1].append(float(row[3]))#stdev
     for condition_num in range(2):
         mean, stdev = data[condition_num]
-        conditions.append([0,mean-3*stdev,mean-2*stdev,mean-stdev,mean,mean+stdev,mean+2*stdev,mean+3*stdev])
+        conditions.append([0,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
         for index in range(8):
             if conditions[-1][index] < 0:
                 conditions[-1][index] = 0
@@ -135,11 +135,7 @@ F_RETURN_INTERCEPT = 433.010122
 FREIGHT_RETURN_DELAY = 0
 FREIGHT_MAX_DELAY = 0
 FREIGHT_OUTWARD_DELAY = 0
-FREIGHT_0 = 1250
-FREIGHT_1 = 1140
-FREIGHT_2 = 1070
-FREIGHT_3 = 1280
-FREIGHT_PREV = [FREIGHT_3,FREIGHT_2,FREIGHT_1]
+FREIGHT_PREV = [2000,1640,1210,1390,1580,1540,1570,1540,1280,1070,1140,1250]
 MONTH = 0
 YEAR = 1
 MAX_OIL_PRICE = 160
