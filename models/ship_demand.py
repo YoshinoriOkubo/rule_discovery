@@ -12,7 +12,7 @@ from constants  import *
 class ShipDemand:
     def __init__(self, history_data=None, neu=None, sigma=None, u=None, d=None, p=None):
         if history_data is None:
-            self.yearly_history_data = load_history_data(YEAR,DEMAND_TYPE)
+            #self.yearly_history_data = load_history_data(YEAR,DEMAND_TYPE)
             self.monthly_history_data = load_history_data(MONTH,DEMAND_TYPE)
         else:
             self.yearly_history_data = history_data
@@ -25,9 +25,9 @@ class ShipDemand:
     # calc neu and sigma from history data
     def calc_params_from_history(self):
         index   = 0
-        delta_t = 1.0 / DELTA_T_MONTH
+        delta_t = 1.0 / DELTA_T_DAY
         values  = np.array([])
-        for date, ship_demand in self.yearly_history_data:
+        for date, ship_demand in self.monthly_history_data:
             if index == 0:
                 # initialize the price
                 s_0 = ship_demand
@@ -72,6 +72,7 @@ class ShipDemand:
             for predict_month_num in range(predict_months_num+FREIGHT_MAX_DELAY):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
-                current_ship_demand    = self.calc_ship_demand(current_ship_demand)
+                for time in range(DELTA_T_DAY):
+                    current_ship_demand    = self.calc_ship_demand(current_ship_demand)
                 self.predicted_data[pattern].append({'date':current_date_str, 'price':current_ship_demand})
         return
