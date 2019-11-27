@@ -323,7 +323,7 @@ def depict_distribution(oil,freight_outward,freight_return,exchange,demand,suppl
     list1 = [oil,freight_outward,freight_return,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     list3 = [0,0,0,0,0,0,0,0]
-    list4 = [150,4000,2000,250,20,10000,150*10**6,150*10**6]
+    list4 = [150,3000,1500,250,20,10000,150*10**6,150*10**6]
     for type,name,down,up in zip(list1,list2,list3,list4):
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):

@@ -33,8 +33,7 @@ class Ship:
         for index in range(0,number_under_fif):
             self.agelist.append(int(index*60/number_under_fif)+120)
         self.agelist.sort(reverse = True)
-
-
+        
     def check(self):
         flag = len(self.agelist) == self.exist_number
         if flag:

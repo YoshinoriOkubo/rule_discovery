@@ -15,7 +15,7 @@ class ShipSupply:
         self.ship_age_distribution = []
         self.orderbook = []
         self.lack_number = 0
-        self.ini_sup = self.ship_demand_data[0][0]['price']*SHIP_NUMBER_PER_DEMAND
+        self.ini_sup = 5103
         if history_data is None:
             self.monthly_history_data = load_history_data(MONTH,SUPPLY_TYPE)
 
@@ -76,7 +76,7 @@ class ShipSupply:
         ship_demand_now = self.ship_demand_data[pattern][now]['price']
         ship_demand_before = self.ship_demand_data[pattern][now-term]['price']
         future_demand = (ship_demand_now - ship_demand_before)*ORDER_TIME/term + ship_demand_now
-        return future_demand
+        return future_demand*1.2
 
     def calc_ship_supply_future(self):
         supply = 0
