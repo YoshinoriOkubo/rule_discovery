@@ -61,7 +61,7 @@ def make_condition_options():
     for condition_num in range(2):
         mean, stdev = data[condition_num]
         conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
-        for index in range(8):
+        for index in range(1,8):
             if conditions[-1][index] < 0:
                 conditions[-1][index] = 0
     return conditions

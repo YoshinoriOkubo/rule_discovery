@@ -57,7 +57,7 @@ def export_rules_csv(list,one=None):
         path = '../output/rule-discovered/ship_one_rule.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','expectation','variance'])
+        writer.writerow(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','expectation','variance'])
     with open(path, 'a') as f:
         writer = csv.writer(f)
         for index in range(len(list)):
@@ -66,7 +66,7 @@ def export_rules_csv(list,one=None):
             for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
                 if col_cond == 0 or col_cond == 1:
                     row.append(OIL_PRICE_LIST[convert2to10_in_list(individual[col_cond])])
-                elif col_cond == 2 or col_cond == 3:
+                elif col_cond == 2 or col_cond == 3 or col_cond == 8 or col_cond ==9:
                     row.append(FREIGHT_RATE_LIST[convert2to10_in_list(individual[col_cond])])
                 elif col_cond == 4 or col_cond == 5:
                     row.append(EXCHANGE_RATE_LIST[convert2to10_in_list(individual[col_cond])])

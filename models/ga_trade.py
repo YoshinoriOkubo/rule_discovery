@@ -88,13 +88,37 @@ class GA_Trade:
         temp.append([0,0])
         return temp 
 
-    def generateIndividual_with_wise(self,individual):
-        #individual = [[0,0,0,0],[0,0,0,0],...,[0,0,0,0]]
-        mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
-        length = len(individual[mutation_block]) - 1
-        point = random.randint(0,length)
-        individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
-        return individual
+    def generateIndividual_with_wise(self):
+        population = []
+        always = [[0,0,0],[0,0,0]]
+        if_low = [[0,0,0],[0,1,1]]
+        if_high = [[1,0,0],[0,0,0]]
+        no = [[1,1,1],[1,1,1]]
+        candidate = [always,if_low,if_high,no]
+        for new in candidate:
+            for second in candidate:
+                for sell in candidate:
+                    rule = ([[always[0],always[1],new[0],new[1],always[0],always[1],always[0],always[1],always[0],always[1],1,0,0],
+                            [always[0],always[1],second[0],second[1],always[0],always[1],always[0],always[1],always[0],always[1],0,1,0],
+                            [always[0],always[1],sell[0],sell[1],always[0],always[1],always[0],always[1],always[0],always[1],0,0,1],
+                            [0,0]])
+                    rule[-1][0],rule[-1][1] = self.fitness_function(rule)
+                    population.append(rule)
+        for num in range(self.population_size-len(candidate)**3):
+            rule_random = []
+            actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
+            for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
+                rule_random.append([])
+                for condition in range(DEFAULT_NUM_OF_CONDITION*2):
+                    rule_random[trade].append([])
+                    for bit in range(DEFAULT_NUM_OF_BIT):
+                        rule_random[trade][condition].append(random.randint(0,1))
+                for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
+                    rule_random[trade].append(actionlist[trade][action])
+            rule_random.append([0,0])
+            rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
+            population.append(rule_random)
+        return population
 
     def crossover(self,a,b):
         temp1 = []
@@ -333,8 +357,9 @@ class GA_Trade:
     def execute_GA(self):
 
         #randomly generating individual group
-        for p_size in range(self.population_size):
-            self.population.append(self.generateIndividual())
+        #for p_size in range(self.population_size):
+        #    self.population.append(self.generateIndividual())
+        self.population = self.generateIndividual_with_wise()
         #self.depict_average_variance(self.actionlist,0,self.population)
 
         #genetic algorithm
@@ -351,7 +376,7 @@ class GA_Trade:
                 self.temp.append(b)
 
             #mutation
-            for individual_mutaion in self.temp:
+            for individual_mutaion in self.temp[100:]:
                 if random.random() < self.alpha:
                     individual_mutaion = self.mutation(individual_mutaion)
 
@@ -361,9 +386,9 @@ class GA_Trade:
             num_pool = multi.cpu_count()
             num_pool = int(num_pool*0.95)
             with Pool(num_pool) as pool:
-                p = pool.map(self.process, self.temp)
-                for index in range(len(self.temp)):
-                    rule = self.temp[index]
+                p = pool.map(self.process, self.temp[100:])
+                for index in range(100):
+                    rule = self.temp[index+100]
                     rule[-1][0], rule[-1][1] = p[index]
 
             '''

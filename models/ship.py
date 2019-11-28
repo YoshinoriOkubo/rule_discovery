@@ -20,6 +20,7 @@ class Ship:
         self.min_ship_number = 0 #int(INITIAL_NUMBER_OF_SHIPS * 0.5)
         self.ship_order_list = []
         self.order_number = 0
+        self.init_share = INITIAL_NUMBER_OF_SHIPS/5103.0
 
     def generate_agelist(self,number):
         sum = WITHIN_FIVE + WITHIN_TEN + WITHIN_FIF
@@ -76,7 +77,7 @@ class Ship:
 
     def calculate_idle_rate(self,demand,supply):
         if self.total_number > 0:
-            demand_own = demand*(INITIAL_NUMBER_OF_SHIPS/supply)
+            demand_own = demand*(self.total_number/supply)
             ship_needed = demand_own*SHIP_NUMBER_PER_DEMAND
             if ship_needed > self.total_number:
                 self.idle_rate = 0
@@ -246,6 +247,13 @@ class Ship:
     def change_dollers_per_Barrels_to_dollers_per_kg(self,oil_price):
         return oil_price / 135
         #1barrels = 135kg
+
+    def calc_future_ship(self):
+        number = self.order_number
+        for e in self.agelist:
+            if e  + ORDER_TIME < VESSEL_LIFE_TIME*12:
+                number += 1
+        return number
 
     '''
     def freight_impact(self,freight_outward_data,time):
