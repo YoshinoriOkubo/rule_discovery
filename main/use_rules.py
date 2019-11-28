@@ -131,12 +131,6 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
     for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,100)
-        for i in range(len(ship.agelist)):
-            if ship.agelist[i] == 0:
-                fitness -= newbuilding_data[pattern][0]['price']
-            else:
-                fitness -= secondhand_data[pattern][0]['price']*((180 - ship.agelist[i])/12)/10
-        fitness *= exchange_data[pattern][11]['price']
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             for month in range(12):

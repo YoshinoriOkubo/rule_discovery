@@ -281,31 +281,26 @@ class GA_Trade:
         plt.savefig(os.path.join(save_dir, 'integrate_fitness.png'))
         plt.close()
 
-    def depict_average_variance(self,actionlist,gene=None,list=None):
+    def depict_average_variance(self,gene=None):
         x = []
         y = []
-        for i in range(self.population_size):
-            if gene == 0:
-                x.append(list[i][-1][0])
-                y.append(list[i][-1][1])
-            else:
-                x.append(self.population[i][-1][0])
-                y.append(self.population[i][-1][1])
+        for i in range(self.population_size):          
+            x.append(self.population[i][-1][0])
+            y.append(self.population[i][-1][1])
         plt.scatter(x,y)
         x_min = min(x)
         x_min = x_min*0.9 if x_min>0 else x_min*1.1
-        plt.xlim(-1,5)
-        plt.ylim(0,2)
+        plt.xlim(-1,2)
+        plt.ylim(0,1)
         plt.title("Rule Performance")
         plt.xlabel("Expectation")
         plt.ylabel("Variance")
         plt.grid(True)
         save_dir = '../output/image'
-        name = str(actionlist[0]*16+actionlist[1]*8+actionlist[2]*4+actionlist[3]*2+actionlist[4])
-        if gene == 0:
-            plt.savefig(os.path.join(save_dir, 'Evaluation_{}_initial.png'.format(name)))
+        if gene is not None:
+            plt.savefig(os.path.join(save_dir, 'Evaluation_initial.png'))
         else:
-            plt.savefig(os.path.join(save_dir, 'Evaluation_{}.png'.format(name)))
+            plt.savefig(os.path.join(save_dir, 'Evaluation.png'))
         plt.close()
 
     def check_convergence(self,target,criteria):
@@ -360,7 +355,7 @@ class GA_Trade:
         #for p_size in range(self.population_size):
         #    self.population.append(self.generateIndividual())
         self.population = self.generateIndividual_with_wise()
-        #self.depict_average_variance(self.actionlist,0,self.population)
+        self.depict_average_variance(0)
 
         #genetic algorithm
         for gene in range(self.generation):
@@ -406,7 +401,7 @@ class GA_Trade:
             #    break
 
         self.depict_fitness()
-        #self.depict_average_variance(self.actionlist)
+        self.depict_average_variance()
         #self.print_result()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
         return self.population
