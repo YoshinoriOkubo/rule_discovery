@@ -10,36 +10,11 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-def adapt_rule(oil_price,freight,exchange,own_ship,rule):
-    actionlist = rule[8:13]
-    a = rule[0]
-    b = rule[1]
-    if a < oil_price and oil_price < b:
-        c = rule[2]
-        d = rule[3]
-        if c < freight and freight < d:
-            e = rule[4]
-            f = rule[5]
-            if e < exchange and exchange < f:
-                g = rule[6]
-                h = rule[7]
-                if g < own_ship and own_ship < h:
-                    result = [True]
-                    result.append([])
-                    result[1].append(PURCHASE_NUMBER[actionlist[0]])
-                    result[1].append(PURCHASE_NUMBER[actionlist[1]])
-                    result[1].append(SELL_NUMBER[actionlist[2]])
-                    result[1].append(CHARTER_IN_NUMBER[actionlist[3]])
-                    result[1].append(CHARTER_OUT_NUMBER[actionlist[4]])
-                    return result
-    return [False]
-
-def fitness_function(rule,TIME):
-    oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+def fitness_function(rule,TIME,oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data):
     Record = []
     f_sunc = 0
     number = 0
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(0,50):#int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,0)
         for year in range(DEFAULT_PREDICT_YEARS):
@@ -55,8 +30,8 @@ def fitness_function(rule,TIME):
                 current_newbuilding = newbuilding_data[pattern][year*12+month]['price']
                 current_secondhand = secondhand_data[pattern][year*12+month]['price']
                 if year*12+month == TIME:
-                    #cash_flow += ship.buy_new_ship(current_newbuilding,1)
-                    cash_flow += ship.buy_secondhand_ship(current_secondhand,1)
+                    cash_flow += ship.buy_new_ship(current_newbuilding,1)
+                    #cash_flow += ship.buy_secondhand_ship(current_secondhand,1)
                     f_sunc += current_freight_rate_outward
                     number += 1
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
@@ -74,32 +49,11 @@ def fitness_function(rule,TIME):
     return [e,sigma,f_ave]
 
 def main():
-    '''
-    path = '../output/ship_rule.csv'
-    rule = []
-    with open(path) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] != 'a':
-                list = []
-                for index in range(len(row)):
-                    if index > 12:
-                        list.append(float(row[index]))
-                    else:
-                        list.append(int(row[index]))
-                rule.append(list)
-    a = 0
-    for each_rule in rule:
-        if a == 16:
-            print('後半')
-        a += 1
-        e,sigma,f = fitness_function(each_rule)
-        print(e,',',f)
-    '''
+    oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     rule = [10,140,300,2200,70,200,0,120,0,1,0,0,1,6.939222582318641,5.420854999758004]
     e_all = 0
     for time in range(180):
-        e,sigma,f_ave = fitness_function(rule,time)
+        e,sigma,f_ave = fitness_function(rule,time,oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data)
         e_all += e
         print(e,'億円','平均運賃',f_ave)
     print('平均',e_all/180,'億円')

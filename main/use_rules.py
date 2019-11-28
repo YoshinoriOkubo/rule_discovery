@@ -70,75 +70,61 @@ def select_rules(rule,oil,freight,exchange,own_ship,freight_data,time,type):
     return result
 
 def adapt_rule(oil_price,freight,exchange,own_ship,rule,freight_data,time,type,actionlist=None):
-    if type != 2:
-        if rule is None:
-            return [False]
-        a,b = rule[0],rule[1]
-        if a < oil_price and oil_price < b:
-            c,d = rule[2],rule[3]
-            if c < freight and freight < d:
-                e,f = rule[4],rule[5]
-                if e < exchange and exchange < f:
-                    g,h = rule[6],rule[7]
-                    if g < own_ship and own_ship < h:
-                        average_freight = 0
-                        for data_index in range(10):
-                            if time - data_index < 0:
-                                average_freight += FREIGHT_PREV[time - data_index]
-                            else:
-                                average_freight += freight_data[time - data_index]['price']
-                        average_freight /= 10
-                        i = rule[8]
-                        j = rule[9]
-                        if i < average_freight and average_freight < j:
-                            result = [True]
-                            result.append([])
-                            result[1].append(PURCHASE_NUMBER[int(rule[-5])])
-                            result[1].append(PURCHASE_NUMBER[int(rule[-4])])
-                            result[1].append(SELL_NUMBER[int(rule[-3])])
-                            result[1].append(CHARTER_IN_NUMBER[int(rule[-2])])
-                            result[1].append(CHARTER_OUT_NUMBER[int(rule[-1])])
-                            if actionlist is not None:
-                                actionlist[0][int(rule[8])] += 1
-                                actionlist[1][int(rule[9])] += 1
-                                actionlist[2][int(rule[10])] += 1
-                                actionlist[3][int(rule[11])] += 1
-                                actionlist[4][int(rule[12])] += 1
-                            return result
-        return [False]
-    else:
+    average_freight = 0
+    for data_index in range(10):
+        if time - data_index < 0:
+            average_freight += FREIGHT_PREV[time - data_index]
+        else:
+            average_freight += freight_data[time - data_index]['price']
+    average_freight /= 10
+    compare_list = [oil_price,freight,exchange,own_ship,average_freight]
+    if type == 2:
         if rule is None:
             return [[False],[False],[False],[False],[False]]
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
         for which_action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             rule_s = rule[which_action]
-            a,b = rule_s[0],rule_s[1]
-            if a <= oil_price and oil_price <= b:
-                c,d = rule_s[2],rule_s[3]
-                if c <= freight and freight <= d:
-                    e,f = rule_s[4],rule_s[5]
-                    if e <= exchange and exchange <= f:
-                        g,h = rule_s[6],rule_s[7]
-                        if g <= own_ship and own_ship <= h:
-                            average_freight = 0
-                            for data_index in range(10):
-                                if time - data_index < 0:
-                                    average_freight += FREIGHT_PREV[time - data_index]
-                                else:
-                                    average_freight += freight_data[time - data_index]['price']
-                            average_freight /= 10
-                            i,j = rule_s[8],rule_s[9]
-                            if i < average_freight and average_freight < j:
-                                result[which_action][0] = True
-                                result[which_action][1] = 1
-                                if actionlist is not None:
-                                    actionlist[which_action][1] += 1
-                                #result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
-                                #result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                                #result[1].append(SELL_NUMBER[self.actionlist[2]])
-                                #result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
-                                #result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
+            flag = True
+            for cond in range(DEFAULT_NUM_OF_CONDITION):
+                lower = rule_s[cond*2]
+                upper = rule_s[cond*2+1]
+                if (lower < compare_list[cond] or lower == DO_NOT_CARE) and (compare_list[cond] < upper or upper == DO_NOT_CARE):
+                    pass
+                else:
+                    flag = False
+            if flag == True:
+                result[which_action][0] = True
+                result[which_action][1] = 1
+                if actionlist is not None:
+                    actionlist[which_action][1] += 1
         return result
+    else:
+        if rule is None:
+            return [False]
+        flag = True
+        for cond in range(DEFAULT_NUM_OF_CONDITION):
+            lower = rule[cond*2]
+            upper = rule[cond*2+1]
+            if (lower < compare_list[cond] or lower == DO_NOT_CARE) and (compare_list[cond] < upper or upper == DO_NOT_CARE):
+                pass
+            else:
+                flag = False
+        if flag == True:
+            result = [True]
+            result.append([])
+            result[1].append(PURCHASE_NUMBER[int(rule[-5])])
+            result[1].append(PURCHASE_NUMBER[int(rule[-4])])
+            result[1].append(SELL_NUMBER[int(rule[-3])])
+            result[1].append(CHARTER_IN_NUMBER[int(rule[-2])])
+            result[1].append(CHARTER_OUT_NUMBER[int(rule[-1])])
+            if actionlist is not None:
+                actionlist[0][int(rule[8])] += 1
+                actionlist[1][int(rule[9])] += 1          
+                actionlist[2][int(rule[10])] += 1
+                actionlist[3][int(rule[11])] += 1
+                actionlist[4][int(rule[12])] += 1
+            return result
+        return [False]
 
 def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type):
     Record = []

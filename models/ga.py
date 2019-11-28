@@ -33,29 +33,35 @@ class GA:
         self.averagepopulation = [] # the average value of fitness in each generation
         self.number_of_train_data = int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)
 
-    def adapt_rule(self,oil_price,freight,exchange,own_ship,rule):
-        a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
-        b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
-        if a < oil_price and oil_price < b:
-            c = FREIGHT_RATE_LIST[convert2to10_in_list(rule[2])]
-            d = FREIGHT_RATE_LIST[convert2to10_in_list(rule[3])]
-            if c < freight and freight < d:
-                e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
-                f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
-                if e < exchange and exchange < f:
-                    g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
-                    h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
-                    if g < own_ship and own_ship < h:
-                        result = [True]
-                        result.append([])
-                        result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
-                        result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
-                        result[1].append(SELL_NUMBER[self.actionlist[2]])
-                        result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
-                        result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
-                        return result
+    def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule):
+        average_freight = 0
+        for data_index in range(10):
+            if time - data_index < 0:
+                average_freight += FREIGHT_PREV[time - data_index]
+         else:
+                average_freight += freight_data[time - data_index]['price']
+        average_freight /= 10
+        compare_list = [oil_price,freight,exchange,own_ship,average_freight]
+        flag = True
+        for cond in range(DEFAULT_NUM_OF_CONDITION):
+            condition_type = CONVERT_LIST[cond]
+            lower = condition_type[convert2to10_in_list(rule[cond*2])]
+            upper = condition_type[convert2to10_in_list(rule[cond*2+1])]
+            if (lower < compare_list[cond] or lower == DO_NOT_CARE) and (compare_list[cond] < upper or upper == DO_NOT_CARE):
+                pass
+            else:
+                flag = False
+        if flag == True:
+            result = [True]
+            result.append([])
+            result[1].append(PURCHASE_NUMBER[self.actionlist[0]])
+            result[1].append(PURCHASE_NUMBER[self.actionlist[1]])
+            result[1].append(SELL_NUMBER[self.actionlist[2]])
+            result[1].append(CHARTER_IN_NUMBER[self.actionlist[3]])
+            result[1].append(CHARTER_OUT_NUMBER[self.actionlist[4]])
+            return result
         return [False]
-
+    '''
     def check_rule_is_adapted(self,rule):
         for pattern in range(self.number_of_train_data):
             for year in range(DEFAULT_PREDICT_YEARS):
@@ -67,7 +73,7 @@ class GA:
                     if result[0]:
                         return True
         return False
-
+    '''
     def generateIndividual(self):
         temp = []
         for condition in range(DEFAULT_NUM_OF_CONDITION*2):
@@ -139,7 +145,7 @@ class GA:
                     current_newbuilding = self.newbuilding[pattern][year*12+month]['price']
                     current_secondhand = self.secondhand[pattern][year*12+month]['price']
                     if year < PAYBACK_PERIOD:
-                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule)
+                        result = self.adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,self.freight_rate_outward_data[pattern],year*12+month,rule)
                         if result[0]:
                             cash_flow += ship.buy_new_ship(current_newbuilding,result[1][0])
                             cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1][1])

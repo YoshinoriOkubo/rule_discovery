@@ -38,32 +38,28 @@ class GA_Trade:
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
+        average_freight = 0
+        for data_index in range(10):
+            if time - data_index < 0:
+                average_freight += FREIGHT_PREV[time - data_index]
+            else:
+                average_freight += freight_data[time - data_index]['price']
+        average_freight /= 10
+        compare_list = [oil_price,freight,exchange,own_ship,average_freight]
         for which_action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             rule = rule_integrate[which_action]
-            a = OIL_PRICE_LIST[convert2to10_in_list(rule[0])]
-            b = OIL_PRICE_LIST[convert2to10_in_list(rule[1])]
-            if a < oil_price and oil_price < b:
-                c = FREIGHT_RATE_LIST[convert2to10_in_list(rule[2])]
-                d = FREIGHT_RATE_LIST[convert2to10_in_list(rule[3])]
-                if c < freight and freight < d:
-                    e = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[4])]
-                    f = EXCHANGE_RATE_LIST[convert2to10_in_list(rule[5])]
-                    if e < exchange and exchange < f:
-                        g = OWN_SHIP_LIST[convert2to10_in_list(rule[6])]
-                        h = OWN_SHIP_LIST[convert2to10_in_list(rule[7])]
-                        if g < own_ship and own_ship < h:
-                            average_freight = 0
-                            for data_index in range(10):
-                                if time - data_index < 0:
-                                    average_freight += FREIGHT_PREV[time - data_index]
-                                else:
-                                    average_freight += freight_data[time - data_index]['price']
-                            average_freight /= 10
-                            i = FREIGHT_RATE_LIST[convert2to10_in_list(rule[8])]
-                            j = FREIGHT_RATE_LIST[convert2to10_in_list(rule[9])]
-                            if i < average_freight and average_freight < j:
-                                result[which_action][0] = True
-                                result[which_action][1] = 1
+            flag = True
+            for cond in range(DEFAULT_NUM_OF_CONDITION):
+                condition_type = CONVERT_LIST[cond]
+                lower = condition_type[convert2to10_in_list(rule[cond*2])]
+                upper = condition_type[convert2to10_in_list(rule[cond*2+1])]
+                if (lower < compare_list[cond] or lower == DO_NOT_CARE) and (compare_list[cond] < upper or upper == DO_NOT_CARE):
+                    pass
+                else:
+                    flag = False
+            if flag == True:
+                result[which_action][0] = True
+                result[which_action][1] = 1
         return result
     '''
     def check_rule_is_adapted(self,rule):
@@ -91,6 +87,14 @@ class GA_Trade:
                 temp[trade].append(actionlist[trade][action])
         temp.append([0,0])
         return temp 
+
+    def generateIndividual_with_wise(self,individual):
+        #individual = [[0,0,0,0],[0,0,0,0],...,[0,0,0,0]]
+        mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        length = len(individual[mutation_block]) - 1
+        point = random.randint(0,length)
+        individual[mutation_block][point] = (individual[mutation_block][point] + 1) % 2
+        return individual
 
     def crossover(self,a,b):
         temp1 = []
@@ -127,7 +131,7 @@ class GA_Trade:
         return [temp1,temp2]
 
     def mutation(self,individual):
-        which_action = random.randint(0,1)
+        which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
         mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         length = len(individual[which_action][mutation_block]) - 1
         point = random.randint(0,length)
@@ -221,6 +225,8 @@ class GA_Trade:
                     condition[4],condition[5] = condition[5],condition[4]
                 if OWN_SHIP_LIST[convert2to10_in_list(condition[6])] > OWN_SHIP_LIST[convert2to10_in_list(condition[7])]:
                     condition[6],condition[7] = condition[7],condition[6]
+                if FREIGHT_RATE_LIST[convert2to10_in_list(condition[8])] > FREIGHT_RATE_LIST[convert2to10_in_list(condition[9])]:
+                    condition[8],condition[9] = condition[9],condition[8]
 
     def store_best_and_average(self):
         self.population.sort(key=lambda x:x[-1][0],reverse = True)

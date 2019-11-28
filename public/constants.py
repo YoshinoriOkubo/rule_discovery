@@ -41,6 +41,7 @@ DEFAULT_NUM_OF_BIT = 3
 DEFAULT_NUM_OF_CONDITION = 5
 DEFAULT_NUM_OF_ACTION = 5
 DEFAULT_NUM_OF_ACTION_INTEGRATE = 3
+DO_NOT_CARE = -1
 #for condition parts
 def make_condition_options():
     import csv
@@ -59,23 +60,22 @@ def make_condition_options():
                     data[-1].append(float(row[3]))#stdev
     for condition_num in range(2):
         mean, stdev = data[condition_num]
-        conditions.append([0,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
+        conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
         for index in range(8):
             if conditions[-1][index] < 0:
                 conditions[-1][index] = 0
     return conditions
-OIL_PRICE_LIST = [0,20,40,60,80,100,120,160]
+OIL_PRICE_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
 FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST = make_condition_options()
-OWN_SHIP_LIST = [0,40,60,80,100,120,140,160]
+OWN_SHIP_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
+CONVERT_LIST = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,OWN_SHIP_LIST,FREIGHT_RATE_LIST]
 '''
 OIL_PRICE_LIST = [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150]
 FREIGHT_RATE_LIST = [0,300,500,700,800,900,1000,1100,1200,1300,1400,1600,1800,2000,3000,4000]
 EXCHANGE_RATE_LIST = [0,50,60,70,80,90,95,100,105,110,120,130,140,150,160,200]
 OWN_SHIP_LIST = [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150]
 '''
-#for distribution
-SHIP_DEMAND_LIST = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-SHIP_SUPPLY_LIST = [0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000]
+#for optimaization
 VESSEL_SPEED_LIST = [13,14,15,16,17,18,19,20,21,22,23,24,25,26]
 #for action part
 PURCHASE_NUMBER = [0,1,3,5]
