@@ -32,12 +32,12 @@ def main():
     new_ship.generate_sinario()
     secondhand_ship = SecondhandShipMarket(demand,supply)
     secondhand_ship.generate_sinario()
-    export_binomial_parameter(oil,exchange,demand)
-    export_statistical_feature(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
-    export_scenario_csv(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
-    depict_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
-    depict_whole_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
-    depict_distribution(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+    #export_binomial_parameter(oil,exchange,demand)
+    #export_statistical_feature(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+    #export_scenario_csv(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+    #depict_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+    #depict_whole_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+    #depict_distribution(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
 
     print(time.time()-start)
 
