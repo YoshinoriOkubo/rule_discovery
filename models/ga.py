@@ -13,10 +13,10 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_return,exchange_rate,demand,supply,newbuilding,secondhand,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
-        self.freight_rate_return_data = freight_rate_return # freight rate return predicted data
+        self.freight_rate_homeward_data = freight_rate_homeward # freight rate return predicted data
         self.exchange_rate_data = exchange_rate # exchange_rate predicted data
         self.demand_data = demand#ship demand predicted data
         self.supply_data = supply#ship supply predicted data
@@ -137,8 +137,8 @@ class GA:
                 for month in range(12):
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
-                    current_freight_rate_return = self.freight_rate_return_data[pattern][year*12+month]['price']
-                    total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                    current_freight_rate_homeward = self.freight_rate_homeward_data[pattern][year*12+month]['price']
+                    total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_homeward * LOAD_FACTOR_EUROPE_TO_ASIA)
                     current_exchange = self.exchange_rate_data[pattern][year*12+month]['price']
                     current_demand = self.demand_data[pattern][year*12+month]['price']
                     current_supply = self.supply_data[pattern][year*12+month]['price']

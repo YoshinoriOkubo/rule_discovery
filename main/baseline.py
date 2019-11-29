@@ -45,7 +45,7 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship,supply,strategy=Non
             return[True,1]
         return [False]
 
-def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy):
+def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy):
     Record = []
     data = []
     average_ship_number = 0
@@ -59,7 +59,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             for month in range(12):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
-                current_freight_rate_return = freight_return_data[pattern][year*12+month]['price']
+                current_freight_rate_return = freight_homeward_data[pattern][year*12+month]['price']
                 total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_exchange = exchange_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
@@ -113,7 +113,7 @@ def export(result):
 
 def main():
     rule = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     '''
     nothing = 0
     buy_new = 1
@@ -143,7 +143,7 @@ def main():
                 sell,sell_if_high,sell_if_low,
                 share_new,share_second,
                 maintain_new,maintain_second]):
-        e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
+        e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
         print(dict[strategy])
         print(e,'億円')
         #print('PAYBACK PERIOD　終了時平均',average_ship_number)
@@ -158,7 +158,7 @@ def main():
         for second in [always,if_high,if_low,no]:
             for sell in [always,if_high,if_low,no]:
                 strategy = [new, second, sell]
-                e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
+                e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
                 result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,math.sqrt(sigma)])
     result.sort(key=lambda x:x[-1],reverse = True)
     print(result[0])

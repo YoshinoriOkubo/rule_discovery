@@ -69,7 +69,7 @@ class ShipDemand:
         for pattern in range(predict_pattern_number):
             current_date  = latest_history_date
             current_ship_demand = latest_ship_demand
-            for predict_month_num in range(predict_months_num+FREIGHT_MAX_DELAY):
+            for predict_month_num in range(predict_months_num):
                 current_date        = add_month(current_date)
                 current_date_str    = datetime.datetime.strftime(current_date, '%Y/%m/%d')
                 for time in range(DELTA_T_DAY):

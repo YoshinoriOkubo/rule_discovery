@@ -73,7 +73,7 @@ def make_secondhand_market_from_demand_and_supply(demand,supply):
             list[pattern].append({'price':price*(1+INDIRECT_COST)})
     return list
 
-def depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,time):
+def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,time):
     sns.set()
     sns.set_style('whitegrid')
     sns.set_palette('gray')
@@ -83,10 +83,10 @@ def depict(oil_data,freight_outward_data,freight_return_data,exchange_data,deman
     new = make_new_market_from_demand_and_supply(demand_data,supply_data)
     #secondhand = make_secondhand_market(freight_outward_data)
     secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
-    list1 = [oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,new,secondhand]
+    list1 = [oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,new,secondhand]
     list2 = ([fig.add_subplot(2, 4, 1),fig.add_subplot(2, 4, 2),fig.add_subplot(2, 4, 3),fig.add_subplot(2, 4, 4),
               fig.add_subplot(2, 4, 5),fig.add_subplot(2, 4, 6),fig.add_subplot(2,4,7),fig.add_subplot(2,4,8)])
-    list3 = ['oil_price','freight_outward','freight_return','exchange_rate','ship_demand','ship_supply','new_ship','secondhand']
+    list3 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand']
     list4 = [59.29,1250,810,119.8,10.65,5103,1+INDIRECT_COST,(2/3)*(1+INDIRECT_COST)]
     for (data,ax,name,start) in zip(list1,list2,list3,list4):
         x, y = [-1], [start]
@@ -130,7 +130,7 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
     '''
     return [False]
 
-def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data):
+def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data):
     Record = []
     depict_two_market(demand_data,supply_data)
     sys.exit()
@@ -142,7 +142,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
             for month in range(12):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
-                current_freight_rate_return = freight_return_data[pattern][year*12+month]['price']
+                current_freight_rate_return = freight_homeward_data[pattern][year*12+month]['price']
                 total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_exchange = exchange_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
@@ -153,7 +153,7 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
                     print('Please enter purcahse number')
                     if year*12 + month == 0:
                         print('Purchase number is limited to whether 0 or 1')
-                    number = depict(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
+                    number = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
                     #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
                     cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
                 '''
@@ -170,8 +170,8 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
     return [e,sigma]
 
 def main():
-    oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data = load_generated_sinario()
-    e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data)
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data)
     print(e)
 
 if __name__ == "__main__":

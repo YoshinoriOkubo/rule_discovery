@@ -117,14 +117,14 @@ class ShipSupply:
             data.append([])
             self.generate_distribution()
             self.generate_orderbook()
-            for time in range(self.predict_years*12+FREIGHT_MAX_DELAY):
+            for time in range(self.predict_years*12):
                 self.order_ship(pattern,time)
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
                 demand = self.ship_demand_data[pattern][time]['price']#*SHIP_NUMBER_PER_DEMAND
                 supply = self.predicted_data[pattern][time]['price']
                 data[pattern].append(supply/demand)
-            plt.plot(range(self.predict_years*12+FREIGHT_MAX_DELAY),data[pattern])
+            plt.plot(range(self.predict_years*12),data[pattern])
         save_dir = '../output/image'
         plt.savefig(os.path.join(save_dir, 'idle_rate.png'))
         for pattern in range(predict_pattern_number):

@@ -14,7 +14,7 @@ def fitness_function(rule,TIME,oil_price_data,freight_rate_outward_data,freight_
     Record = []
     f_sunc = 0
     number = 0
-    for pattern in range(0,50):#int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(0,100):#int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,0)
         for year in range(DEFAULT_PREDICT_YEARS):

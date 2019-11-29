@@ -19,23 +19,21 @@ class Freight:
         if history_data is None:
             if self.type == OUTWARD:
                 self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,OUTWARD)
-            elif self.type == RETURN:
-                    self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,RETURN)
+            elif self.type == HOMEWARD:
+                    self.monthly_history_data = load_history_data(MONTH,FREIGHT_TYPE,HOMEWARD)
 
     def calc_freight(self,type,pattern,time):
         if type == OUTWARD:
             inclination_oil = F_OUTWARD_INCLINATION_OIL
             inclination_demand = F_OUTWARD_INCLINATION_DEMAND
             intercept = F_OUTWARD_INTERCEPT
-            delay = FREIGHT_OUTWARD_DELAY
-        elif type == RETURN:
-            inclination_oil = F_RETURN_INCLINATION_OIL
-            inclination_demand = F_RETURN_INCLINATION_DEMAND
-            intercept = F_RETURN_INTERCEPT
-            delay = FREIGHT_RETURN_DELAY
+        elif type == HOMEWARD:
+            inclination_oil = F_HOMEWARD_INCLINATION_OIL
+            inclination_demand = F_HOMEWARD_INCLINATION_DEMAND
+            intercept = F_HOMEWARD_INTERCEPT
         current_oil = self.oil_data[pattern][time]['price']
-        current_demand = self.ship_demand_data[pattern][time-delay]['price']
-        current_supply = self.ship_supply_data[pattern][time-delay]['price']
+        current_demand = self.ship_demand_data[pattern][time]['price']
+        current_supply = self.ship_supply_data[pattern][time]['price']
         minimum_freight = 0
         return max(minimum_freight,inclination_oil*current_oil + inclination_demand*current_demand/current_supply + intercept)
 
