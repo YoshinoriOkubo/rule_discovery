@@ -121,7 +121,7 @@ class ShipSupply:
                 self.order_ship(pattern,time)
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
-                demand = self.ship_demand_data[pattern][time]['price']#*SHIP_NUMBER_PER_DEMAND
+                demand = self.ship_demand_data[pattern][time]['price']*SHIP_NUMBER_PER_DEMAND
                 supply = self.predicted_data[pattern][time]['price']
                 data[pattern].append(supply/demand)
             plt.plot(range(self.predict_years*12),data[pattern])
