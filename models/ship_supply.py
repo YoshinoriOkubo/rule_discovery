@@ -4,6 +4,7 @@ import math
 import datetime
 import os
 import random
+import matplotlib.pyplot as plt
 # import own modules #
 sys.path.append('../public')
 from my_modules import *
@@ -76,7 +77,7 @@ class ShipSupply:
         ship_demand_now = self.ship_demand_data[pattern][now]['price']
         ship_demand_before = self.ship_demand_data[pattern][now-term]['price']
         future_demand = (ship_demand_now - ship_demand_before)*ORDER_TIME/term + ship_demand_now
-        return future_demand
+        return future_demand*1.28
 
     def calc_ship_supply_future(self):
         supply = 0
@@ -111,14 +112,21 @@ class ShipSupply:
         self.predicted_data = []
         for p_num in range(predict_pattern_number):
             self.predicted_data.append([])
-
+        data = []
         for pattern in range(predict_pattern_number):
+            data.append([])
             self.generate_distribution()
             self.generate_orderbook()
             for time in range(self.predict_years*12+FREIGHT_MAX_DELAY):
                 self.order_ship(pattern,time)
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
+                demand = self.ship_demand_data[pattern][time]['price']#*SHIP_NUMBER_PER_DEMAND
+                supply = self.predicted_data[pattern][time]['price']
+                data[pattern].append(supply/demand)
+            plt.plot(range(self.predict_years*12+FREIGHT_MAX_DELAY),data[pattern])
+        save_dir = '../output/image'
+        plt.savefig(os.path.join(save_dir, 'idle_rate.png'))
         for pattern in range(predict_pattern_number):
             point = self.predicted_data[pattern][ORDER_TIME]['price']
             start = self.predicted_data[pattern][0]['price']
