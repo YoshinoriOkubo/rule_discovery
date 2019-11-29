@@ -13,7 +13,7 @@ from my_modules import *
 
 class GA:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist,generation=None,population_size=None,crossover_rate=None,mutation_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
         self.freight_rate_homeward_data = freight_rate_homeward # freight rate return predicted data
@@ -25,7 +25,7 @@ class GA:
         self.actionlist = actionlist # decision of action parts.
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
-        self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
+        self.mutation_rate = mutation_rate if mutation_rate else DEFAULT_MUTATION_RATE # the rate of mutation
         self.crossover_rate = crossover_rate if crossover_rate else DEFAULT_CROSSOVER_RATE
         self.population = [] # population that has individual
         self.temp = [] #temporary group that has individuals
@@ -318,7 +318,7 @@ class GA:
 
             #mutation
             for individual_mutaion in self.temp:
-                if random.random() < self.alpha:
+                if random.random() < self.mutation_rate:
                     individual_mutaion = self.mutation(individual_mutaion)
 
             #rule check

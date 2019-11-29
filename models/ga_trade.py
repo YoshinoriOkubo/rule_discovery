@@ -16,7 +16,7 @@ from my_modules import *
 
 class GA_Trade:
 
-    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist=None,generation=None,population_size=None,alpha=None,crossover_rate=None):
+    def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist=None,generation=None,population_size=None,crossover_rate=None,mutation_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
         self.freight_rate_outward_data = freight_rate_outward #feright rate outward predicted data
         self.freight_rate_homeward_data = freight_rate_homeward # freight rate return predicted data
@@ -28,7 +28,7 @@ class GA_Trade:
         self.actionlist = None if actionlist else None # decision of action parts.
         self.generation = generation if generation else DEFAULT_GENERATION # the number of generation
         self.population_size = population_size if population_size else DEFAULT_POPULATION_SIZE  # the number of individual
-        self.alpha = alpha if alpha else DEFAULT_ALPHA # the rate of mutation
+        self.mutation_rate = mutation_rate if mutation_rate else DEFAULT_MUTATION_RATE # the rate of mutation
         self.crossover_rate = crossover_rate if crossover_rate else DEFAULT_CROSSOVER_RATE
         self.population = [] # population that has individual
         self.temp = [] #temporary group that has individuals
@@ -61,19 +61,7 @@ class GA_Trade:
                 result[which_action][0] = True
                 result[which_action][1] = 1
         return result
-    '''
-    def check_rule_is_adapted(self,rule):
-        for pattern in range(self.number_of_train_data):
-            for year in range(DEFAULT_PREDICT_YEARS):
-                for month in range(12):
-                    oil_price = self.oil_price_data[pattern][year*12+month]['price']
-                    freight= self.freight_rate_outward_data[pattern][year*12+month]['price']
-                    exchange = self.exchange_rate_data[pattern][year*12+month]['price']
-                    result = self.adapt_rule(oil_price,freight,exchange,INITIAL_NUMBER_OF_SHIPS,rule)
-                    if result[0]:
-                        return True
-        return False
-    '''
+    
     def generateIndividual(self):
         temp = []
         actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
@@ -167,14 +155,6 @@ class GA_Trade:
         for pattern in range(self.number_of_train_data):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-            '''
-            for i in range(len(ship.agelist)):
-                if ship.agelist[i] == 0:
-                    fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(self.freight_rate_outward_data,0))*(1 + INDIRECT_COST)
-                else:
-                    fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(self.freight_rate_outward_data,0)*(1 + INDIRECT_COST)
-            fitness *= self.exchange_rate_data[pattern][11]['price']
-            '''
             for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
                 for month in range(12):
@@ -212,6 +192,12 @@ class GA_Trade:
             Record.append(fitness)
         e, sigma = calc_statistics(Record)
         return [e,sigma]
+
+    def process(self,rule):
+        return self.fitness_function(rule)
+
+    def wrapper_process(self,args):
+        return self.process(*args)
 
     def selection(self,generation):
         #store last generation's best individual unchanged
@@ -311,44 +297,6 @@ class GA_Trade:
                 break
         return flag
 
-    def print_result(self):
-        self.population.sort(key=lambda x:x[-1][0],reverse = True)
-        for i in range(0,NUM_DISPLAY):
-            if i == 0:
-                print('best rule', self.population[i])
-            thisone = self.population[i]
-            a = OIL_PRICE_LIST[convert2to10_in_list(thisone[0])]
-            b = OIL_PRICE_LIST[convert2to10_in_list(thisone[1])]
-            c = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[2])]
-            d = FREIGHT_RATE_LIST[convert2to10_in_list(thisone[3])]
-            e = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[4])]
-            f = EXCHANGE_RATE_LIST[convert2to10_in_list(thisone[5])]
-            purchase_new = PURCHASE_NUMBER[self.actionlist[0]]
-            purchase_secondhand = PURCHASE_NUMBER[self.actionlist[1]]
-            sell = SELL_NUMBER[self.actionlist[2]]
-            charter_in = CHARTER_IN_NUMBER[self.actionlist[3]]
-            charter_out = CHARTER_OUT_NUMBER[self.actionlist[4]]
-            print('{0} <= oil price <= {1} and {2} <= freight <= {3} and {4} <= exchange <= {5}'.format(a,b,c,d,e,f))
-            print('purchase {} new ships'.format(purchase_new))
-            print('purchase {} secondhand ships'.format(purchase_secondhand))
-            print('sell {} ships'.format(sell))
-            print('charter_in {}'.format(charter_in))
-            print('charter_out {}'.format(charter_out))
-            print('Expectation = {}'.format(thisone[-1][0]))
-            print('Variance = {}'.format(thisone[-1][1]))
-            if self.check_rule_is_adapted(thisone):
-                print('ADPTED')
-            if a > b or c > d or e > f:
-                print('rule error')
-                sys.exit()
-
-    def process(self,rule):
-        return self.fitness_function(rule)
-
-
-    def wrapper_process(self,args):
-        return self.process(*args)
-
     def execute_GA(self):
 
         #randomly generating individual group
@@ -372,7 +320,7 @@ class GA_Trade:
 
             #mutation
             for individual_mutaion in self.temp[100:]:
-                if random.random() < self.alpha:
+                if random.random() < self.mutation_rate:
                     individual_mutaion = self.mutation(individual_mutaion)
 
             #rule check
@@ -386,23 +334,15 @@ class GA_Trade:
                     rule = self.temp[index+100]
                     rule[-1][0], rule[-1][1] = p[index]
 
-            '''
-            #computation of fitness
-            for rule_index in range(len(self.temp)):
-                rule_selected = self.temp[rule_index]
-                rule_selected[-1][0], rule_selected[-1][1] = self.fitness_function(rule_selected)
-            '''
-
             #selection
             self.selection(gene)
 
             self.store_best_and_average()
-            #if gene > 10 and self.check_convergence(self.bestpopulation,10):
+            #if gene > 1000 and self.check_convergence(self.bestpopulation,200):
             #    break
 
         self.depict_fitness()
         self.depict_average_variance()
-        #self.print_result()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
         return self.population
 

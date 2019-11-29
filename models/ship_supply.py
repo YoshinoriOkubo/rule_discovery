@@ -77,7 +77,7 @@ class ShipSupply:
         ship_demand_now = self.ship_demand_data[pattern][now]['price']
         ship_demand_before = self.ship_demand_data[pattern][now-term]['price']
         future_demand = (ship_demand_now - ship_demand_before)*ORDER_TIME/term + ship_demand_now
-        return future_demand*1.28
+        return future_demand*OPTIMISM
 
     def calc_ship_supply_future(self):
         supply = 0
