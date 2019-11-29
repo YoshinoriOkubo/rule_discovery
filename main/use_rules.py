@@ -1,5 +1,6 @@
 import csv
 import sys
+import math
 import random
 sys.path.append('../models')
 from ship import Ship
@@ -188,6 +189,7 @@ def main():
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type)
     print(e,'億円')
+    print(math.sqrt(sigma))
     print(actionlist)
 
 if __name__ == "__main__":

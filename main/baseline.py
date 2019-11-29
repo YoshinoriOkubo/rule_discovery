@@ -1,6 +1,7 @@
 import csv
 import sys
 import random
+import math
 import matplotlib.pyplot as plt
 sys.path.append('../models')
 from ship import Ship
@@ -101,10 +102,10 @@ def fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_
     return [e,sigma,average_ship_number/(try_number)]
 
 def export(result):
-    path = '../output/rule-discovered/rule_manually.csv'
+    path = '../output/rule-discovered/rule_manually_test.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['New ship','Secondhand ship','sell ship','profit',])
+        writer.writerow(['New ship','Secondhand ship','sell ship','profit','stdev'])
     with open(path, 'a') as f:
         writer = csv.writer(f)
         for row in result:
@@ -158,10 +159,10 @@ def main():
             for sell in [always,if_high,if_low,no]:
                 strategy = [new, second, sell]
                 e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
-                result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e])
+                result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,math.sqrt(sigma)])
     result.sort(key=lambda x:x[-1],reverse = True)
     print(result[0])
-    #export(result)
+    export(result)
 
 if __name__ == "__main__":
     main()
