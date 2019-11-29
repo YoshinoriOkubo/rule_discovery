@@ -49,8 +49,8 @@ class Oil:
     def calc_oilprice(self, current_oilprice):
         return self.u * current_oilprice if random.randint(0,1) < self.p else self.d * current_oilprice
 
-    # generate predicted sinario
-    def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
+    # generate predicted scenario
+    def generate_scenario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
 

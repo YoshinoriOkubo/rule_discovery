@@ -37,8 +37,8 @@ class Freight:
         minimum_freight = 0
         return max(minimum_freight,inclination_oil*current_oil + inclination_demand*current_demand/current_supply + intercept)
 
-    # generate predicted sinario
-    def generate_sinario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
+    # generate predicted scenario
+    def generate_scenario(self,predict_years=DEFAULT_PREDICT_YEARS,predict_pattern_number=DEFAULT_PREDICT_PATTERN_NUMBER):
         # default predict_years is 15 years [180 months]
         self.predict_years  = predict_years
         self.predicted_data = []
