@@ -2,6 +2,8 @@
 
 import time
 import numpy as np
+from multiprocessing import Pool
+import multiprocessing as multi
 import sys
 sys.path.append('../models')
 from ship import Ship
@@ -10,7 +12,27 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-def fitness_function(rule,TIME,oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data):
+def process(TIME,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data):
+    e,sigma,f_ave = fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data)
+    return[e,sigma,f_ave]
+
+def wrapper_process(args):
+    return process(*args)
+
+def multiprocessing():
+    num_pool = multi.cpu_count()
+    num_pool = int(num_pool*0.9)
+    oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    e_all = 0
+    tutumimono = [[time,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data] for time in range(180)]
+    with Pool(num_pool) as pool:
+        p = pool.map(wrapper_process, tutumimono)
+        for element in p:
+            e_all += element[0]
+    print('平均',e_all/180,'億円')
+
+
+def fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data):
     Record = []
     f_sunc = 0
     number = 0
@@ -22,16 +44,16 @@ def fitness_function(rule,TIME,oil_price_data,freight_rate_outward_data,freight_
             for month in range(12):
                 current_oil_price = oil_price_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']
-                current_freight_rate_return = freight_rate_return_data[pattern][year*12+month]['price']
-                total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
+                current_freight_rate_homeward = freight_rate_homeward_data[pattern][year*12+month]['price']
+                total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_homeward * LOAD_FACTOR_EUROPE_TO_ASIA)
                 current_exchange = exchange_rate_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
                 current_newbuilding = newbuilding_data[pattern][year*12+month]['price']
                 current_secondhand = secondhand_data[pattern][year*12+month]['price']
                 if year*12+month == TIME:
-                    cash_flow += ship.buy_new_ship(current_newbuilding,1)
-                    #cash_flow += ship.buy_secondhand_ship(current_secondhand,1)
+                    #cash_flow += ship.buy_new_ship(current_newbuilding,1)
+                    cash_flow += ship.buy_secondhand_ship(current_secondhand,1)
                     f_sunc += current_freight_rate_outward
                     number += 1
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
@@ -49,14 +71,16 @@ def fitness_function(rule,TIME,oil_price_data,freight_rate_outward_data,freight_
     return [e,sigma,f_ave]
 
 def main():
-    oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
-    rule = [10,140,300,2200,70,200,0,120,0,1,0,0,1,6.939222582318641,5.420854999758004]
+    multiprocessing()
+    '''
+    oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     e_all = 0
     for time in range(180):
-        e,sigma,f_ave = fitness_function(rule,time,oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data)
+        e,sigma,f_ave = fitness_function(time,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data)
         e_all += e
         print(e,'億円','平均運賃',f_ave)
     print('平均',e_all/180,'億円')
+    '''
 
 if __name__ == "__main__":
     start = time.time()
