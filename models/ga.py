@@ -124,17 +124,9 @@ class GA:
         for pattern in range(self.number_of_train_data):
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-            '''
-            for i in range(len(ship.agelist)):
-                if ship.agelist[i] == 0:
-                    fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(self.freight_rate_outward_data,0))*(1 + INDIRECT_COST)
-                else:
-                    fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(self.freight_rate_outward_data,0)*(1 + INDIRECT_COST)
-            fitness *= self.exchange_rate_data[pattern][11]['price']
-            '''
             for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
-                for month in range(12):
+                for month in range(0,12,TIME_STEP):
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_homeward = self.freight_rate_homeward_data[pattern][year*12+month]['price']

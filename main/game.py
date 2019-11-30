@@ -139,7 +139,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
-            for month in range(12):
+            for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
                 current_freight_rate_return = freight_homeward_data[pattern][year*12+month]['price']
@@ -147,7 +147,6 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                 current_exchange = exchange_data[pattern][year*12+month]['price']
                 current_demand = demand_data[pattern][year*12+month]['price']
                 current_supply = supply_data[pattern][year*12+month]['price']
-                '''
                 if year < PAYBACK_PERIOD:
                     print('Now your company own {} ships'.format(ship.exist_number))
                     print('Please enter purcahse number')
@@ -156,7 +155,6 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                     number = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
                     #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
                     cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
-                '''
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)

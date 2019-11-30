@@ -157,7 +157,7 @@ class GA_Trade:
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
             for year in range(DEFAULT_PREDICT_YEARS):
                 cash_flow = 0
-                for month in range(12):
+                for month in range(0,12,TIME_STEP):
                     current_oil_price = self.oil_price_data[pattern][year*12+month]['price']
                     current_freight_rate_outward = self.freight_rate_outward_data[pattern][year*12+month]['price']
                     current_freight_rate_homeward = self.freight_rate_homeward_data[pattern][year*12+month]['price']
@@ -350,12 +350,12 @@ class GA_Trade:
 def main():
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     ga = GA_Trade(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
+    start = time.time()
     p = ga.execute_GA()
-    export_rules_integrate_csv(p)
+    print(time.time()-start)
+    #export_rules_integrate_csv(p)
 
 if __name__ == "__main__":
-    start = time.time()
     main()
-    print(time.time()-start)
     slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
     slack.notify(text="program end!!!!!!!!!")

@@ -1,3 +1,27 @@
+#for condition parts
+def make_condition_options():
+    import csv
+    conditions = []
+    path = '../output/scenario/statistics.csv'
+    data = []
+    with open(path) as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] == 'freight_outward' or row[0] == 'exchange_rate':
+                data.append([])
+                data[-1].append(float(row[1]))
+                if row[0] == 'oil_price':
+                    data[-1].append(float(row[3])/2.0)#stdev
+                else:
+                    data[-1].append(float(row[3]))#stdev
+    for condition_num in range(2):
+        mean, stdev = data[condition_num]
+        conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
+        for index in range(1,2**DEFAULT_NUM_OF_BIT):
+            if conditions[-1][index] < 0:
+                conditions[-1][index] = 0
+    return conditions
+    
 "Ship parameter"
 TEU_SIZE = 7000#9300TEU
 INITIAL_SPEED = 19#knot
@@ -28,9 +52,10 @@ OPTIMISM = 1.28#measure of investor's optimistic expectation for future
 # load factor 60 % of ONE's real data in 2018 
 LOAD_FACTOR_ASIA_TO_EUROPE = 0.528
 LOAD_FACTOR_EUROPE_TO_ASIA = 0.33
+TIME_STEP = 1#every time step, make decision
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 100, 'generation':3000, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 5, 'generation':1, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
@@ -105,27 +130,3 @@ DEMAND_TYPE = 400
 SUPPLY_TYPE = 500
 NEWSHIPMARKET_TYPE =600
 SECONDHAND_TYPE = 700
-
-#for condition parts
-def make_condition_options():
-    import csv
-    conditions = []
-    path = '../output/scenario/statistics.csv'
-    data = []
-    with open(path) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] == 'freight_outward' or row[0] == 'exchange_rate':
-                data.append([])
-                data[-1].append(float(row[1]))
-                if row[0] == 'oil_price':
-                    data[-1].append(float(row[3])/2.0)#stdev
-                else:
-                    data[-1].append(float(row[3]))#stdev
-    for condition_num in range(2):
-        mean, stdev = data[condition_num]
-        conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
-        for index in range(1,2**DEFAULT_NUM_OF_BIT):
-            if conditions[-1][index] < 0:
-                conditions[-1][index] = 0
-    return conditions

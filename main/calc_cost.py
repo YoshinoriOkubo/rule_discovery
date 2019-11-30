@@ -52,17 +52,9 @@ def fitness_function():
         fitness = -INITIAL_COST_OF_SHIPBUIDING
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,1)
         ship.agelist[0] = 0
-        '''
-        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        for i in range(len(ship.agelist)):
-            if ship.agelist[i] == 0:
-                fitness -= INITIAL_COST_OF_SHIPBUIDING*0.5*(1+ship.freight_impact(freight_rate_outward_data,0))*(1 + INDIRECT_COST)
-            else:
-                fitness -= INITIAL_COST_OF_SHIPBUIDING*ship.age_impact(ship.agelist[i])*ship.freight_impact(freight_rate_outward_data,0)*(1 + INDIRECT_COST)
-        '''
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
-            for month in range(12):
+            for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_price_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']
                 current_freight_rate_return = freight_rate_return_data[pattern][year*12+month]['price']

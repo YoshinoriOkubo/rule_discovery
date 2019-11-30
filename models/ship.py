@@ -42,9 +42,9 @@ class Ship:
         else:
             sys.exit()
 
-    def add_age(self):
-        self.agelist = [n+1 for n in self.agelist]
-        self.charter_out_agelist = [n+1 for n in self.charter_out_agelist]
+    def add_age(self,time_step=TIME_STEP):
+        self.agelist = [n+time_step for n in self.agelist]
+        self.charter_out_agelist = [n+time_step for n in self.charter_out_agelist]
         old_flag = False
         old_number = 0
         for e in self.agelist:
@@ -60,14 +60,14 @@ class Ship:
         self.agelist.sort()
         self.exist_number -= old_number
         self.total_number -= old_number
-        self.ship_under_construct()
+        self.ship_under_construct(time_step)
         return cash
 
-    def ship_under_construct(self):
+    def ship_under_construct(self,time_step):
         if len(self.ship_order_list) > 0:
             for i in range(len(self.ship_order_list)):
-                self.ship_order_list[i][1] -= 1
-            if self.ship_order_list[0][1] == 0:
+                self.ship_order_list[i][1] -= time_step
+            if self.ship_order_list[0][1] <= 0:
                 self.exist_number += self.ship_order_list[0][0]
                 self.total_number += self.ship_order_list[0][0]
                 self.order_number -= self.ship_order_list[0][0]
@@ -159,17 +159,17 @@ class Ship:
                 self.charter_flag = True
 
 
-    def charter(self):
+    def charter(self,time_step=TIME_STEP):
         cash = 0
         for i in range(len(self.charter_list)):
-            cash += self.charter_list[i][0]
-            self.charter_list[i][2] -= 1
+            cash += self.charter_list[i][0]*time_step
+            self.charter_list[i][2] -= time_step
         return cash
 
-    def end_charter(self):
+    def end_charter(self,time_step=TIME_STEP):
         end_index = []
         for i in range(len(self.charter_list)):
-            if self.charter_list[i][2] == 0:
+            if self.charter_list[i][2] <= 0:
                 if self.charter_list[i][3] == DECISION_CHARTER_OUT:
                     self.exist_number += self.charter_list[i][1]
                     self.total_number += self.charter_list[i][1]
@@ -180,11 +180,10 @@ class Ship:
                 end_index.append(i)
         if len(end_index) == 0:
             pass
-        elif len(end_index) == 1:#either charter in or out
-            self.charter_list.pop(end_index[0])
-        elif len(end_index) == 2:#both charter in and out
-            self.charter_list.pop(end_index[1])
-            self.charter_list.pop(end_index[0])
+        elif len(end_index) > 0:
+            for reversed_index in reversed(range(0,len(end_index))):
+                pop_index = end_index[reversed_index]
+                self.charter_list.pop(pop_index)
         else:
             print('error')
             sys.exit()
@@ -194,13 +193,13 @@ class Ship:
     def change_speed(self,speed):
         self.speed = speed
 
-    def decide_best_speed(self,oil_price,freight,demand,supply):
+    def decide_best_speed(self,oil_price,freight,demand,supply,time_step):
         best_speed = VESSEL_SPEED_LIST[0]
         max = 0
         for speed in VESSEL_SPEED_LIST:
             speed_km_h = self.change_knot_to_km_h(speed)
             time_spent_to_one_trip = self.route/(speed_km_h * 24) + LOADING_DAYS
-            number_of_trips = 30 / time_spent_to_one_trip
+            number_of_trips = 30 * time_step/ time_spent_to_one_trip
             income_in_one_trip = self.size * freight
             cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price,speed)
             cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365
@@ -211,11 +210,11 @@ class Ship:
                 best_speed = speed
         return best_speed
 
-    def calculate_income_per_month(self,oil_price,freight,demand,supply):
-        self.change_speed(self.decide_best_speed(oil_price,freight,demand,supply))
+    def calculate_income_per_month(self,oil_price,freight,demand,supply,time_step=TIME_STEP):
+        self.change_speed(self.decide_best_speed(oil_price,freight,demand,supply,time_step))
         speed_km_h = self.change_knot_to_km_h(self.speed)
         time_spent_to_one_trip = self.route/(speed_km_h * 24) + LOADING_DAYS
-        number_of_trips = 30 / time_spent_to_one_trip
+        number_of_trips = 30 * time_step / time_spent_to_one_trip
         income_in_one_trip = self.size * freight
         cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price,self.speed)
         cost_fixed_in_one_trip = NON_FUELED_COST * time_spent_to_one_trip / 365

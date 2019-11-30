@@ -40,13 +40,13 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     data = []
     average_ship_number = 0
     try_number = 0
-    for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)):#,DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
         try_number += 1
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
-            for month in range(12):
+            for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
                 current_freight_rate_return = freight_homeward_data[pattern][year*12+month]['price']
@@ -81,7 +81,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     return [e,sigma,average_ship_number/(try_number)]
 
 def export(result):
-    path = '../output/rule-discovered/rule_manually.csv'
+    path = '../output/rule-discovered/rule_manually_test.csv'
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['New ship','Secondhand ship','sell ship','profit','stdev'])
@@ -111,8 +111,8 @@ def main():
     for strategy in [share_new,share_second]:
         e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
         result.append([d[strategy],d[strategy],d[strategy],e,math.sqrt(sigma)])
-    result.sort(key=lambda x:x[-2],reverse = True)
-    print(result[0])
+    #result.sort(key=lambda x:x[-2],reverse = True)
+    #print(result[0])
     export(result)
 
 if __name__ == "__main__":

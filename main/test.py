@@ -41,7 +41,7 @@ def fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,0)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
-            for month in range(12):
+            for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_price_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']
                 current_freight_rate_homeward = freight_rate_homeward_data[pattern][year*12+month]['price']
