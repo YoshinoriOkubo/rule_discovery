@@ -54,6 +54,8 @@ def fitness_function():
         ship.agelist[0] = 0
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
+            if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
+                    break
             for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_price_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_rate_outward_data[pattern][year*12+month]['price']

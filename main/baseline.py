@@ -46,6 +46,8 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
+            if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
+                    break
             for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
                 current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
