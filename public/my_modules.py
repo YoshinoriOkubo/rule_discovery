@@ -78,10 +78,10 @@ def export_rules_csv(list,one=None):
             row.append(individual[-1][1])
             writer.writerow(row)
 
-def load_generated_sinario():
+def load_generated_sinario(sign=TRAIN_DATA_SET):
     all_data = []
     for name in ['oil_price','freight_outward','freight_homeward','exchange_rate','demand','supply','new_ship','secondhand_ship']:
-        history_data_path = '../output/scenario/{}.csv'.format(name)
+        history_data_path = '../output/{0}/scenario/{1}.csv'.format(sign,name)
         # read data
         dt   = np.dtype({'names': ('date', 'price'),
                        'formats': ('S10' , np.float)})
@@ -194,8 +194,8 @@ def calc_statistics(list):
     
     return [e,sigma]
 
-def export_binomial_parameter(oil,exchange,demand):
-    path = '../output/scenario/paramater.csv'
+def export_binomial_parameter(sign,oil,exchange,demand):
+    path = '../output/{}/scenario/paramater.csv'.format(sign)
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['type', 'mu', 'sigma', 'u', 'd', 'p'])
@@ -213,7 +213,7 @@ def export_binomial_parameter(oil,exchange,demand):
             row.append(data.p)
             writer.writerow(row)
 
-def export_statistical_feature(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
+def export_statistical_feature(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     #export mean, variance, stdev,median, minimum, maximum, mean with barrier
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
@@ -238,7 +238,7 @@ def export_statistical_feature(oil,freight_outward,freight_homeward,exchange,dem
         dictionary_data['min'] = min(data)
         dictionary_data['max'] = max(data)
         number += 1
-    path = '../output/scenario/statistics.csv'
+    path = '../output/{}/scenario/statistics.csv'.format(sign)
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['name', 'mean', 'variance', 'stdev', 'median', 'min', 'max'])
@@ -257,11 +257,11 @@ def export_statistical_feature(oil,freight_outward,freight_homeward,exchange,dem
             row.append(statistics_data['max'])
             writer.writerow(row)
 
-def export_scenario_csv(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
+def export_scenario_csv(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','demand','supply','new_ship','secondhand_ship']
     for (data, name) in zip(list1,list2):
-        path = '../output/scenario/{}.csv'.format(name)
+        path = '../output/{0}/scenario/{1}.csv'.format(sign,name)
         with open(path, 'w') as f:
             pass
         with open(path, 'a') as f:
@@ -273,7 +273,7 @@ def export_scenario_csv(oil,freight_outward,freight_homeward,exchange,demand,sup
                     row.append(data.predicted_data[pattern][time]['price'])
                 writer.writerow(row)
 
-def depict_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
+def depict_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     down = [0,0,0,0,0,0,0,0]
@@ -290,11 +290,11 @@ def depict_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,
         plt.ylabel(name, fontsize = 16)
         plt.ylim(d,u)
         plt.grid(True)
-        save_dir = '../output/image'
+        save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
         plt.close()
 
-def depict_whole_scenario(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
+def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     down = [0,0,0,0,0,0,0,0]
@@ -316,11 +316,11 @@ def depict_whole_scenario(oil,freight_outward,freight_homeward,exchange,demand,s
         plt.ylabel(name, fontsize = 16)
         plt.ylim(d,u)
         plt.grid(True)
-        save_dir = '../output/image'
+        save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
 
-def depict_distribution(oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
+def depict_distribution(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     list3 = [0,0,0,0,0,0,0,0]
@@ -334,6 +334,6 @@ def depict_distribution(oil,freight_outward,freight_homeward,exchange,demand,sup
         plt.xlabel('{} value'.format(name))
         plt.ylabel('Frequency')
         plt.title('{} value in generated scenario'.format(name))
-        save_dir = '../output/image'
+        save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()

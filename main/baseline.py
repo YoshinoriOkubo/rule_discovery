@@ -40,7 +40,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     data = []
     average_ship_number = 0
     try_number = 0
-    for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         try_number += 1
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
@@ -82,8 +82,8 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     e, sigma = calc_statistics(Record)
     return [e,sigma,average_ship_number/(try_number)]
 
-def export(result):
-    path = '../output/rule-discovered/rule_manually_test.csv'
+def export(result,sign):
+    path = '../output/rule-discovered/baseline_{}.csv'.format(sign)
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['New ship','Secondhand ship','sell ship','profit','stdev'])
@@ -94,28 +94,29 @@ def export(result):
 
 def main():
     rule = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
     always = 100
     if_high = 200
     if_low = 300
     no = 400
     dict = {always:'always',if_high:'if_high',if_low:'if_low',no:'no'}
-    result = []
-    for new in [always,if_high,if_low,no]:
-        for second in [always,if_high,if_low,no]:
-            for sell in [always,if_high,if_low,no]:
-                strategy = [new, second, sell]
-                e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
-                result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,math.sqrt(sigma)])
     share_new = 0
     share_second = 1
     d = {share_new:'share new',share_second:'share_second'}
-    for strategy in [share_new,share_second]:
-        e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
-        result.append([d[strategy],d[strategy],d[strategy],e,math.sqrt(sigma)])
-    #result.sort(key=lambda x:x[-2],reverse = True)
-    #print(result[0])
-    export(result)
+    result = []
+    for sign in [TRAIN_DATA_SET,TEST_DATA_SET]:
+        oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(sign)
+        for new in [always,if_high,if_low,no]:
+            for second in [always,if_high,if_low,no]:
+                for sell in [always,if_high,if_low,no]:
+                    strategy = [new, second, sell]
+                    e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
+                    result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,math.sqrt(sigma)])
+        for strategy in [share_new,share_second]:
+            e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
+            result.append([d[strategy],d[strategy],d[strategy],e,math.sqrt(sigma)])
+        #result.sort(key=lambda x:x[-2],reverse = True)
+        print(result[0])
+        export(result,sign)
 
 if __name__ == "__main__":
     main()

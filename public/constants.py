@@ -2,7 +2,7 @@
 def make_condition_options():
     import csv
     conditions = []
-    path = '../output/scenario/statistics.csv'
+    path = '../output/train/scenario/statistics.csv'
     data = []
     with open(path) as f:
         reader = csv.reader(f)
@@ -48,21 +48,21 @@ ORDER_CAPACITY=55#shipbuilding company's capacity to build ship per month
 DEMAND_PER_SHIP_NUMBER = 0.02326057#demand per one vessel
 SHIP_NUMBER_PER_DEMAND = 1.0/DEMAND_PER_SHIP_NUMBER
 LOADING_DAYS = 12#days necessary for loading and unloading
-OPTIMISM = 1.309#measure of investor's optimistic expectation for future
+OPTIMISM = 1.31#measure of investor's optimistic expectation for future
 # load factor 60 % of ONE's real data in 2018 
 LOAD_FACTOR_ASIA_TO_EUROPE = 0.528
 LOAD_FACTOR_EUROPE_TO_ASIA = 0.33
-TIME_STEP = 1#every time step, make decision
+TIME_STEP = 3#every time step, make decision
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 100, 'generation':3000, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1, 'generation':1, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
 DEFAULT_CROSSOVER_RATE = 0.80#crossover happens with this probability
 DEFAULT_MUTATION_RATE = 0.05#mutation happend with this probability
-TRAIN_DATA_SET = 0.8#the percentage of train data with generated scenario
-TEST_DATA_SET = 1 - TRAIN_DATA_SET#the percentage of test data with generated scenario
+TRAIN_DATA_SET = 'train'#the sign of train data with generated scenario
+TEST_DATA_SET = 'test'#the sign of test data with generated scenario
 
 "Chromosome paramater"
 DEFAULT_NUM_OF_BIT = 3#number of bits in one block

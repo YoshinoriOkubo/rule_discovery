@@ -46,7 +46,7 @@ def fitness_function_ave():
 def fitness_function():
     Record = []
     #data = []
-    oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data = load_generated_sinario()
+    oil_price_data,freight_rate_outward_data,freight_rate_return_data,exchange_rate_data,demand_data,supply_data = load_generated_sinario(TRAIN_DATA_SET)
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         fitness = -INITIAL_COST_OF_SHIPBUIDING

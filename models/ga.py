@@ -31,7 +31,7 @@ class GA:
         self.temp = [] #temporary group that has individuals
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
-        self.number_of_train_data = int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)
+        self.number_of_train_data = DEFAULT_PREDICT_PATTERN_NUMBER
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule):
         average_freight = 0
@@ -219,7 +219,7 @@ class GA:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
-        save_dir = '../output/image'
+        save_dir = '../output/train/image'
         plt.savefig(os.path.join(save_dir, 'fitness.png'))
         plt.close()
 
@@ -242,7 +242,7 @@ class GA:
         plt.xlabel("Expectation")
         plt.ylabel("Variance")
         plt.grid(True)
-        save_dir = '../output/image'
+        save_dir = '../output//train/image'
         name = str(actionlist[0]*16+actionlist[1]*8+actionlist[2]*4+actionlist[3]*2+actionlist[4])
         if gene == 0:
             plt.savefig(os.path.join(save_dir, 'Evaluation_{}_initial.png'.format(name)))

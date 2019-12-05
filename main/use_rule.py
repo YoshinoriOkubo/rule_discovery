@@ -108,7 +108,7 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,freight_data,time,type,a
 
 def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type):
     Record = []
-    for pattern in range(int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,100)
         for year in range(DEFAULT_PREDICT_YEARS):
@@ -166,7 +166,7 @@ def main():
     integrate = 2
     type = 2
     rule = load_ship_rules(type)
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TEST_DATA_SET)
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type)
     print(e,'億円')
     print(math.sqrt(sigma))

@@ -34,7 +34,7 @@ class GA_Trade:
         self.temp = [] #temporary group that has individuals
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
-        self.number_of_train_data = int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET)
+        self.number_of_train_data = DEFAULT_PREDICT_PATTERN_NUMBER
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
@@ -265,7 +265,7 @@ class GA_Trade:
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
-        save_dir = '../output/image'
+        save_dir = '../output/train/image'
         plt.savefig(os.path.join(save_dir, 'integrate_fitness.png'))
         plt.close()
 
@@ -284,7 +284,7 @@ class GA_Trade:
         plt.xlabel("Expectation")
         plt.ylabel("Variance")
         plt.grid(True)
-        save_dir = '../output/image'
+        save_dir = '../output/train/image'
         if gene is not None:
             plt.savefig(os.path.join(save_dir, 'Evaluation_initial.png'))
         else:
@@ -355,7 +355,7 @@ def main():
     start = time.time()
     p = ga.execute_GA()
     print(time.time()-start)
-    #export_rules_integrate_csv(p)
+    export_rules_integrate_csv(p)
 
 if __name__ == "__main__":
     main()

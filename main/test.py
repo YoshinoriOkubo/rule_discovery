@@ -22,7 +22,7 @@ def wrapper_process(args):
 def multiprocessing():
     num_pool = multi.cpu_count()
     num_pool = int(num_pool*0.9)
-    oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TRAIN_DATA_SET)
     e_all = 0
     tutumimono = [[time,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data] for time in range(180)]
     with Pool(num_pool) as pool:
@@ -36,7 +36,7 @@ def fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_
     Record = []
     f_sunc = 0
     number = 0
-    for pattern in range(0,100):#int(DEFAULT_PREDICT_PATTERN_NUMBER * TRAIN_DATA_SET),DEFAULT_PREDICT_PATTERN_NUMBER):
+    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,0)
         for year in range(DEFAULT_PREDICT_YEARS):

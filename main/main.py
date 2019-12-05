@@ -60,7 +60,7 @@ def multi_processing():
     all_actionlist,number = make_minimum_actionlist()
     #all_actionlist,number = make_small_actionlist()
     #all_actionlist,number = make_actionlist()
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TRAIN_DATA_SET)
     num_pool = multi.cpu_count()
     num_pool = int(num_pool*0.9)
     tutumimono = [[oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,all_actionlist[i]] for i in range(number)]
@@ -70,7 +70,7 @@ def multi_processing():
     send_messege()
 
 def one_rule_example(actionlist):
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TRAIN_DATA_SET)
     ga = GA(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,
                     actionlist)
     p = []

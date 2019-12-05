@@ -52,7 +52,7 @@ def depict_two_market(demand_data,supply_data):
     secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
     x = range(360)
     y = []
-    pattern = 4
+    pattern = 0
     for i in range(360):
         y.append(new[pattern][i]['price'])
     plt.plot(x,y)
@@ -60,8 +60,8 @@ def depict_two_market(demand_data,supply_data):
     for i in range(360):
         y.append(secondhand[pattern][i]['price'])
     plt.plot(x,y)
-    save_dir = '../output/image'
-    plt.savefig(os.path.join(save_dir, 'market.png'))
+    #save_dir = '../output/image'
+    #plt.savefig(os.path.join(save_dir, 'market.png'))
 
 
 def make_secondhand_market_from_demand_and_supply(demand,supply):
@@ -170,7 +170,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     return [e,sigma]
 
 def main():
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data = load_generated_sinario()
+    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TEST_DATA_SET)
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data)
     print(e)
 
