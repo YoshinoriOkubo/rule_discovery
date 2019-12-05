@@ -47,28 +47,7 @@ def load_ship_rules(type):
                         else:
                             list.append(int(row[index]))
                     rule.append(list)
-    return rule
-
-def select_rules(rule,oil,freight,exchange,own_ship,freight_data,time,type):
-    max_fitness = -100
-    result = None
-    for one in rule:
-        if type != 2:
-            if adapt_rule(oil,freight,exchange,own_ship,one,freight_data,time,type)[0]:
-                if max_fitness < one[-2] or (max_fitness == one[-2] and random.randint(0,1) < 0.5):
-                    result = one
-                    max_fitness = one[-2]
-                else:
-                    pass
-        else:
-            r = adapt_rule(oil,freight,exchange,own_ship,one,freight_data,time,type)
-            if r[0][0] == True or r[1][0] == True or r[2][0] == True or r[3][0] == True or r[4][0] == True:
-                if max_fitness < one[-1][0] or (max_fitness == one[-1][0] and random.randint(0,1) < 0.5):
-                    result = one
-                    max_fitness = one[-1][0]
-                else:
-                    pass
-    return result
+    return rule[0]
 
 def adapt_rule(oil_price,freight,exchange,own_ship,rule,freight_data,time,type,actionlist=None):
     average_freight = 0
@@ -147,8 +126,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                 if year < PAYBACK_PERIOD:
                     current_newbuilding = newbuilding_data[pattern][year*12+month]['price']
                     current_secondhand = secondhand_data[pattern][year*12+month]['price']
-                    rule_selected = select_rules(rule,current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,freight_outward_data[pattern],year*12+month,type)
-                    result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule_selected,freight_outward_data[pattern],year*12+month,type,actionlist)
+                    result = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.total_number+ship.order_number,rule,freight_outward_data[pattern],year*12+month,type,actionlist)
                     if type != 2:
                         if result[0]:
                             ship.change_speed(result[1][0])
