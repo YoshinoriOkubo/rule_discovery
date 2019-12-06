@@ -99,6 +99,7 @@ def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,dem
                 x.append(i)
                 y.append(data[pattern][i]['price'])
         ax.plot(x,y)
+        ax.set_xlim([0, 10])
         ax.set_title(name)
     # show plots
     fig.tight_layout()
@@ -133,11 +134,11 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
 def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data):
     Record = []
     depict_two_market(demand_data,supply_data)
-    sys.exit()
+    #sys.exit()
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        for year in range(DEFAULT_PREDICT_YEARS):
+        for year in range(0,DEFAULT_PREDICT_YEARS,TIME_STEP):
             cash_flow = 0
             if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
                     break
@@ -156,7 +157,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                         print('Purchase number is limited to whether 0 or 1')
                     number = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
                     #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
-                    cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
+                    #cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
                 cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 ship.change_speed(INITIAL_SPEED)

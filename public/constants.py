@@ -67,7 +67,7 @@ TEST_DATA_SET = 'test'#the sign of test data with generated scenario
 "Chromosome paramater"
 DEFAULT_NUM_OF_BIT = 3#number of bits in one block
 DEFAULT_NUM_OF_CONDITION = 5#number rule condition types 
-DEFAULT_NUM_OF_ACTION_INTEGRATE = 3#number rule condition types in integrated version
+DEFAULT_NUM_OF_ACTION_INTEGRATE = 6#number rule condition types in integrated version
 DEFAULT_NUM_OF_ACTION = 5#number of rule action types in independent version
 DO_NOT_CARE = -1#if this appear in the condition, then it is always met
 OIL_PRICE_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
