@@ -102,8 +102,8 @@ def main():
     share_new = 0
     share_second = 1
     d = {share_new:'share new',share_second:'share_second'}
-    result = []
     for sign in [TRAIN_DATA_SET,TEST_DATA_SET]:
+        result = []
         oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(sign)
         for new in [always,if_high,if_low,no]:
             for second in [always,if_high,if_low,no]:
