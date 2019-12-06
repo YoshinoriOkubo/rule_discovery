@@ -12,94 +12,34 @@ sys.path.append('../public')
 from my_modules import *
 from constants  import *
 
-def make_new_market(freight):
-    list = []
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        list.append([])
-        for time in range(DEFAULT_PREDICT_YEARS*12):
-            freight_criteria = FREIGHT_3
-            if time - 3 < 0:
-                freight_three_month_before = FREIGHT_PREV[time-3]
-            else:
-                freight_three_month_before = freight[pattern][time-3]['price']
-            list[pattern].append({'price':(0.5)*(1+INDIRECT_COST)*(1+freight_three_month_before/freight_criteria)})
-    return list
-
-def make_secondhand_market(freight):
-    list = []
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        list.append([])
-        for time in range(DEFAULT_PREDICT_YEARS*12):
-            freight_criteria = FREIGHT_3
-            if time - 3 < 0:
-                freight_three_month_before = FREIGHT_PREV[time-3]
-            else:
-                freight_three_month_before = freight[pattern][time-3]['price']
-            list[pattern].append({'price':(2/3)*(1+INDIRECT_COST)*(freight_three_month_before/freight_criteria)})
-    return list
-
-def make_new_market_from_demand_and_supply(demand,supply):
-    list = []
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        list.append([])
-        for time in range(DEFAULT_PREDICT_YEARS*12):
-            price = NEW_BUILDING_INCLINATION * demand[pattern][time]['price']/supply[pattern][time]['price'] + NEW_BUILDING_INTERCEPT
-            list[pattern].append({'price':price*(1+INDIRECT_COST)})
-    return list
-
-def depict_two_market(demand_data,supply_data):
-    new = make_new_market_from_demand_and_supply(demand_data,supply_data)
-    secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
-    x = range(360)
-    y = []
-    pattern = 0
-    for i in range(360):
-        y.append(new[pattern][i]['price'])
-    plt.plot(x,y)
-    y = []
-    for i in range(360):
-        y.append(secondhand[pattern][i]['price'])
-    plt.plot(x,y)
-    #save_dir = '../output/image'
-    #plt.savefig(os.path.join(save_dir, 'market.png'))
-
-
-def make_secondhand_market_from_demand_and_supply(demand,supply):
-    list = []
-    for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
-        list.append([])
-        for time in range(DEFAULT_PREDICT_YEARS*12):
-            price = SECONDHAND_INCLINATION * demand[pattern][time]['price']/supply[pattern][time]['price'] + SECONDHAND_INTERCEPT
-            list[pattern].append({'price':price*(1+INDIRECT_COST)})
-    return list
-
-def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,time):
+def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time):
+    x_length = 48
     sns.set()
     sns.set_style('whitegrid')
     sns.set_palette('gray')
 
     fig = plt.figure()
-    #new = make_new_market(freight_outward_data)
-    new = make_new_market_from_demand_and_supply(demand_data,supply_data)
-    #secondhand = make_secondhand_market(freight_outward_data)
-    secondhand = make_secondhand_market_from_demand_and_supply(demand_data,supply_data)
-    list1 = [oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,new,secondhand]
-    list2 = ([fig.add_subplot(2, 4, 1),fig.add_subplot(2, 4, 2),fig.add_subplot(2, 4, 3),fig.add_subplot(2, 4, 4),
-              fig.add_subplot(2, 4, 5),fig.add_subplot(2, 4, 6),fig.add_subplot(2,4,7),fig.add_subplot(2,4,8)])
-    list3 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand']
-    list4 = [59.29,1250,810,119.8,10.65,5103,1+INDIRECT_COST,(2/3)*(1+INDIRECT_COST)]
-    for (data,ax,name,start) in zip(list1,list2,list3,list4):
+    list1 = [oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data]
+    list2 = ([fig.add_subplot(3, 3, 1),fig.add_subplot(3, 3, 2),fig.add_subplot(3, 3, 3),fig.add_subplot(3, 3, 4),
+                fig.add_subplot(3, 3, 5),fig.add_subplot(3, 3, 6),fig.add_subplot(3, 3, 7),fig.add_subplot(3, 3, 8),
+                fig.add_subplot(3, 3, 9)])
+    list3 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand','cash data']
+    list4 = [59.29,1250,810,119.8,10.65,5103,(1+INDIRECT_COST)*66472628.1,(1+INDIRECT_COST)*42139681.02,0]
+    list5 = [0,0,500,0,0,0,0,0,-20*10**7]
+    list6 = [100,2000,1250,200,200,10000,10*10**7,10*10**7,20*10**7]
+    for (data,ax,name,start,lower,upper) in zip(list1,list2,list3,list4,list5,list6):
         x, y = [-1], [start]
-        if time > 10:
-            for i in range(10):
+        if time > x_length:
+            for i in range(x_length):
                 x.append(i)
-                y.append(data[pattern][time-(10-i)]['price'])
+                y.append(data[pattern][time-(x_length-i)]['price'])
         else:
             for i in range(time+1):
                 x.append(i)
                 y.append(data[pattern][i]['price'])
         ax.plot(x,y)
-        ax.set_xlim([0, 10])
+        ax.set_xlim([0, x_length])
+        ax.set_ylim([lower,upper])
         ax.set_title(name)
     # show plots
     fig.tight_layout()
@@ -131,49 +71,52 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
     '''
     return [False]
 
-def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data):
+def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,time_step):
     Record = []
-    depict_two_market(demand_data,supply_data)
-    #sys.exit()
+    cash_data = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
+        cash_data.append([{'price':0}])
         fitness = 0
-        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
-        for year in range(0,DEFAULT_PREDICT_YEARS,TIME_STEP):
+        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,0)
+        for year in range(0,DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
                     break
-            for month in range(0,12,TIME_STEP):
-                current_oil_price = oil_data[pattern][year*12+month]['price']
-                current_freight_rate_outward = freight_outward_data[pattern][year*12+month]['price']
-                current_freight_rate_return = freight_homeward_data[pattern][year*12+month]['price']
+            for month in range(0,12,time_step):
+                time = year*12+month
+                current_oil_price = oil_data[pattern][time]['price']
+                current_freight_rate_outward = freight_outward_data[pattern][time]['price']
+                current_freight_rate_return = freight_homeward_data[pattern][time]['price']
                 total_freight = ( current_freight_rate_outward * LOAD_FACTOR_ASIA_TO_EUROPE + current_freight_rate_return * LOAD_FACTOR_EUROPE_TO_ASIA)
-                current_exchange = exchange_data[pattern][year*12+month]['price']
-                current_demand = demand_data[pattern][year*12+month]['price']
-                current_supply = supply_data[pattern][year*12+month]['price']
-                if year < PAYBACK_PERIOD:
+                current_exchange = exchange_data[pattern][time]['price']
+                current_demand = demand_data[pattern][time]['price']
+                current_supply = supply_data[pattern][time]['price']
+                current_newbuilding = newbuilding_data[pattern][time]['price']
+                current_secondhand = secondhand_data[pattern][time]['price']
+                if year < PAYBACK_PERIOD and month == 11:
                     print('Now your company own {} ships'.format(ship.exist_number))
                     print('Please enter purcahse number')
-                    if year*12 + month == 0:
-                        print('Purchase number is limited to whether 0 or 1')
-                    number = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,pattern,year*12+month)
-                    #cash_flow += ship.buy_new_ship(freight_outward_data[pattern],year*12+month,number)
-                    #cash_flow += ship.buy_secondhand_ship(freight_outward_data[pattern],year*12+month,number)
-                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
-                cash_flow += ship.add_age()
-                ship.change_speed(INITIAL_SPEED)
+                    number = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time)
+                    cash_flow += ship.buy_new_ship(newbuilding_data[pattern][time]['price'],number)
+                    #cash_flow += ship.buy_secondhand_ship(secondhand_data[pattern][time]['price'],time,number)
+                elif month == 11:
+                    depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time)
+                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply,time_step)
+                cash_flow += ship.add_age(time_step)
+                cash_data[pattern].append({'price':cash_data[pattern][year*12]['price'] + cash_flow/((1 + DISCOUNT_RATE) ** (year + 1))})
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
-        fitness /= HUNDRED_MILLION
-        fitness /= INITIAL_NUMBER_OF_SHIPS
+        fitness /= HUNDRED_MILLION# one hundred millon JPY
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
 
 def main():
+    time_step = 1
     oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TEST_DATA_SET)
-    e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data)
-    print(e)
+    e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,time_step)
+    print('profit = ',e)
 
 if __name__ == "__main__":
     main()
