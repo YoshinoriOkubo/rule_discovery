@@ -55,7 +55,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.33
 TIME_STEP = 3#every time step, make decision
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 100, 'generation':1, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1, 'generation':1, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
