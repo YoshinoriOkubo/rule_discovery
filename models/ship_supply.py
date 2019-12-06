@@ -121,9 +121,9 @@ class ShipSupply:
                 self.order_ship(pattern,time)
                 self.predicted_data[pattern].append({'date':self.ship_demand_data[pattern][time]['date'],'price': self.calc_ship_supply()})
                 self.add_age()
-                demand = self.ship_demand_data[pattern][time]['price']*SHIP_NUMBER_PER_DEMAND
+                demand = self.ship_demand_data[pattern][time]['price']#*SHIP_NUMBER_PER_DEMAND
                 supply = self.predicted_data[pattern][time]['price']
-                data[pattern].append(supply/demand)
+                data[pattern].append(demand/(supply*3.55))
             plt.plot(range(self.predict_years*12),data[pattern])
         idle_rate = 0
         for p in range(predict_pattern_number):
