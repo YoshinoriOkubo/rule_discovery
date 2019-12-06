@@ -58,24 +58,10 @@ class GA_Trade:
                 else:
                     flag = False
             if flag == True:
-                result[which_action][0] = True
-                result[which_action][1] = 1
+                result[int(which_action/2)][0] = True
+                result[int(which_action/2)][1] += (which_action % 2) + 1
         return result
     
-    def generateIndividual(self):
-        temp = []
-        actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
-        for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
-            temp.append([])
-            for condition in range(DEFAULT_NUM_OF_CONDITION*2):
-                temp[trade].append([])
-                for a in range(DEFAULT_NUM_OF_BIT):
-                    temp[trade][condition].append(random.randint(0,1))
-            for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
-                temp[trade].append(actionlist[trade][action])
-        temp.append([0,0])
-        return temp 
-
     def generateIndividual_with_wise(self):
         population = []
         always = [[0,0,0],[0,0,0]]
@@ -86,23 +72,27 @@ class GA_Trade:
         for new in candidate:
             for second in candidate:
                 for sell in candidate:
-                    rule = ([[always[0],always[1],new[0],new[1],always[0],always[1],always[0],always[1],always[0],always[1],1,0,0],
-                            [always[0],always[1],second[0],second[1],always[0],always[1],always[0],always[1],always[0],always[1],0,1,0],
-                            [always[0],always[1],sell[0],sell[1],always[0],always[1],always[0],always[1],always[0],always[1],0,0,1],
-                            [0,0]])
+                    rule = []
+                    for strategy in [new,new,second,second,sell,sell]:
+                        rule.append([])
+                        for number_of_condition in range(DEFAULT_NUM_OF_CONDITION):
+                            if number_of_condition == 1:
+                                rule[-1].append(copy.deepcopy(strategy[0]))
+                                rule[-1].append(copy.deepcopy(strategy[1]))
+                            else:
+                                rule[-1].append(copy.deepcopy(always[0]))
+                                rule[-1].append(copy.deepcopy(always[1]))
+                    rule.append([0,0])
                     rule[-1][0],rule[-1][1] = self.fitness_function(rule)
                     population.append(rule)
         for num in range(self.population_size-len(candidate)**3):
             rule_random = []
-            actionlist =[[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
             for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 rule_random.append([])
                 for condition in range(DEFAULT_NUM_OF_CONDITION*2):
                     rule_random[trade].append([])
                     for bit in range(DEFAULT_NUM_OF_BIT):
                         rule_random[trade][condition].append(random.randint(0,1))
-                for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
-                    rule_random[trade].append(actionlist[trade][action])
             rule_random.append([0,0])
             rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
             population.append(rule_random)
@@ -111,8 +101,18 @@ class GA_Trade:
     def crossover(self,a,b):
         temp1 = []
         temp2 = []
-        which_action = random.randint(0,1)
-        crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
+        proportion = [1,3,1,1,3]
+        rand = random.randint(0,sum(proportion)-1)
+        crossover_block = 0
+        for tryal in range(4):
+            if rand < proportion[crossover_block]:
+                pass
+            else:
+                rand -= proportion[crossover_block]
+                crossover_block += 1
+        crossover_block = crossover_block*2 + random.randint(0,1)
+        #crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         for index in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             if index == which_action:
                 temp1.append([])
@@ -132,9 +132,6 @@ class GA_Trade:
                     else:
                         temp1[index].append(a[index][condition])
                         temp2[index].append(b[index][condition])
-                for action in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
-                    temp1[index].append(a[index][action+DEFAULT_NUM_OF_CONDITION*2])
-                    temp2[index].append(b[index][action+DEFAULT_NUM_OF_CONDITION*2])
             else:
                 temp1.append(a[index])
                 temp2.append(b[index])
@@ -144,10 +141,23 @@ class GA_Trade:
 
     def mutation(self,individual):
         which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
-        mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
+        proportion = [1,3,1,1,3]
+        rand = random.randint(0,sum(proportion)-1)
+        mutation_block = 0
+        for tryal in range(4):
+            if rand < proportion[mutation_block]:
+                pass
+            else:
+                rand -= proportion[mutation_block]
+                mutation_block += 1
+        mutation_block = mutation_block*2 + random.randint(0,1)
+        #mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         length = len(individual[which_action][mutation_block]) - 1
         point = random.randint(0,length)
-        individual[which_action][mutation_block][point] = (individual[which_action][mutation_block][point] + 1) % 2
+        if individual[which_action][mutation_block][point] == 0:
+            individual[which_action][mutation_block][point] = 1
+        else:
+            individual[which_action][mutation_block][point] = 0
         return individual
 
     def fitness_function(self,rule):
@@ -310,6 +320,7 @@ class GA_Trade:
         #genetic algorithm
         for gene in range(self.generation):
             #crossover
+            
             self.temp = copy.deepcopy(self.population)
             random.shuffle(self.temp)
             for selected in range(0,self.population_size,2):
@@ -319,21 +330,21 @@ class GA_Trade:
                     a,b = copy.deepcopy(self.temp[selected]),copy.deepcopy(self.temp[selected+1])
                 self.temp.append(a)
                 self.temp.append(b)
-
+            
             #mutation
-            for individual_mutaion in self.temp[100:]:
+            for individual_mutaion in self.temp[self.population_size:]:
                 if random.random() < self.mutation_rate:
                     individual_mutaion = self.mutation(individual_mutaion)
-
+            
             #rule check
             self.exchange_rule()
 
             num_pool = multi.cpu_count()
-            num_pool = int(num_pool*0.95)
+            num_pool = 1#int(num_pool*0.95)
             with Pool(num_pool) as pool:
-                p = pool.map(self.process, self.temp[100:])
-                for index in range(100):
-                    rule = self.temp[index+100]
+                p = pool.map(self.process, self.temp[self.population_size:])
+                for index in range(self.population_size):
+                    rule = self.temp[index+self.population_size]
                     rule[-1][0], rule[-1][1] = p[index]
 
             #selection
@@ -360,4 +371,4 @@ def main():
 if __name__ == "__main__":
     main()
     slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
-    slack.notify(text="program end!!!!!!!!!")
+    #slack.notify(text="program end!!!!!!!!!")
