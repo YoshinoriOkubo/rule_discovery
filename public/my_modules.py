@@ -39,15 +39,13 @@ def export_rules_integrate_csv(list):
                     row.append(individual[block][0])
                     row.append(individual[block][1])
                 else:
-                    for col_cond in range(DEFAULT_NUM_OF_CONDITION*2):
-                        if col_cond == 0 or col_cond == 1:
-                            row.append(OIL_PRICE_LIST[convert2to10_in_list(individual[block][col_cond])])
-                        elif col_cond == 2 or col_cond == 3 or col_cond == 8 or col_cond == 9:
-                            row.append(FREIGHT_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
-                        elif col_cond == 4 or col_cond == 5:
-                            row.append(EXCHANGE_RATE_LIST[convert2to10_in_list(individual[block][col_cond])])
-                        else:
-                            row.append(OWN_SHIP_LIST[convert2to10_in_list(individual[block][col_cond])])
+                    rule = individual[block]
+                    for col_cond in range(DEFAULT_NUM_OF_CONDITION):
+                        condition_type = CONVERT_LIST[col_cond]
+                        lower = condition_type[convert2to10_in_list(rule[col_cond*2])]
+                        upper = condition_type[convert2to10_in_list(rule[col_cond*2+1])]
+                        row.append(lower)
+                        row.append(upper)
                 writer.writerow(row)
 
 def export_rules_csv(list,one=None):
