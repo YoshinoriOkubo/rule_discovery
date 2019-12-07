@@ -7,6 +7,7 @@ import os
 from multiprocessing import Pool
 import multiprocessing as multi
 from ship import Ship
+from tqdm import tqdm
 import slackweb
 # import own modules #
 sys.path.append('../public')
@@ -58,8 +59,12 @@ class GA_Trade:
                 else:
                     flag = False
             if flag == True:
-                result[int(which_action/2)][0] = True
-                result[int(which_action/2)][1] += (which_action % 2) + 1
+                if DEFAULT_NUM_OF_ACTION_INTEGRATE == 6:
+                    result[int(which_action/2)][0] = True
+                    result[int(which_action/2)][1] += (which_action % 2) + 1
+                elif DEFAULT_NUM_OF_ACTION_INTEGRATE == 3:
+                    result[which_action][0] = True
+                    result[which_action][1] = + 1
         return result
     
     def generateIndividual_with_wise(self):
@@ -73,7 +78,12 @@ class GA_Trade:
             for second in candidate:
                 for sell in candidate:
                     rule = []
-                    for strategy in [new,new,second,second,sell,sell]:
+                    strategylist = []
+                    if DEFAULT_NUM_OF_ACTION_INTEGRATE == 6:
+                        strategylist = [new,new,second,second,sell,sell]
+                    elif DEFAULT_NUM_OF_ACTION_INTEGRATE == 3:
+                        strategylist = [new,second,sell]
+                    for strategy in strategylist:
                         rule.append([])
                         for number_of_condition in range(DEFAULT_NUM_OF_CONDITION):
                             if number_of_condition == 1:
@@ -318,7 +328,8 @@ class GA_Trade:
         self.depict_average_variance(0)
 
         #genetic algorithm
-        for gene in range(self.generation):
+        for gene in tqdm(range(self.generation)):
+            time.sleep(1/self.generation)
             #crossover
             
             self.temp = copy.deepcopy(self.population)
@@ -340,7 +351,7 @@ class GA_Trade:
             self.exchange_rule()
 
             num_pool = multi.cpu_count()
-            num_pool = 1#int(num_pool*0.95)
+            num_pool = 1#int(num_pool*0.9)
             with Pool(num_pool) as pool:
                 p = pool.map(self.process, self.temp[self.population_size:])
                 for index in range(self.population_size):
