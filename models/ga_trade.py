@@ -38,6 +38,7 @@ class GA_Trade:
         self.number_of_train_data = DEFAULT_PREDICT_PATTERN_NUMBER
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
+        rule_integrate = copy.deepcopy(rule_integrate)
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
         average_freight = 0
         for data_index in range(10):
@@ -109,6 +110,8 @@ class GA_Trade:
         return population
 
     def crossover(self,a,b):
+        a = copy.deepcopy(a)
+        b = copy.deepcopy(b)
         temp1 = []
         temp2 = []
         which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
@@ -150,6 +153,7 @@ class GA_Trade:
         return [temp1,temp2]
 
     def mutation(self,individual):
+        individual = copy.deepcopy(individual)
         which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
         proportion = [1,3,1,1,3]
         rand = random.randint(0,sum(proportion)-1)
@@ -171,6 +175,7 @@ class GA_Trade:
         return individual
 
     def fitness_function(self,rule):
+        rule = copy.deepcopy(rule)
         Record = []
         for pattern in range(self.number_of_train_data):
             fitness = 0
@@ -215,8 +220,9 @@ class GA_Trade:
         e, sigma = calc_statistics(Record)
         return [e,sigma]
 
-    def process(self,rule):
-        return self.fitness_function(rule)
+    def process(self,rule,number):
+        e, sigma = self.fitness_function(copy.deepcopy(rule))
+        return [e,sigma,number]
 
     def wrapper_process(self,args):
         return self.process(*args)
@@ -230,7 +236,7 @@ class GA_Trade:
         elite_number = int(self.population_size * 0.05)
         start = 1 if generation != 0 else 0
         for ith_individual in range(start,elite_number+1):
-            self.population[ith_individual] = self.temp[ith_individual]
+            self.population[ith_individual] = copy.deepcopy(self.temp[ith_individual])
         min_fit = self.temp[-1][-1][0]
         random.shuffle(self.temp)
         ark = 0 # the number used to roulette in crossing
@@ -243,22 +249,22 @@ class GA_Trade:
             while roulette > 0:
                 roulette = roulette - (self.temp[ark][-1][0] + 0.1 - min_fit)
                 ark = (ark + 1) % len(self.temp)
-            self.population[kth_individual] = self.temp[ark]
+            self.population[kth_individual] = copy.deepcopy(self.temp[ark])
 
     def exchange_rule(self):
         for individual_index in range(len(self.temp)):
             for condition_block in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 condition = self.temp[individual_index][condition_block]
                 if OIL_PRICE_LIST[convert2to10_in_list(condition[0])] > OIL_PRICE_LIST[convert2to10_in_list(condition[1])]:
-                    condition[0],condition[1] = condition[1],condition[0]
+                    condition[0],condition[1] = copy.deepcopy(condition[1]),copy.deepcopy(condition[0])
                 if FREIGHT_RATE_LIST[convert2to10_in_list(condition[2])] > FREIGHT_RATE_LIST[convert2to10_in_list(condition[3])]:
-                    condition[2],condition[3] = condition[3],condition[2]
+                    condition[2],condition[3] = copy.deepcopy(condition[3]),copy.deepcopy(condition[2])
                 if EXCHANGE_RATE_LIST[convert2to10_in_list(condition[4])] > EXCHANGE_RATE_LIST[convert2to10_in_list(condition[5])]:
-                    condition[4],condition[5] = condition[5],condition[4]
+                    condition[4],condition[5] = copy.deepcopy(condition[5]),copy.deepcopy(condition[4])
                 if OWN_SHIP_LIST[convert2to10_in_list(condition[6])] > OWN_SHIP_LIST[convert2to10_in_list(condition[7])]:
-                    condition[6],condition[7] = condition[7],condition[6]
+                    condition[6],condition[7] = copy.deepcopy(condition[7]),copy.deepcopy(condition[6])
                 if FREIGHT_RATE_LIST[convert2to10_in_list(condition[8])] > FREIGHT_RATE_LIST[convert2to10_in_list(condition[9])]:
-                    condition[8],condition[9] = condition[9],condition[8]
+                    condition[8],condition[9] = copy.deepcopy(condition[9]),copy.deepcopy(condition[8])
 
     def store_best_and_average(self):
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
@@ -324,12 +330,12 @@ class GA_Trade:
         #randomly generating individual group
         #for p_size in range(self.population_size):
         #    self.population.append(self.generateIndividual())
-        self.population = self.generateIndividual_with_wise()
+        self.population = copy.deepcopy(self.generateIndividual_with_wise())
         self.depict_average_variance(0)
 
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
-            time.sleep(1/self.generation)
+            #time.sleep(1/self.generation)
             #crossover
             
             self.temp = copy.deepcopy(self.population)
@@ -338,36 +344,43 @@ class GA_Trade:
                 if random.random() < self.crossover_rate:
                     a,b = self.crossover(self.temp[selected],self.temp[selected+1])
                 else:
-                    a,b = copy.deepcopy(self.temp[selected]),copy.deepcopy(self.temp[selected+1])
-                self.temp.append(a)
-                self.temp.append(b)
+                    a,b = self.temp[selected],self.temp[selected+1]
+                self.temp.append(copy.deepcopy(a))
+                self.temp.append(copy.deepcopy(b))
             
             #mutation
-            for individual_mutaion in self.temp[self.population_size:]:
+            for individual_index in range(self.population_size):
                 if random.random() < self.mutation_rate:
-                    individual_mutaion = self.mutation(individual_mutaion)
-            
+                    index = self.population_size + individual_index
+                    self.temp[index] = copy.deepcopy(self.mutation(self.temp[index]))
+
             #rule check
             self.exchange_rule()
 
+            #fitness calculation
             num_pool = multi.cpu_count()
-            num_pool = 1#int(num_pool*0.9)
+            num_pool = int(num_pool*0.95)
+            tutumimono = [[self.temp[self.population_size + individual_number], individual_number] for individual_number in range(self.population_size)]
             with Pool(num_pool) as pool:
-                p = pool.map(self.process, self.temp[self.population_size:])
+                p = pool.map(self.wrapper_process, tutumimono)
+                p.sort(key=lambda x:x[-1])
                 for index in range(self.population_size):
-                    rule = self.temp[index+self.population_size]
-                    rule[-1][0], rule[-1][1] = p[index]
-
+                    self.temp[index+self.population_size][-1][0] = p[index][0]
+                    self.temp[index+self.population_size][-1][1] = p[index][1]
+                    
             #selection
             self.selection(gene)
 
             self.store_best_and_average()
-            #if gene > 1000 and self.check_convergence(self.bestpopulation,200):
+            #if gene > 1000 and self.check_convergence(self.bestpopulation,500):
             #    break
 
+        #for index in range(len(self.population)):
+        #    self.population[index][-1][0],self.population[index][-1][1] = self.fitness_function(self.population[index])
         self.depict_fitness()
         self.depict_average_variance()
         self.population.sort(key=lambda x:x[-1][0],reverse = True)
+        print(self.population[0])
         return self.population
 
 
@@ -382,4 +395,4 @@ def main():
 if __name__ == "__main__":
     main()
     slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
-    #slack.notify(text="program end!!!!!!!!!")
+    slack.notify(text="program end!!!!!!!!!")
