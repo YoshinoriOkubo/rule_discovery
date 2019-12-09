@@ -78,6 +78,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
         fitness /= HUNDRED_MILLION
+        fitness /= SCALING
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma,average_ship_number/(try_number)]
@@ -110,10 +111,10 @@ def main():
                 for sell in [always,if_high,if_low,no]:
                     strategy = [new, second, sell]
                     e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
-                    result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,math.sqrt(sigma)])
+                    result.append([dict[strategy[0]],dict[strategy[1]],dict[strategy[2]],e,sigma])
         for strategy in [share_new,share_second]:
             e,sigma,average_ship_number = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,strategy)
-            result.append([d[strategy],d[strategy],d[strategy],e,math.sqrt(sigma)])
+            result.append([d[strategy],d[strategy],d[strategy],e,sigma])
         #result.sort(key=lambda x:x[-2],reverse = True)
         print(result[0])
         export(result,sign)
