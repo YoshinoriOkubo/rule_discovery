@@ -16,7 +16,7 @@ class Ship:
         self.agelist = []
         self.generate_agelist(self.exist_number)
         self.charter_out_agelist = []
-        self.max_ship_number = int(INITIAL_NUMBER_OF_SHIPS * 1.5)
+        self.max_ship_number = 10000#int(INITIAL_NUMBER_OF_SHIPS * 1.5)
         self.min_ship_number = 0 #int(INITIAL_NUMBER_OF_SHIPS * 0.5)
         self.ship_order_list = []
         self.order_number = 0
