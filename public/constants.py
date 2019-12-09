@@ -16,7 +16,13 @@ def make_condition_options():
                     data[-1].append(float(row[3]))#stdev
     for condition_num in range(2):
         mean, stdev = data[condition_num]
-        conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
+        if DEFAULT_NUM_OF_BIT == 3:
+            conditions.append([DO_NOT_CARE,mean-2*stdev,mean-stdev,mean-0.5*stdev,mean,mean+0.5*stdev,mean+stdev,mean+2*stdev])
+        elif DEFAULT_NUM_OF_BIT == 4:
+            list = [DO_NOT_CARE]
+            for index in range(-7,8):
+                list.append(mean + index * stdev / 2.0)
+            conditions.append(list)
         for index in range(1,2**DEFAULT_NUM_OF_BIT):
             if conditions[-1][index] < 0:
                 conditions[-1][index] = 0
@@ -61,7 +67,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.6
 TIME_STEP = 3#every time step, make decision
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 15, 'generation':100, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1, 'generation':100, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
@@ -71,14 +77,18 @@ TRAIN_DATA_SET = 'train'#the sign of train data with generated scenario
 TEST_DATA_SET = 'test'#the sign of test data with generated scenario
 
 "Chromosome paramater"
-DEFAULT_NUM_OF_BIT = 3#number of bits in one block
+DEFAULT_NUM_OF_BIT = 4#number of bits in one block
 DEFAULT_NUM_OF_CONDITION = 5#number rule condition types 
-DEFAULT_NUM_OF_ACTION_INTEGRATE = 6#number rule condition types in integrated version
+DEFAULT_NUM_OF_ACTION_INTEGRATE = 3#number rule condition types in integrated version
 DEFAULT_NUM_OF_ACTION = 5#number of rule action types in independent version
 DO_NOT_CARE = -1#if this appear in the condition, then it is always met
-OIL_PRICE_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
+if DEFAULT_NUM_OF_BIT == 3:
+    OIL_PRICE_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
+    OWN_SHIP_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
+elif DEFAULT_NUM_OF_BIT == 4:
+    OIL_PRICE_LIST = [DO_NOT_CARE,0,10,20,30,40,50,60,70,80,90,100,110,120,130,140]
+    OWN_SHIP_LIST = [DO_NOT_CARE,0,10,20,30,40,50,60,70,80,90,100,110,120,130,140]
 FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST = make_condition_options()
-OWN_SHIP_LIST = [DO_NOT_CARE,20,40,60,80,100,120,140]
 CONVERT_LIST = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,OWN_SHIP_LIST,FREIGHT_RATE_LIST]#the list for condition part
 FREIGHT_PREV = [2000,1640,1210,1390,1580,1540,1570,1540,1280,1070,1140,1250]#for calculating average freight of past ten months
 #for vessel speed optimaization

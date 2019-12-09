@@ -70,10 +70,16 @@ class GA_Trade:
     
     def generateIndividual_with_wise(self):
         population = []
-        always = [[0,0,0],[0,0,0]]
-        if_low = [[0,0,0],[0,1,1]]
-        if_high = [[1,0,0],[0,0,0]]
-        no = [[1,1,1],[1,1,1]]
+        if DEFAULT_NUM_OF_BIT == 3:
+            always = [[0,0,0],[0,0,0]]
+            if_low = [[0,0,0],[0,1,1]]
+            if_high = [[1,0,0],[0,0,0]]
+            no = [[1,1,1],[1,1,1]]
+        elif DEFAULT_NUM_OF_BIT == 4:
+            always = [[0,0,0,0],[0,0,0,0]]
+            if_low = [[0,0,0,0],[0,1,0,0]]
+            if_high = [[1,1,0,0],[0,0,0,0]]
+            no = [[1,1,1,1],[1,1,1,1]]
         candidate = [always,if_low,if_high,no]
         for new in candidate:
             for second in candidate:
@@ -95,7 +101,7 @@ class GA_Trade:
                                 rule[-1].append(copy.deepcopy(always[1]))
                     rule.append([0,0])
                     rule[-1][0],rule[-1][1] = self.fitness_function(rule)
-                    population.append(rule)
+                    population.append(copy.deepcopy(rule))
         for num in range(self.population_size-len(candidate)**3):
             rule_random = []
             for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
@@ -106,7 +112,7 @@ class GA_Trade:
                         rule_random[trade][condition].append(random.randint(0,1))
             rule_random.append([0,0])
             rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
-            population.append(rule_random)
+            population.append(copy.deepcopy(rule_random))
         return population
 
     def crossover(self,a,b):
@@ -349,25 +355,31 @@ class GA_Trade:
                 self.temp.append(copy.deepcopy(b))
             
             #mutation
-            for individual_index in range(self.population_size):
+            for individual_index in range(self.population_size*2):
                 if random.random() < self.mutation_rate:
-                    index = self.population_size + individual_index
-                    self.temp[index] = copy.deepcopy(self.mutation(self.temp[index]))
+                    self.temp[individual_index] = copy.deepcopy(self.mutation(self.temp[individual_index]))
 
             #rule check
             self.exchange_rule()
 
             #fitness calculation
+            
             num_pool = multi.cpu_count()
             num_pool = int(num_pool*0.95)
-            tutumimono = [[self.temp[self.population_size + individual_number], individual_number] for individual_number in range(self.population_size)]
+            tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
             with Pool(num_pool) as pool:
                 p = pool.map(self.wrapper_process, tutumimono)
                 p.sort(key=lambda x:x[-1])
-                for index in range(self.population_size):
-                    self.temp[index+self.population_size][-1][0] = p[index][0]
-                    self.temp[index+self.population_size][-1][1] = p[index][1]
-                    
+                for index in range(self.population_size*2):
+                    self.temp[index][-1][0] = p[index][0]
+                    self.temp[index][-1][1] = p[index][1]
+            '''        
+            for index in range(self.population_size*2):
+                e, sigma = self.fitness_function(self.temp[index])
+                self.temp[index][-1][0] = e
+                self.temp[index][-1][1] = sigma
+            '''
+            
             #selection
             self.selection(gene)
 
