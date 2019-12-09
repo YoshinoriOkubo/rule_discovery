@@ -110,7 +110,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     Record = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
-        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,100)
+        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
@@ -155,6 +155,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
         fitness /= HUNDRED_MILLION
+        fitness /= SCALING
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
@@ -166,11 +167,13 @@ def main():
     integrate = 2
     type = 2
     rule = load_ship_rules(type)
-    oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TEST_DATA_SET)
-    e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type)
-    print(e,'億円')
-    print(math.sqrt(sigma))
-    print(actionlist)
+    for sign in [TRAIN_DATA_SET,TEST_DATA_SET]:
+        oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(sign)
+        e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,rule,actionlist,type)
+        print(sign)
+        print(e,'億円')
+        print(sigma)
+        print(actionlist)
 
 if __name__ == "__main__":
     main()
