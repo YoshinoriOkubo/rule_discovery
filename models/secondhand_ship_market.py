@@ -27,8 +27,11 @@ class SecondhandShipMarket:
             self.predicted_data.append([])
         for pattern in range(predict_pattern_number):
             for time in range(self.predict_years*12):
-                price = (SECONDHAND_INCLINATION * self.demand_data[pattern][time]['price']/self.supply_data[pattern][time]['price']
-                                + SECONDHAND_INTERCEPT)
+                if time - 3 >= 0:
+                    x = self.demand_data[pattern][time-3]['price']/self.supply_data[pattern][time-3]['price']
+                else:
+                    x = DEMAND_BEFORE[time-3]/SUPPLY_BEFORE[time-3]
+                price = SECONDHAND_INCLINATION * x + SECONDHAND_INTERCEPT
                 price *= 1000000
                 price = max(price,FINAL_VALUE)
                 self.predicted_data[pattern].append({'date':time,'price':price})
