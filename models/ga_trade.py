@@ -38,8 +38,8 @@ class GA_Trade:
         self.number_of_train_data = DEFAULT_PREDICT_PATTERN_NUMBER
         self.fitness_dictionary = {}
 
-    def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
-        rule_integrate = copy.deepcopy(rule_integrate)
+    def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_args):
+        rule_integrate = copy.deepcopy(rule_args)
         result = [[False,0],[False,0],[False,0],[False,0],[False,0]]
         average_freight = 0
         for data_index in range(10):
@@ -103,7 +103,7 @@ class GA_Trade:
                     rule.append([0,0])
                     rule[-1][0],rule[-1][1] = self.fitness_function(rule)
                     rule_string = self.return_rule_str(rule)
-                    self.fitness_dictionary[rule_string] = rule[-1][0]
+                    self.fitness_dictionary[rule_string] = copy.deepcopy([rule[-1][0],rule[-1][1]])
                     population.append(copy.deepcopy(rule))
         for num in range(self.population_size-len(candidate)**3):
             rule_random = []
@@ -116,13 +116,13 @@ class GA_Trade:
             rule_random.append([0,0])
             rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
             rule_string = self.return_rule_str(rule_random)
-            self.fitness_dictionary[rule_string] = rule_random[-1][0]
+            self.fitness_dictionary[rule_string] = copy.deepcopy([rule_random[-1][0],rule_random[-1][1]])
             population.append(copy.deepcopy(rule_random))
         return population
 
-    def crossover(self,a,b):
-        a = copy.deepcopy(a)
-        b = copy.deepcopy(b)
+    def crossover(self,a_args,b_args):
+        a = copy.deepcopy(a_args)
+        b = copy.deepcopy(b_args)
         temp1 = []
         temp2 = []
         which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
@@ -136,7 +136,6 @@ class GA_Trade:
                 rand -= proportion[crossover_block]
                 crossover_block += 1
         crossover_block = crossover_block*2 + random.randint(0,1)
-        #crossover_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         for index in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             if index == which_action:
                 temp1.append([])
@@ -163,8 +162,8 @@ class GA_Trade:
         temp2.append([0,0])
         return [temp1,temp2]
 
-    def mutation(self,individual):
-        individual = copy.deepcopy(individual)
+    def mutation(self,individual_args):
+        individual = copy.deepcopy(individual_args)
         which_action = random.randint(0,DEFAULT_NUM_OF_ACTION_INTEGRATE-1)
         proportion = [1,3,1,1,3]
         rand = random.randint(0,sum(proportion)-1)
@@ -176,7 +175,6 @@ class GA_Trade:
                 rand -= proportion[mutation_block]
                 mutation_block += 1
         mutation_block = mutation_block*2 + random.randint(0,1)
-        #mutation_block = random.randint(0,DEFAULT_NUM_OF_CONDITION*2-1)
         length = len(individual[which_action][mutation_block]) - 1
         point = random.randint(0,length)
         if individual[which_action][mutation_block][point] == 0:
@@ -185,8 +183,8 @@ class GA_Trade:
             individual[which_action][mutation_block][point] = 0
         return individual
 
-    def fitness_function(self,rule):
-        rule = copy.deepcopy(rule)
+    def fitness_function(self,rule_args):
+        rule = copy.deepcopy(rule_args)
         Record = []
         for pattern in range(self.number_of_train_data):
             fitness = 0
@@ -231,9 +229,10 @@ class GA_Trade:
         e, sigma = calc_statistics(Record)
         return [e,sigma]
 
-    def process(self,rule,number):
-        e, sigma = self.fitness_function(copy.deepcopy(rule))
-        return [e,sigma,number]
+    def process(self,rule_args,number):
+        rule = copy.deepcopy(rule_args)
+        e, sigma = self.fitness_function(rule)
+        return [e,sigma,self.return_rule_str(rule),number]
 
     def wrapper_process(self,args):
         return self.process(*args)
@@ -298,7 +297,6 @@ class GA_Trade:
         plt.title('Transition of fitness', fontsize = 20)
         plt.xlabel('generation', fontsize = 16)
         plt.ylabel('fitness value', fontsize = 16)
-        #plt.ylim(-2,2)
         plt.tick_params(labelsize=14)
         plt.grid(True)
         plt.legend(loc = 'lower right')
@@ -336,17 +334,19 @@ class GA_Trade:
                 break
         return flag
 
-    def return_rule_str(self,list):
+    def return_rule_str(self,lists_args):
+        lists = copy.deepcopy(lists_args)
         rule_string = ''
         for rule_type in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
             for condition_block in range(DEFAULT_NUM_OF_CONDITION*2):
-                block = list[rule_type][condition_block]
+                block = lists[rule_type][condition_block]
                 for e in block:
                     rule_string += str(e)
         return rule_string
 
     def execute_GA(self):
-
+        time_record = [0]
+        first = time.time()
         #randomly generating individual group
         #for p_size in range(self.population_size):
         #    self.population.append(self.generateIndividual())
@@ -355,9 +355,7 @@ class GA_Trade:
 
         #genetic algorithm
         for gene in tqdm(range(self.generation)):
-            #time.sleep(1/self.generation)
             #crossover
-            
             self.temp = copy.deepcopy(self.population)
             random.shuffle(self.temp)
             for selected in range(0,self.population_size,2):
@@ -377,17 +375,26 @@ class GA_Trade:
             self.exchange_rule()
             
             #fitness calculation
-            '''
             num_pool = multi.cpu_count()
             num_pool = int(num_pool*0.95)
-            tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
+            tutumimono = []
+            for individual_index in range(self.population_size*2):
+                rule_string = self.return_rule_str(self.temp[individual_index])
+                if rule_string in self.fitness_dictionary:
+                    self.temp[individual_index][-1][0] = self.fitness_dictionary[rule_string][0]
+                    self.temp[individual_index][-1][1] = self.fitness_dictionary[rule_string][1]
+                else:
+                    tutumimono.append([copy.deepcopy(self.temp[individual_index]),individual_index])
+            #tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
             with Pool(num_pool) as pool:
                 p = pool.map(self.wrapper_process, tutumimono)
-                p.sort(key=lambda x:x[-1])
-                for index in range(self.population_size*2):
-                    self.temp[index][-1][0] = p[index][0]
-                    self.temp[index][-1][1] = p[index][1]
-            '''        
+                #for index in range(self.population_size*2):
+                for i in range(len(p)):
+                    index = p[i][-1]
+                    self.temp[index][-1][0] = p[i][0]
+                    self.temp[index][-1][1] = p[i][1]
+                    self.fitness_dictionary[p[i][2]] = copy.deepcopy([p[i][0],p[i][1]])
+            '''
             for index in range(self.population_size*2):
                 rule_string = self.return_rule_str(self.temp[index])
                 if rule_string in self.fitness_dictionary:
@@ -396,15 +403,23 @@ class GA_Trade:
                     e, sigma = self.fitness_function(self.temp[index])
                     self.temp[index][-1][0] = e
                     self.temp[index][-1][1] = sigma
-                    self.fitness_dictionary[rule_string] = e
-            
+                    self.fitness_dictionary[rule_string] = [e,sigma]
+            '''
             #selection
             self.selection(gene)
 
+            #store best and average individual
             self.store_best_and_average()
             #if gene > 1000 and self.check_convergence(self.bestpopulation,500):
             #    break
+            time_record.append(time.time()-first)
 
+        x = range(self.generation+1)
+        plt.plot(x,time_record)
+        save_dir = '../output/train/image'
+        plt.savefig(os.path.join(save_dir, 'computationi_time.png'))
+        plt.close()
+        print('exploranation number ',len(self.fitness_dictionary))
         #for index in range(len(self.population)):
         #    self.population[index][-1][0],self.population[index][-1][1] = self.fitness_function(self.population[index])
         self.depict_fitness()
