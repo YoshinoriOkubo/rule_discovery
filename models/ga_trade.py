@@ -36,6 +36,7 @@ class GA_Trade:
         self.bestpopulation = [] # group that has the best individuals in each generation
         self.averagepopulation = [] # the average value of fitness in each generation
         self.number_of_train_data = DEFAULT_PREDICT_PATTERN_NUMBER
+        self.fitness_dictionary = {}
 
     def adapt_rule(self,oil_price,freight,exchange,own_ship,freight_data,time,rule_integrate):
         rule_integrate = copy.deepcopy(rule_integrate)
@@ -101,6 +102,8 @@ class GA_Trade:
                                 rule[-1].append(copy.deepcopy(always[1]))
                     rule.append([0,0])
                     rule[-1][0],rule[-1][1] = self.fitness_function(rule)
+                    rule_string = self.return_rule_str(rule)
+                    self.fitness_dictionary[rule_string] = rule[-1][0]
                     population.append(copy.deepcopy(rule))
         for num in range(self.population_size-len(candidate)**3):
             rule_random = []
@@ -112,6 +115,8 @@ class GA_Trade:
                         rule_random[trade][condition].append(random.randint(0,1))
             rule_random.append([0,0])
             rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
+            rule_string = self.return_rule_str(rule_random)
+            self.fitness_dictionary[rule_string] = rule_random[-1][0]
             population.append(copy.deepcopy(rule_random))
         return population
 
@@ -331,6 +336,15 @@ class GA_Trade:
                 break
         return flag
 
+    def return_rule_str(self,list):
+        rule_string = ''
+        for rule_type in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
+            for condition_block in range(DEFAULT_NUM_OF_CONDITION*2):
+                block = list[rule_type][condition_block]
+                for e in block:
+                    rule_string += str(e)
+        return rule_string
+
     def execute_GA(self):
 
         #randomly generating individual group
@@ -361,9 +375,9 @@ class GA_Trade:
 
             #rule check
             self.exchange_rule()
-
-            #fitness calculation
             
+            #fitness calculation
+            '''
             num_pool = multi.cpu_count()
             num_pool = int(num_pool*0.95)
             tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
@@ -375,10 +389,14 @@ class GA_Trade:
                     self.temp[index][-1][1] = p[index][1]
             '''        
             for index in range(self.population_size*2):
-                e, sigma = self.fitness_function(self.temp[index])
-                self.temp[index][-1][0] = e
-                self.temp[index][-1][1] = sigma
-            '''
+                rule_string = self.return_rule_str(self.temp[index])
+                if rule_string in self.fitness_dictionary:
+                    pass
+                else:
+                    e, sigma = self.fitness_function(self.temp[index])
+                    self.temp[index][-1][0] = e
+                    self.temp[index][-1][1] = sigma
+                    self.fitness_dictionary[rule_string] = e
             
             #selection
             self.selection(gene)
