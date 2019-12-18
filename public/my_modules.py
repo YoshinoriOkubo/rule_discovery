@@ -275,7 +275,7 @@ def depict_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,su
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     down = [0,0,0,0,0,0,0,0]
-    up = [200,2000,2000,250,250,15000,150*10**6,150*10**6]
+    up = [200,2500,1500,250,250,10000,150*10**6,150*10**6]
     for (data, name,d,u) in zip(list1,list2,down,up):
         x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
@@ -296,7 +296,7 @@ def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,dem
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     down = [0,0,0,0,0,0,0,0]
-    up = [200,2000,2000,250,250,15000,150*10**6,150*10**6]
+    up = [200,2500,1500,250,250,10000,150*10**6,150*10**6]
     for (data, name, d, u) in zip(list1,list2,down,up):
         orignal_length = len(data.monthly_history_data)
         length_sum = DEFAULT_PREDICT_YEARS*12+orignal_length
@@ -322,7 +322,7 @@ def depict_distribution(sign,oil,freight_outward,freight_homeward,exchange,deman
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     list3 = [0,0,0,0,0,0,0,0]
-    list4 = [150,3000,1500,250,200,15000,150*10**6,150*10**6]
+    list4 = [150,2500,1500,250,200,10000,150*10**6,150*10**6]
     for type,name,down,up in zip(list1,list2,list3,list4):
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
