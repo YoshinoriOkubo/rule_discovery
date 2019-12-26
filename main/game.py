@@ -26,7 +26,7 @@ def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,dem
     list3 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand','cash data']
     list4 = [59.29,1250,810,119.8,10.65,5103,(1+INDIRECT_COST)*66472628.1,(1+INDIRECT_COST)*42139681.02,0]
     list5 = [0,0,500,0,0,0,0,0,-20*10**7]
-    list6 = [100,2000,1250,200,200,10000,10*10**7,10*10**7,20*10**7]
+    list6 = [200,2000,1250,200,200,10000,10*10**7,10*10**7,20*10**7]
     for (data,ax,name,start,lower,upper) in zip(list1,list2,list3,list4,list5,list6):
         x, y = [-1], [start]
         if time > x_length:

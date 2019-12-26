@@ -56,8 +56,8 @@ SHIP_NUMBER_PER_DEMAND = 1.0/DEMAND_PER_SHIP_NUMBER
 LOADING_DAYS = 12#days necessary for loading and unloading
 OPTIMISM = 1.0 #measure of investor's optimistic expectation for future
 # load factor 52% of ONE's real data in 2018 
-LOAD_FACTOR_ASIA_TO_EUROPE = 0.88 * 0.52
-LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.52
+LOAD_FACTOR_ASIA_TO_EUROPE = 0.88 * 0.48
+LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.48
 '''
 OPTIMISM = 1.3 #measure of investor's optimistic expectation for future
 # load factor 60% of ONE's real data in 2018 
@@ -67,7 +67,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.6
 TIME_STEP = 3#every time step, make decision
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1000, 'generation':1000, 'population_size':75}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1000, 'generation':5000, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']

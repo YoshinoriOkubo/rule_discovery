@@ -15,7 +15,7 @@ sys.path.append('../output')
 from constants  import *
 from my_modules import *
 
-class GA_Trade:
+class Test:
 
     def __init__(self,oil_price_data,freight_rate_outward,freight_rate_homeward,exchange_rate,demand,supply,newbuilding,secondhand,actionlist=None,generation=None,population_size=None,crossover_rate=None,mutation_rate=None):
         self.oil_price_data = oil_price_data #oil price predicted data
@@ -101,9 +101,9 @@ class GA_Trade:
                                 rule[-1].append(copy.deepcopy(always[0]))
                                 rule[-1].append(copy.deepcopy(always[1]))
                     rule.append([0,0])
-                    rule[-1][0],rule[-1][1] = self.fitness_function(rule)
-                    rule_string = self.return_rule_str(rule)
-                    self.fitness_dictionary[rule_string] = copy.deepcopy([rule[-1][0],rule[-1][1]])
+                    #rule[-1][0],rule[-1][1] = self.fitness_function(rule)
+                    #rule_string = self.return_rule_str(rule)
+                    #self.fitness_dictionary[rule_string] = copy.deepcopy([rule[-1][0],rule[-1][1]])
                     population.append(copy.deepcopy(rule))
         for num in range(self.population_size-len(candidate)**3):
             rule_random = []
@@ -114,9 +114,9 @@ class GA_Trade:
                     for bit in range(DEFAULT_NUM_OF_BIT):
                         rule_random[trade][condition].append(random.randint(0,1))
             rule_random.append([0,0])
-            rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
-            rule_string = self.return_rule_str(rule_random)
-            self.fitness_dictionary[rule_string] = copy.deepcopy([rule_random[-1][0],rule_random[-1][1]])
+            #rule_random[-1][0],rule_random[-1][1] = self.fitness_function(rule_random)
+            #rule_string = self.return_rule_str(rule_random)
+            #self.fitness_dictionary[rule_string] = copy.deepcopy([rule_random[-1][0],rule_random[-1][1]])
             population.append(copy.deepcopy(rule_random))
         return population
 
@@ -183,10 +183,14 @@ class GA_Trade:
             individual[which_action][mutation_block][point] = 0
         return individual
 
-    def fitness_function(self,rule_args):
+    def fitness_function(self,rule_args,tutu=None):
         rule = copy.deepcopy(rule_args)
         Record = []
-        for pattern in range(self.number_of_train_data):
+        if tutu is None:
+            X = range(self.number_of_train_data)
+        else:
+            X = tutu
+        for pattern in X:
             fitness = 0
             ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
             for year in range(DEFAULT_PREDICT_YEARS):
@@ -226,9 +230,30 @@ class GA_Trade:
             fitness /= HUNDRED_MILLION
             fitness /= SCALING
             Record.append(fitness)
-        e, sigma = calc_statistics(Record)
+        #print(tutu)
+        e = sum(Record)
+        sigma = len(Record)
+        #print(e,sigma)
+        #e, sigma = calc_statistics(Record)
         return [e,sigma]
 
+    def fitness_function_multi(self,rule,num_pool):
+        with Pool(num_pool) as pool:
+            tutu = []
+            for i in range(num_pool):
+                tutu.append([rule,range(i*100,(i+1)*100)])
+            p = pool.map(self.wrapper_process_2, tutu) 
+        return [0,0]
+
+    def wrapper_process_2(self,args):
+        return self.process_2(*args)
+    
+    def process_2(self,rule_args,tutu_args):
+        rule = copy.deepcopy(rule_args)
+        tutu = copy.deepcopy(tutu_args)
+        e, sigma = self.fitness_function(rule,tutu)
+        return [e,sigma]
+    
     def process(self,rule_args,number):
         rule = copy.deepcopy(rule_args)
         e, sigma = self.fitness_function(rule)
@@ -376,7 +401,7 @@ class GA_Trade:
             
             #fitness calculation
             num_pool = multi.cpu_count()
-            num_pool = int(num_pool*0.95)
+            num_pool = 10#int(num_pool*0.95)
             tutumimono = []
             for individual_index in range(self.population_size*2):
                 rule_string = self.return_rule_str(self.temp[individual_index])
@@ -386,14 +411,18 @@ class GA_Trade:
                 else:
                     tutumimono.append([copy.deepcopy(self.temp[individual_index]),individual_index])
             #tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
-            with Pool(num_pool) as pool:
-                p = pool.map(self.wrapper_process, tutumimono)
-                #for index in range(self.population_size*2):
-                for i in range(len(p)):
-                    index = p[i][-1]
-                    self.temp[index][-1][0] = p[i][0]
-                    self.temp[index][-1][1] = p[i][1]
-                    self.fitness_dictionary[p[i][2]] = copy.deepcopy([p[i][0],p[i][1]])
+            for index in range(16):
+                self.temp[index][-1] = copy.deepcopy(self.fitness_function_multi(self.temp[index],num_pool))
+                '''
+                with Pool(num_pool) as pool:
+                    p = pool.map(self.wrapper_process, tutumimono)
+                    #for index in range(self.population_size*2):
+                    for i in range(len(p)):
+                        index = p[i][-1]
+                        self.temp[index][-1][0] = p[i][0]
+                        self.temp[index][-1][1] = p[i][1]
+                        self.fitness_dictionary[p[i][2]] = copy.deepcopy([p[i][0],p[i][1]])
+                '''
             '''
             for index in range(self.population_size*2):
                 rule_string = self.return_rule_str(self.temp[index])
@@ -431,7 +460,7 @@ class GA_Trade:
 
 def main():
     oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
-    ga = GA_Trade(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
+    ga = Test(oil_data,freight_outward_data,freight_return_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
     start = time.time()
     p = ga.execute_GA()
     print(time.time()-start)
