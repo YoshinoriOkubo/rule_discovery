@@ -208,12 +208,12 @@ class Ship:
             if max < profit:
                 max = profit
                 best_speed = speed
-        return best_speed
+        return 19#best_speed
 
     def calculate_income_per_month(self,oil_price,freight,demand,supply,time_step=TIME_STEP):
         self.change_speed(self.decide_best_speed(oil_price,freight,demand,supply,time_step))
         speed_km_h = self.change_knot_to_km_h(self.speed)
-        time_spent_to_one_trip = self.route/(speed_km_h * 24) + LOADING_DAYS
+        time_spent_to_one_trip = 75#self.route/(speed_km_h * 24) + LOADING_DAYS
         number_of_trips = 30 * time_step / time_spent_to_one_trip
         income_in_one_trip = self.size * freight
         cost_unfixed_in_one_trip = self.calc_fuel_cost(oil_price,self.speed)

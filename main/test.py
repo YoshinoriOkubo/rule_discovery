@@ -24,12 +24,12 @@ def multiprocessing():
     num_pool = int(num_pool*0.9)
     oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TRAIN_DATA_SET)
     e_all = 0
-    tutumimono = [[time,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data] for time in range(180)]
+    tutumimono = [[time,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data] for time in range(0,180,TIME_STEP)]
     with Pool(num_pool) as pool:
         p = pool.map(wrapper_process, tutumimono)
         for element in p:
             e_all += element[0]
-    print('平均',e_all/180,'億円')
+    print('平均',e_all/len(tutumimono),'億円')
 
 
 def fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_homeward_data,exchange_rate_data,demand_data,supply_data,newbuilding_data,secondhand_data):
@@ -54,7 +54,7 @@ def fitness_function(TIME,oil_price_data,freight_rate_outward_data,freight_rate_
                 current_newbuilding = newbuilding_data[pattern][year*12+month]['price']
                 current_secondhand = secondhand_data[pattern][year*12+month]['price']
                 if year*12+month == TIME:
-                    #cash_flow += ship.buy_new_ship(current_newbuilding,1)
+                    cash_flow += ship.buy_new_ship(current_newbuilding,1)
                     cash_flow += ship.buy_secondhand_ship(current_secondhand,1)
                     f_sunc += current_freight_rate_outward
                     number += 1

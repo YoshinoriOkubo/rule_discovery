@@ -24,8 +24,26 @@ def convert2to10_in_list(list):
     else:
         return None
 
-def export_rules_integrate_csv(list):
-    path = '../output/rule-discovered/rule.csv'
+def export_dictionary(dic):
+    path = '../output/rule-discovered/dictionary.csv'
+    with open(path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['key','profit','variance'])
+    with open(path, 'a') as f:
+        writer = csv.writer(f)
+        for k, v in dic.items():
+            row = []
+            row.append('a'+str(k))
+            row.append(v[0])
+            row.append(v[1])
+            writer.writerow(row)
+
+
+def export_rules_integrate_csv(list,number=None):
+    if number is None:
+        path = '../output/rule-discovered/rule.csv'
+    else:
+        path = '../output/rule-discovered/rule_at_{}.csv'.format(number)
     with open(path, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(['a','b','c','d','e','f','g','h','i','j'])

@@ -105,7 +105,7 @@ class GA_Trade:
                     rule_string = self.return_rule_str(rule)
                     self.fitness_dictionary[rule_string] = copy.deepcopy([rule[-1][0],rule[-1][1]])
                     population.append(copy.deepcopy(rule))
-        for num in range(self.population_size-len(candidate)**3):
+        for num in range(self.population_size):#-len(candidate)**3):
             rule_random = []
             for trade in range(DEFAULT_NUM_OF_ACTION_INTEGRATE):
                 rule_random.append([])
@@ -413,6 +413,10 @@ class GA_Trade:
             #if gene > 1000 and self.check_convergence(self.bestpopulation,500):
             #    break
             time_record.append(time.time()-first)
+
+            if gene % 1000 == 0:
+                export_rules_integrate_csv(self.population,gene)
+                export_dictionary(self.fitness_dictionary)
 
         x = range(self.generation+1)
         plt.plot(x,time_record)

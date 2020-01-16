@@ -110,7 +110,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
     Record = []
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         fitness = 0
-        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE)
+        ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,100)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
             if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
@@ -155,7 +155,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
             cash_flow *= exchange_data[pattern][year*12+11]['price']
             fitness += cash_flow / DISCOUNT
         fitness /= HUNDRED_MILLION
-        fitness /= SCALING
+        #fitness /= SCALING
         Record.append(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]

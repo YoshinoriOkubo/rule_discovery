@@ -25,8 +25,8 @@ def depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,dem
                 fig.add_subplot(3, 3, 9)])
     list3 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand','cash data']
     list4 = [59.29,1250,810,119.8,10.65,5103,(1+INDIRECT_COST)*66472628.1,(1+INDIRECT_COST)*42139681.02,0]
-    list5 = [0,0,500,0,0,0,0,0,-20*10**7]
-    list6 = [200,2000,1250,200,200,10000,10*10**7,10*10**7,20*10**7]
+    list5 = [0,0,500,0,0,0,0,0,-100*10**7]
+    list6 = [200,2000,1250,200,200,10000,10*10**7,10*10**7,100*10**7]
     for (data,ax,name,start,lower,upper) in zip(list1,list2,list3,list4,list5,list6):
         x, y = [-1], [start]
         if time > x_length:
@@ -74,6 +74,7 @@ def adapt_rule(oil_price,freight,exchange,own_ship,rule,ship):
 def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,time_step):
     Record = []
     cash_data = []
+    cash_in_yen = 0
     for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
         cash_data.append([{'price':0}])
         fitness = 0
@@ -115,10 +116,18 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
 def main():
     time_step = 1
     oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario(TEST_DATA_SET)
+    '''
+    for i in range(100):
+        current_oil = oil_data[0][i]['price']
+        current_demand = demand_data[0][i]['price']
+        current_supply = supply_data[0][i]['price']
+        print(F_OUTWARD_INCLINATION_OIL*current_oil)
+        print(F_OUTWARD_INCLINATION_DEMAND*current_demand/current_supply)
+        print(F_OUTWARD_INTERCEPT)
+    sys.exit()
+    '''
     e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,time_step)
     print('profit = ',e)
 
 if __name__ == "__main__":
     main()
-    #input_line1 = input()
-    #print(input_line1 + " is written")
