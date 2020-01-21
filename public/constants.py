@@ -42,7 +42,7 @@ WITHIN_FIF = 570#number of vessel between 10 and 15 years
 "Profit calculation parameter"
 VESSEL_LIFE_TIME         = 15#year
 PAYBACK_PERIOD = 15
-DEFAULT_PREDICT_YEARS    = VESSEL_LIFE_TIME+PAYBACK_PERIOD + ORDER_TIME
+DEFAULT_PREDICT_YEARS    = VESSEL_LIFE_TIME + PAYBACK_PERIOD + int(ORDER_TIME/12)
 DISCOUNT_RATE = 0.06
 CHARTER_TIME = 12
 RISK_PREMIUM = 0.95
@@ -67,7 +67,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.6
 TIME_STEP = 3#every time step, make decision on purchase and sell
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 1, 'generation':10, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern': 20, 'generation':50, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']

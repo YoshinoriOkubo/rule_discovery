@@ -36,7 +36,7 @@ def main():
         export_statistical_feature(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
         export_scenario_csv(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
         depict_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
-        depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
+        #depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
         depict_distribution(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship)
 
     print(time.time()-start)

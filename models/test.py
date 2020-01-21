@@ -222,7 +222,7 @@ class Test:
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
-                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
+                    cash_flow += ship.calculate_income_per_time_step_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']

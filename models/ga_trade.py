@@ -218,7 +218,7 @@ class GA_Trade:
                     if ship.charter_flag == True:
                         cash_flow += ship.charter()
                         ship.end_charter()
-                    cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
+                    cash_flow += ship.calculate_income_per_time_step_month(current_oil_price,total_freight,current_demand,current_supply)
                     cash_flow += ship.add_age()
                 DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
                 cash_flow *= self.exchange_rate_data[pattern][year*12+11]['price']
@@ -386,6 +386,7 @@ class GA_Trade:
                 else:
                     tutumimono.append([copy.deepcopy(self.temp[individual_index]),individual_index])
             #tutumimono = [[self.temp[individual_number], individual_number] for individual_number in range(self.population_size*2)]
+            '''
             with Pool(num_pool) as pool:
                 p = pool.map(self.wrapper_process, tutumimono)
                 #for index in range(self.population_size*2):
@@ -404,7 +405,7 @@ class GA_Trade:
                     self.temp[index][-1][0] = e
                     self.temp[index][-1][1] = sigma
                     self.fitness_dictionary[rule_string] = [e,sigma]
-            '''
+            #'''
             #selection
             self.selection(gene)
 

@@ -70,7 +70,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                                 cash_flow += ship.buy_new_ship(current_newbuilding,result[1])
                             elif strategy == 1:
                                 cash_flow += ship.buy_secondhand_ship(current_secondhand,result[1])
-                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply)
+                cash_flow += ship.calculate_income_per_time_step_month(current_oil_price,total_freight,current_demand,current_supply)
                 cash_flow += ship.add_age()
                 if year == PAYBACK_PERIOD - 1 and month == 11:
                     average_ship_number += ship.total_number

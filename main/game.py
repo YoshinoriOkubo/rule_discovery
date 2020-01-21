@@ -102,7 +102,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                     #cash_flow += ship.buy_secondhand_ship(secondhand_data[pattern][time]['price'],time,number)
                 elif month == 11:
                     depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time)
-                cash_flow += ship.calculate_income_per_month(current_oil_price,total_freight,current_demand,current_supply,time_step)
+                cash_flow += ship.calculate_income_per_time_step_month(current_oil_price,total_freight,current_demand,current_supply,time_step)
                 cash_flow += ship.add_age(time_step)
                 cash_data[pattern].append({'price':cash_data[pattern][year*12]['price'] + cash_flow/((1 + DISCOUNT_RATE) ** (year + 1))})
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)

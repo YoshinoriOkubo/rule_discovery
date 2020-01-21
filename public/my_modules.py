@@ -291,31 +291,33 @@ def export_scenario_csv(sign,oil,freight_outward,freight_homeward,exchange,deman
 
 def depict_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
-    list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    list2 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand ship']
     down = [0,0,0,0,0,0,0,0]
+    unit1 = ['($/barrel)','($/TEU)','($/TEU)','(JPY/$)','','(ships)','($)','($)']
     up = [200,2500,1500,250,250,10000,150*10**6,150*10**6]
-    for (data, name,d,u) in zip(list1,list2,down,up):
+    for (data, name,d,u,unit) in zip(list1,list2,down,up,unit1):
         x = range(data.predict_years*12)
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             y = []
             for time in range(data.predict_years*12):
                 y.append(data.predicted_data[pattern][time]['price'])
             plt.plot(x, y)#,label='pattern {}'.format(pattern+1))
-        plt.title('Transition of {}'.format(name), fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel(name, fontsize = 16)
+        #plt.title('Transition of {}'.format(name), fontsize = 20)
+        plt.xlabel('month', fontsize = 10)
+        plt.ylabel('{0} {1}'.format(name,unit), fontsize = 10)
         plt.ylim(d,u)
-        plt.grid(True)
+        #plt.grid(True)
         save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}.png'.format(name)))
         plt.close()
 
 def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
-    list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    list2 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand ship']
     down = [0,0,0,0,0,0,0,0]
+    unit1 = ['($/barrel)','($/TEU)','($/TEU)','(JPY/$)','','(ships)','($)','($)']
     up = [200,2500,1500,250,250,10000,150*10**6,150*10**6]
-    for (data, name, d, u) in zip(list1,list2,down,up):
+    for (data, name, d, u,unit) in zip(list1,list2,down,up,unit1):
         orignal_length = len(data.monthly_history_data)
         length_sum = DEFAULT_PREDICT_YEARS*12+orignal_length
         x = range(length_sum)
@@ -327,29 +329,30 @@ def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,dem
                 else:
                     y.append(data.predicted_data[pattern][time-orignal_length]['price'])
             plt.plot(x, y)
-        plt.title('Transition of {}'.format(name), fontsize = 20)
-        plt.xlabel('month', fontsize = 16)
-        plt.ylabel(name, fontsize = 16)
+        #plt.title('Transition of {}'.format(name), fontsize = 20)
+        plt.xlabel('month', fontsize = 10)
+        plt.ylabel('{0} {1}'.format(name,unit), fontsize = 10)
         plt.ylim(d,u)
-        plt.grid(True)
+        #plt.grid(True)
         save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}_scenario_whole_time.png'.format(name)))
         plt.close()
 
 def depict_distribution(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
-    list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
+    list2 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship price','secondhand ship price']
+    unit1 = ['($/barrel)','($/TEU)','($/TEU)','(JPY/$)','','(ships)','($)','($)']
     list3 = [0,0,0,0,0,0,0,0]
     list4 = [150,2500,1500,250,200,10000,150*10**6,150*10**6]
-    for type,name,down,up in zip(list1,list2,list3,list4):
+    for type,name,down,up, unit in zip(list1,list2,list3,list4,unit1):
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(DEFAULT_PREDICT_YEARS * 12):
                 data.append(type.predicted_data[pattern][time]['price'])
         plt.hist(data,bins=20,range=(down, up))
-        plt.xlabel('{} value'.format(name))
-        plt.ylabel('Frequency')
-        plt.title('{} value in generated scenario'.format(name))
+        plt.xlabel('{0} {1}'.format(name,unit), fontsize = 10)
+        plt.ylabel('Frequency', fontsize = 10)
+        #plt.title('{} value in generated scenario'.format(name))
         save_dir = '../output/{}/image'.format(sign)
         plt.savefig(os.path.join(save_dir, '{}_distribution.png'.format(name)))
         plt.close()
