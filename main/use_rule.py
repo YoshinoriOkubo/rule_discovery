@@ -113,7 +113,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
         ship = Ship(TEU_SIZE,INITIAL_SPEED,ROUTE_DISTANCE,100)
         for year in range(DEFAULT_PREDICT_YEARS):
             cash_flow = 0
-            if year >= PAYBACK_PERIOD and ship.exist_number <= 0:
+            if year >= PAYBACK_PERIOD and ship.exist_number + ship.order_number<= 0:
                     break
             for month in range(0,12,TIME_STEP):
                 current_oil_price = oil_data[pattern][year*12+month]['price']
@@ -157,6 +157,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
         fitness /= HUNDRED_MILLION
         #fitness /= SCALING
         Record.append(fitness)
+        print(fitness)
     e, sigma = calc_statistics(Record)
     return [e,sigma]
 

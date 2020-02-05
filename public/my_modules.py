@@ -234,7 +234,7 @@ def export_statistical_feature(sign,oil,freight_outward,freight_homeward,exchang
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil_price','freight_outward','freight_homeward','exchange_rate','ship_demand','ship_supply','new_ship','secondhand_ship']
     list3 = [0,0,0,0,0,0,0,0]
-    list4 = [150,2000,2000,250,20,10000,150*10**6,150*10**6]
+    list4 = [150,2000,2000,250,20,30000,150*10**6,150*10**6]
     statistical_feature = []
     number = 0
     for type,name,down,up in zip(list1,list2,list3,list4):
@@ -243,7 +243,10 @@ def export_statistical_feature(sign,oil,freight_outward,freight_homeward,exchang
         data_modifyed = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(DEFAULT_PREDICT_YEARS * 12):
-                data.append(type.predicted_data[pattern][time]['price'])
+                if type == supply:
+                    data.append(type.predicted_data[pattern][time]['price']*3.555)
+                else:
+                    data.append(type.predicted_data[pattern][time]['price'])
                 if type.predicted_data[pattern][time]['price'] < up:
                     data_modifyed.append(type.predicted_data[pattern][time]['price'])
         dictionary_data = statistical_feature[number]
@@ -315,8 +318,8 @@ def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,dem
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship','secondhand ship']
     down = [0,0,0,0,0,0,0,0]
-    unit1 = ['($/barrel)','($/TEU)','($/TEU)','(JPY/$)','','(ships)','($)','($)']
-    up = [200,2500,1500,250,250,10000,150*10**6,150*10**6]
+    unit1 = ['(USD/barrel)','(USD/TEU)','(USD/TEU)','(yen/USD)','','(ships)','(USD)','(USD)']
+    up = [200,2500,1500,250,250,30000,150*10**6,150*10**6]
     for (data, name, d, u,unit) in zip(list1,list2,down,up,unit1):
         orignal_length = len(data.monthly_history_data)
         length_sum = DEFAULT_PREDICT_YEARS*12+orignal_length
@@ -327,7 +330,10 @@ def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,dem
                 if time < orignal_length:
                     y.append(data.monthly_history_data[time]['price'])
                 else:
-                    y.append(data.predicted_data[pattern][time-orignal_length]['price'])
+                    if data == supply:
+                        y.append(data.predicted_data[pattern][time-orignal_length]['price']*3.555)
+                    else:
+                        y.append(data.predicted_data[pattern][time-orignal_length]['price'])
             plt.plot(x, y)
         #plt.title('Transition of {}'.format(name), fontsize = 20)
         plt.xlabel('month', fontsize = 10)
@@ -341,14 +347,17 @@ def depict_whole_scenario(sign,oil,freight_outward,freight_homeward,exchange,dem
 def depict_distribution(sign,oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship):
     list1 = [oil,freight_outward,freight_homeward,exchange,demand,supply,new_ship,secondhand_ship]
     list2 = ['oil price','freight outward','freight homeward','exchange rate','ship demand','ship supply','new ship price','secondhand ship price']
-    unit1 = ['($/barrel)','($/TEU)','($/TEU)','(JPY/$)','','(ships)','($)','($)']
+    unit1 = ['(USD/barrel)','(USD/TEU)','(USD/TEU)','(yen/USD)','','(ships)','(USD)','(USD)']
     list3 = [0,0,0,0,0,0,0,0]
-    list4 = [150,2500,1500,250,200,10000,150*10**6,150*10**6]
+    list4 = [150,2500,1500,250,200,30000,150*10**6,150*10**6]
     for type,name,down,up, unit in zip(list1,list2,list3,list4,unit1):
         data = []
         for pattern in range(DEFAULT_PREDICT_PATTERN_NUMBER):
             for time in range(DEFAULT_PREDICT_YEARS * 12):
-                data.append(type.predicted_data[pattern][time]['price'])
+                if type == supply:
+                    data.append(type.predicted_data[pattern][time]['price']*3.555)
+                else:
+                    data.append(type.predicted_data[pattern][time]['price'])
         plt.hist(data,bins=20,range=(down, up))
         plt.xlabel('{0} {1}'.format(name,unit), fontsize = 10)
         plt.ylabel('Frequency', fontsize = 10)
