@@ -423,5 +423,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    slack = slackweb.Slack(url="############")
     slack.notify(text="program end!!!!!!!!!")
