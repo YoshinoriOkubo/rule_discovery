@@ -67,7 +67,7 @@ LOAD_FACTOR_EUROPE_TO_ASIA = 0.55 * 0.6
 TIME_STEP = 3#every time step, make decision on purchase and sell
 
 "GA parameter"
-GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern':20, 'generation':50, 'population_size':100}
+GENETIC_ALGORITHM_PARAMETER = {'scenario_pattern':1, 'generation':50, 'population_size':100}
 DEFAULT_PREDICT_PATTERN_NUMBER = GENETIC_ALGORITHM_PARAMETER['scenario_pattern']
 DEFAULT_GENERATION = GENETIC_ALGORITHM_PARAMETER['generation']
 DEFAULT_POPULATION_SIZE = GENETIC_ALGORITHM_PARAMETER['population_size']
@@ -90,7 +90,8 @@ elif DEFAULT_NUM_OF_BIT == 4:
     OWN_SHIP_LIST = [DO_NOT_CARE,0,10,20,30,40,50,60,70,80,90,100,110,120,130,140]
 FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST = make_condition_options()
 CONVERT_LIST = [OIL_PRICE_LIST,FREIGHT_RATE_LIST,EXCHANGE_RATE_LIST,OWN_SHIP_LIST,FREIGHT_RATE_LIST]#the list for condition part
-FREIGHT_PREV = [2000,1640,1210,1390,1580,1540,1570,1540,1280,1070,1140,1250]#for calculating average freight of past ten months
+OIL_PREV = [104.67,106.57,106.29,100.54,93.86,97.63,94.62,100.82,100.8,102.07,102.18,105.79,103.59,96.54,93.21,84.4,75.79,59.29]
+FREIGHT_PREV = [1560,1670,1360,1010,1390,1770,2000,1640,1210,1390,1580,1540,1570,1540,1280,1070,1140,1250]#for calculating average freight of past ten months
 #for vessel speed optimaization
 VESSEL_SPEED_LIST = [13,14,15,16,17,18,19,20,21,22,23,24,25,26]
 #for action part
